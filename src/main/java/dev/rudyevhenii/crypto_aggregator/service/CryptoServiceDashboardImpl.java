@@ -2,6 +2,7 @@ package dev.rudyevhenii.crypto_aggregator.service;
 
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoDashboardDto;
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
+import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.CryptoExchangeStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,15 +20,15 @@ public class CryptoServiceDashboardImpl implements CryptoDashboardService {
     private final List<CryptoExchangeStrategy> cryptoStrategies;
 
     @Override
-    public Flux<CryptoDashboardDto> streamCryptoPrices() {
+    public Flux<CryptoDashboardDto> streamCryptoPrices(TradingPair symbol) {
         return Flux.interval(Duration.ofSeconds(3))
-                .flatMap(tick -> collectPrices())
+                .flatMap(tick -> collectPrices(symbol))
                 .map(this::toDashboardBuilder);
     }
 
-    private Mono<List<CryptoPriceDto>> collectPrices() {
+    private Mono<List<CryptoPriceDto>> collectPrices(TradingPair symbol) {
         return Flux.fromIterable(cryptoStrategies)
-                .flatMap(strategy -> strategy.streamPrice()
+                .flatMap(strategy -> strategy.streamPrice(symbol)
                         .onErrorResume(error -> Mono.empty()))
                 .collectList();
     }

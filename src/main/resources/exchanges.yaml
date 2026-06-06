@@ -1,0 +1,38 @@
+crypto:
+  exchanges:
+    binance:
+      symbols:
+        BTC_USD: "BTCUSDT"
+        ETH_USD: "ETHUSDT"
+        SOL_USD: "SOLUSDT"
+        ADA_USD: "ADAUSDT"
+        XRP_USD: "XRPUSDT"
+        DOT_USD: "DOTUSDT"
+        DOGE_USD: "DOGEUSDT"
+        LINK_USD: "LINKUSDT"
+        LTC_USD: "LTCUSDT"
+        AVAX_USD: "AVAXUSDT"
+    coinbase:
+      symbols:
+        BTC_USD: "BTC-USD"
+        ETH_USD: "ETH-USD"
+        SOL_USD: "SOL-USD"
+        ADA_USD: "ADA-USD"
+        XRP_USD: "XRP-USD"
+        DOT_USD: "DOT-USD"
+        DOGE_USD: "DOGE-USD"
+        LINK_USD: "LINK-USD"
+        LTC_USD: "LTC-USD"
+        AVAX_USD: "AVAX-USD"
+    kraken:
+      symbols:
+        BTC_USD: "XBTUSD"
+        ETH_USD: "ETHUSD"
+        SOL_USD: "SOLUSD"
+        ADA_USD: "ADAUSD"
+        XRP_USD: "XRPUSD"
+        DOT_USD: "DOTUSD"
+        DOGE_USD: "XDGUSD"
+        LINK_USD: "LINKUSD"
+        LTC_USD: "LTCUSD"
+        AVAX_USD: "AVAXUSD"

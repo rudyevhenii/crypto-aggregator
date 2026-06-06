@@ -1,3 +1,5 @@
 spring:
   application:
     name: crypto-aggregator
+  config:
+    import: classpath:exchanges.yaml

@@ -3,7 +3,8 @@ package dev.rudyevhenii.crypto_aggregator.service.strategy;
 import dev.rudyevhenii.crypto_aggregator.dto.CoinbaseResponse;
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
-import dev.rudyevhenii.crypto_aggregator.enums.Symbol;
+import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.properties.CoinbaseProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,21 +16,29 @@ import java.time.Instant;
 public class CoinbaseExchangeStrategy extends AbstractCryptoExchangeStrategy {
 
     private static final Exchange EXCHANGE_NAME = Exchange.COINBASE;
+    private static final String BASE_URI = "/v2/prices/%s/spot";
 
-    public CoinbaseExchangeStrategy(@Qualifier("coinbaseWebClient") WebClient webClient) {
+    private final CoinbaseProperties properties;
+
+    public CoinbaseExchangeStrategy(@Qualifier("coinbaseWebClient") WebClient webClient,
+                                    CoinbaseProperties properties) {
         super(webClient, EXCHANGE_NAME);
+        this.properties = properties;
     }
 
     @Override
-    public Mono<CryptoPriceDto> streamPrice() {
-        return executeFetch("/v2/prices/BTC-USD/spot",
-                CoinbaseResponse.class, this::toCryptoPriceBuilder);
+    public Mono<CryptoPriceDto> streamPrice(TradingPair tradingPair) {
+        String symbol = properties.symbols().get(tradingPair);
+
+        return executeFetch(BASE_URI.formatted(symbol),
+                CoinbaseResponse.class,
+                response -> toCryptoPriceBuilder(response, tradingPair));
     }
 
-    private CryptoPriceDto toCryptoPriceBuilder(CoinbaseResponse res) {
+    private CryptoPriceDto toCryptoPriceBuilder(CoinbaseResponse res, TradingPair tradingPair) {
         return CryptoPriceDto.builder()
                 .exchange(getExchangeType())
-                .symbol(Symbol.BTCUSDT)
+                .tradingPair(tradingPair)
                 .price(res.data().price())
                 .timestamp(Instant.now())
                 .build();

@@ -12,11 +12,11 @@ import java.util.function.Function;
 public abstract class AbstractCryptoExchangeStrategy implements CryptoExchangeStrategy {
 
     private final WebClient webClient;
-    private final Exchange exchangeName;
+    private final Exchange exchange;
 
-    protected AbstractCryptoExchangeStrategy(WebClient webClient, Exchange exchangeName) {
+    protected AbstractCryptoExchangeStrategy(WebClient webClient, Exchange exchange) {
         this.webClient = webClient;
-        this.exchangeName = exchangeName;
+        this.exchange = exchange;
     }
 
     protected <T> Mono<CryptoPriceDto> executeFetch(String uri, Class<T> responseClass,
@@ -26,7 +26,7 @@ public abstract class AbstractCryptoExchangeStrategy implements CryptoExchangeSt
                 .retrieve()
                 .bodyToMono(responseClass)
                 .doOnError(error -> log.warn("Exception occurred while fetching price from {}: {}",
-                        exchangeName.name(), error.getMessage()))
+                        exchange.name(), error.getMessage()))
                 .map(mapper);
     }
 }

@@ -1,7 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.dto;
 
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
-import dev.rudyevhenii.crypto_aggregator.enums.Symbol;
+import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +16,7 @@ import java.time.Instant;
 @Builder
 public class CryptoPriceDto {
     private Exchange exchange;
-    private Symbol symbol;
+    private TradingPair tradingPair;
     private BigDecimal price;
     private Instant timestamp;
 }
