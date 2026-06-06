@@ -1,9 +1,9 @@
 package dev.rudyevhenii.crypto_aggregator.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.math.BigDecimal;
 
-public record BinanceResponse(
-        String symbol,
-        BigDecimal price
-) {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record BinanceResponse(BigDecimal price) {
 }

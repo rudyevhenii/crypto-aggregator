@@ -11,12 +11,12 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 
 @Component
-public class BinanceStrategy implements CryptoExchangeStrategy {
+public class BinanceExchangeStrategy implements CryptoExchangeStrategy {
 
     private static final String BINANCE_URL = "https://api.binance.com";
     private final WebClient webClient;
 
-    public BinanceStrategy(WebClient.Builder builder) {
+    public BinanceExchangeStrategy(WebClient.Builder builder) {
         this.webClient = builder
                 .baseUrl(BINANCE_URL)
                 .build();
@@ -28,13 +28,14 @@ public class BinanceStrategy implements CryptoExchangeStrategy {
                 .uri("/api/v3/ticker/price?symbol=BTCUSDT")
                 .retrieve()
                 .bodyToMono(BinanceResponse.class)
+                .log()
                 .map(this::toCryptoPriceBuilder);
     }
 
     private CryptoPriceDto toCryptoPriceBuilder(BinanceResponse res) {
         return CryptoPriceDto.builder()
                 .exchange(getExchangeType())
-                .symbol(Symbol.valueOf(res.symbol()))
+                .symbol(Symbol.BTCUSDT)
                 .price(res.price())
                 .timestamp(Instant.now())
                 .build();
