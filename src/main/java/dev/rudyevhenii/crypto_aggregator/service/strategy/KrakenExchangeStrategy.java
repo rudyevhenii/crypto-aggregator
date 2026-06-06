@@ -4,6 +4,7 @@ import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.KrakenResponse;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.Symbol;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -12,25 +13,18 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Component
-public class KrakenExchangeStrategy implements CryptoExchangeStrategy {
+public class KrakenExchangeStrategy extends AbstractCryptoExchangeStrategy {
 
-    private static final String KRAKEN_URL = "https://api.kraken.com";
-    private final WebClient webClient;
+    private static final Exchange EXCHANGE_NAME = Exchange.KRAKEN;
 
-    public KrakenExchangeStrategy(WebClient.Builder builder) {
-        this.webClient = builder
-                .baseUrl(KRAKEN_URL)
-                .build();
+    public KrakenExchangeStrategy(@Qualifier("krakenWebClient") WebClient webClient) {
+        super(webClient, EXCHANGE_NAME);
     }
 
     @Override
     public Mono<CryptoPriceDto> streamPrice() {
-        return webClient.get()
-                .uri("/0/public/Ticker?pair=XBTUSD")
-                .retrieve()
-                .bodyToMono(KrakenResponse.class)
-                .log()
-                .map(this::toCryptoPriceBuilder);
+        return executeFetch("/0/public/Ticker?pair=XBTUSD",
+                KrakenResponse.class, this::toCryptoPriceBuilder);
     }
 
     private CryptoPriceDto toCryptoPriceBuilder(KrakenResponse res) {
@@ -47,6 +41,6 @@ public class KrakenExchangeStrategy implements CryptoExchangeStrategy {
 
     @Override
     public Exchange getExchangeType() {
-        return Exchange.KRAKEN;
+        return EXCHANGE_NAME;
     }
 }

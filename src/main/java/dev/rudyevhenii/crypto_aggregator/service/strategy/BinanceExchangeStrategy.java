@@ -4,6 +4,7 @@ import dev.rudyevhenii.crypto_aggregator.dto.BinanceResponse;
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.Symbol;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -11,25 +12,18 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 
 @Component
-public class BinanceExchangeStrategy implements CryptoExchangeStrategy {
+public class BinanceExchangeStrategy extends AbstractCryptoExchangeStrategy {
 
-    private static final String BINANCE_URL = "https://api.binance.com";
-    private final WebClient webClient;
+    private static final Exchange EXCHANGE_NAME = Exchange.BINANCE;
 
-    public BinanceExchangeStrategy(WebClient.Builder builder) {
-        this.webClient = builder
-                .baseUrl(BINANCE_URL)
-                .build();
+    public BinanceExchangeStrategy(@Qualifier("binanceWebClient") WebClient webClient) {
+        super(webClient, EXCHANGE_NAME);
     }
 
     @Override
     public Mono<CryptoPriceDto> streamPrice() {
-        return webClient.get()
-                .uri("/api/v3/ticker/price?symbol=BTCUSDT")
-                .retrieve()
-                .bodyToMono(BinanceResponse.class)
-                .log()
-                .map(this::toCryptoPriceBuilder);
+        return executeFetch("/api/v3/ticker/price?symbol=BTCUSDT",
+                BinanceResponse.class, this::toCryptoPriceBuilder);
     }
 
     private CryptoPriceDto toCryptoPriceBuilder(BinanceResponse res) {
@@ -43,6 +37,6 @@ public class BinanceExchangeStrategy implements CryptoExchangeStrategy {
 
     @Override
     public Exchange getExchangeType() {
-        return Exchange.BINANCE;
+        return EXCHANGE_NAME;
     }
 }
