@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface CryptoExchangeStrategy {
 
-    Mono<CryptoPriceDto> streamPrice(TradingPair symbol);
+    Mono<CryptoPriceDto> streamPrice(TradingPair tradingPair);
 
     Exchange getExchangeType();
 }

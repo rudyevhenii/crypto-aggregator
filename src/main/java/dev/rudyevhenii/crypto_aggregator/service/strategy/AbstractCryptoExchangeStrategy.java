@@ -25,6 +25,7 @@ public abstract class AbstractCryptoExchangeStrategy implements CryptoExchangeSt
                 .uri(uri)
                 .retrieve()
                 .bodyToMono(responseClass)
+                .onErrorStop()
                 .doOnError(error -> log.warn("Exception occurred while fetching price from {}: {}",
                         exchange.name(), error.getMessage()))
                 .map(mapper);
