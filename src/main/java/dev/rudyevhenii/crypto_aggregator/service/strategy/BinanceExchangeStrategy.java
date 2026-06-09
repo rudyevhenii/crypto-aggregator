@@ -3,7 +3,7 @@ package dev.rudyevhenii.crypto_aggregator.service.strategy;
 import dev.rudyevhenii.crypto_aggregator.dto.BinanceResponse;
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
-import dev.rudyevhenii.crypto_aggregator.enums.ChartInterval;
+import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
@@ -25,8 +25,9 @@ public class BinanceExchangeStrategy extends AbstractCryptoExchangeStrategy {
     private static final ParameterizedTypeReference<List<List<Number>>> PARAMETERIZED_TYPE_REFERENCE
             = new ParameterizedTypeReference<>() {
     };
+
     private static final String TICKER_URI = "/api/v3/ticker/price?symbol=%s";
-    private static final String KLINES_URI = "/api/v3/klines?symbol=%s&interval=%s&startTime=%s&endTime=%s";
+    private static final String KLINES_URI = "/api/v3/klines?symbol=%s&interval=%s&endTime=%d&limit=%d";
 
     private final CryptoProperties properties;
 
@@ -46,14 +47,17 @@ public class BinanceExchangeStrategy extends AbstractCryptoExchangeStrategy {
     }
 
     @Override
-    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(TradingPair tradingPair,
-                                                                ChartInterval chartInterval,
-                                                                Instant startTime, Instant endTime) {
-        String symbol = getTradingPairCode(tradingPair);
-        String intervalCode = getExchangeIntervalCode(chartInterval);
+    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(HistoricalPriceRequest request) {
+        String symbol = getTradingPairCode(request.getTradingPair());
+        String intervalCode = getAndValidateExchangeInterval(request.getInterval());
 
-        return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalCode,
-                        startTime.toEpochMilli(), endTime.toEpochMilli()),
+        Instant cursor = request.getCursor() == null
+                ? Instant.now()
+                : request.getCursor().minusMillis(1);
+
+        long endTimeMillis = cursor.toEpochMilli();
+
+        return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalCode, endTimeMillis, request.getLimit()),
                 PARAMETERIZED_TYPE_REFERENCE,
                 this::toBinanceKlines);
     }
@@ -71,7 +75,7 @@ public class BinanceExchangeStrategy extends AbstractCryptoExchangeStrategy {
         return klines.stream()
                 .map(kline -> {
                     long timeInSeconds = kline.get(0).longValue();
-                    Instant openTime = Instant.ofEpochSecond(timeInSeconds);
+                    Instant openTime = Instant.ofEpochMilli(timeInSeconds);
 
                     return HistoricalPriceDto.builder()
                             .openTime(openTime)

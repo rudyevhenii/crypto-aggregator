@@ -2,6 +2,8 @@ package dev.rudyevhenii.crypto_aggregator.service;
 
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoDashboardDto;
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
+import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
+import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.CryptoExchangeStrategy;
@@ -47,6 +49,11 @@ public class CryptoServiceDashboardImpl implements CryptoDashboardService {
         return Flux.interval(Duration.ofSeconds(INTERVAL))
                 .flatMap(tick -> Flux.just(tradingPair)
                         .flatMap(pair -> fetchExchangePrices(exchangeStrategies.get(exchange), pair)));
+    }
+
+    @Override
+    public Mono<List<HistoricalPriceDto>> getHistoricalPrices(Exchange exchange, HistoricalPriceRequest request) {
+        return exchangeStrategies.get(exchange).fetchHistoricalPrices(request);
     }
 
     private Flux<CryptoDashboardDto> collectAllPrices() {

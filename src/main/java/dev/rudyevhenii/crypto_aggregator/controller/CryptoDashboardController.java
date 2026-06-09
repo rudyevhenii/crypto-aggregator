@@ -1,6 +1,8 @@
 package dev.rudyevhenii.crypto_aggregator.controller;
 
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoDashboardDto;
+import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
+import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.service.CryptoDashboardService;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,5 +58,15 @@ public class CryptoDashboardController {
     public Flux<CryptoDashboardDto> streamSinglePairOnExchange(@PathVariable Exchange exchange,
                                                                @PathVariable("pair") TradingPair tradingPair) {
         return cryptoDashboardService.streamSinglePairOnExchange(exchange, tradingPair);
+    }
+
+    @GetMapping("/history/exhange/{exchange}/pair/{pair}")
+    public Mono<List<HistoricalPriceDto>> streamHistoricalPricesOnExchange(
+            @PathVariable Exchange exchange,
+            @PathVariable("pair") TradingPair tradingPair,
+            HistoricalPriceRequest request
+    ) {
+        request.setTradingPair(tradingPair);
+        return cryptoDashboardService.getHistoricalPrices(exchange, request);
     }
 }

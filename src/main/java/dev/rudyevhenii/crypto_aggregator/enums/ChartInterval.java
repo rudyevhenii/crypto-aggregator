@@ -3,29 +3,33 @@ package dev.rudyevhenii.crypto_aggregator.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.Duration;
+
 @Getter
 @AllArgsConstructor
 public enum ChartInterval {
-    ONE_SECOND,
+    ONE_SECOND(Duration.ofSeconds(1)),
 
-    ONE_MINUTE,
-    THREE_MINUTES,
-    FIVE_MINUTES,
-    FIFTEEN_MINUTES,
-    THIRTY_MINUTES,
+    ONE_MINUTE(Duration.ofMinutes(1)),
+    THREE_MINUTES(Duration.ofMinutes(3)),
+    FIVE_MINUTES(Duration.ofMinutes(5)),
+    FIFTEEN_MINUTES(Duration.ofMinutes(15)),
+    THIRTY_MINUTES(Duration.ofMinutes(30)),
 
-    ONE_HOUR,
-    TWO_HOURS,
-    FOUR_HOURS,
-    SIX_HOURS,
-    EIGHT_HOURS,
-    TWELVE_HOURS,
+    ONE_HOUR(Duration.ofHours(1)),
+    TWO_HOURS(Duration.ofHours(2)),
+    FOUR_HOURS(Duration.ofHours(4)),
+    SIX_HOURS(Duration.ofHours(6)),
+    EIGHT_HOURS(Duration.ofHours(8)),
+    TWELVE_HOURS(Duration.ofHours(12)),
 
-    ONE_DAY,
-    THREE_DAYS,
-    FIFTEEN_DAYS,
+    ONE_DAY(Duration.ofDays(1)),
+    THREE_DAYS(Duration.ofDays(3)),
+    FIFTEEN_DAYS(Duration.ofDays(15)),
 
-    ONE_WEEK,
+    ONE_WEEK(Duration.ofDays(7)),
 
-    ONE_MONTH
+    ONE_MONTH(Duration.ofDays(30));
+
+    private final Duration duration;
 }

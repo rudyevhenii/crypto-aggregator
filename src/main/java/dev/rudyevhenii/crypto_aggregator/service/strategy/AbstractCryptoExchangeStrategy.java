@@ -62,7 +62,7 @@ public abstract class AbstractCryptoExchangeStrategy implements CryptoExchangeSt
                 .map(mapper);
     }
 
-    protected String getExchangeIntervalCode(ChartInterval chartInterval) {
+    protected String getAndValidateExchangeInterval(ChartInterval chartInterval) {
         String intervalCode = getExchangeProperties().chartInterval().get(chartInterval);
         if (intervalCode == null) {
             throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'".formatted(

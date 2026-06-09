@@ -3,10 +3,11 @@ package dev.rudyevhenii.crypto_aggregator.service.strategy;
 import dev.rudyevhenii.crypto_aggregator.dto.CoinbaseResponse;
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
-import dev.rudyevhenii.crypto_aggregator.enums.ChartInterval;
+import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -14,9 +15,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 @Component
 public class CoinbaseExchangeStrategy extends AbstractCryptoExchangeStrategy {
 
@@ -28,11 +32,14 @@ public class CoinbaseExchangeStrategy extends AbstractCryptoExchangeStrategy {
     private static final String TICKER_URI = "/v2/prices/%s/spot";
     private static final String KLINES_URI = "/products/%s/candles?granularity=%d&start=%s&end=%s";
 
+    private final WebClient exchangeWebClient;
     private final CryptoProperties properties;
 
-    public CoinbaseExchangeStrategy(@Qualifier("coinbaseWebClient") WebClient webClient,
+    public CoinbaseExchangeStrategy(@Qualifier("coinbaseRetailWebClient") WebClient retailWebClient,
+                                    @Qualifier("coinbaseExchangeWebClient") WebClient exchangeWebClient,
                                     CryptoProperties properties) {
-        super(webClient, EXCHANGE_NAME);
+        super(retailWebClient, EXCHANGE_NAME);
+        this.exchangeWebClient = exchangeWebClient;
         this.properties = properties;
     }
 
@@ -46,15 +53,26 @@ public class CoinbaseExchangeStrategy extends AbstractCryptoExchangeStrategy {
     }
 
     @Override
-    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(TradingPair tradingPair,
-                                                                ChartInterval chartInterval,
-                                                                Instant startTime, Instant endTime) {
-        String symbol = getTradingPairCode(tradingPair);
-        int intervalCode = Integer.parseInt(getExchangeIntervalCode(chartInterval));
+    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(HistoricalPriceRequest request) {
+        String symbol = getTradingPairCode(request.getTradingPair());
+        long intervalInSeconds = Long.parseLong(getAndValidateExchangeInterval(request.getInterval()));
 
-        return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalCode, startTime, endTime),
-                PARAMETERIZED_TYPE_REFERENCE,
-                this::toCoinbaseKlines);
+        Instant cursor = request.getCursor() == null
+                ? Instant.now()
+                : request.getCursor().minusMillis(1);
+
+        Duration intervalDuration = request.getInterval().getDuration();
+        long startTime = cursor.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());
+
+        return exchangeWebClient.get()
+                .uri(KLINES_URI.formatted(symbol, intervalInSeconds,
+                        Instant.ofEpochSecond(startTime), cursor))
+                .retrieve()
+                .bodyToMono(PARAMETERIZED_TYPE_REFERENCE)
+                .onErrorStop()
+                .doOnError(error -> log.warn("Exception occurred while fetching price from {}: {}",
+                        getExchangeType().name(), error.getMessage()))
+                .map(this::toCoinbaseKlines);
     }
 
     @Override
@@ -77,6 +95,7 @@ public class CoinbaseExchangeStrategy extends AbstractCryptoExchangeStrategy {
                             .volume(new BigDecimal(kline.get(5).toString()))
                             .build();
                 })
+                .sorted(Comparator.comparing(HistoricalPriceDto::openTime))
                 .toList();
     }
 

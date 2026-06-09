@@ -2,9 +2,9 @@ package dev.rudyevhenii.crypto_aggregator.service.strategy;
 
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
+import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.dto.KrakenOhlcResponse;
 import dev.rudyevhenii.crypto_aggregator.dto.KrakenResponse;
-import dev.rudyevhenii.crypto_aggregator.enums.ChartInterval;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 import tools.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,15 +47,20 @@ public class KrakenExchangeStrategy extends AbstractCryptoExchangeStrategy {
     }
 
     @Override
-    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(TradingPair tradingPair,
-                                                                ChartInterval chartInterval,
-                                                                Instant startTime, Instant endTime) {
-        String symbol = getTradingPairCode(tradingPair);
-        String intervalCode = getExchangeIntervalCode(chartInterval);
+    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(HistoricalPriceRequest request) {
+        String symbol = getTradingPairCode(request.getTradingPair());
+        String intervalInMinutes = getAndValidateExchangeInterval(request.getInterval());
 
-        return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalCode, startTime.getEpochSecond()),
+        Instant effectiveEntTime = request.getCursor() == null
+                ? Instant.now()
+                : request.getCursor().minusMillis(1);
+
+        Duration intervalDuration = request.getInterval().getDuration();
+        long startTime = effectiveEntTime.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());
+
+        return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalInMinutes, startTime),
                 KrakenOhlcResponse.class,
-                response -> toKrakenKlines(response, endTime));
+                response -> toKrakenKlines(response, effectiveEntTime));
     }
 
     @Override
@@ -62,7 +68,7 @@ public class KrakenExchangeStrategy extends AbstractCryptoExchangeStrategy {
         return properties;
     }
 
-    private List<HistoricalPriceDto> toKrakenKlines(KrakenOhlcResponse response, Instant endTime) {
+    private List<HistoricalPriceDto> toKrakenKlines(KrakenOhlcResponse response, Instant cursor) {
         JsonNode resultNode = response.result();
         JsonNode klinesArray = null;
 
@@ -81,7 +87,7 @@ public class KrakenExchangeStrategy extends AbstractCryptoExchangeStrategy {
             long timeInSeconds = kline.get(0).asLong();
             Instant openTime = Instant.ofEpochSecond(timeInSeconds);
 
-            if (openTime.isAfter(endTime)) {
+            if (openTime.isAfter(cursor)) {
                 continue;
             }
             klines.add(HistoricalPriceDto.builder()
