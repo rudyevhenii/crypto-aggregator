@@ -43,30 +43,18 @@ WebFlux / Reactive stack).
 ```json5
 [
   [
-    1672531200000,
-    // [0] Open Time (Мілісекунди, Long) -> Instant.ofEpochMilli(long)
-    "63100.00",
-    // [1] Open Price (Рядок -> new BigDecimal(String))
-    "63500.00",
-    // [2] High Price (Рядок -> new BigDecimal(String))
-    "62900.00",
-    // [3] Low Price (Рядок -> new BigDecimal(String))
-    "63400.00",
-    // [4] Close Price (Рядок -> new BigDecimal(String))
-    "125.45300000",
-    // [5] Volume (Рядок -> new BigDecimal(String))
-    1672534799999,
-    // [6] Close Time (Мілісекунди, Long) - Ігноруємо
-    "7953723.12",
-    // [7] Asset Volume (Ігноруємо)
-    3084,
-    // [8] Number of trades (Ігноруємо)
-    "62.11",
-    // [9] Taker buy base asset volume (Ігноруємо)
-    "3923.4",
-    // [10] Taker buy quote asset volume (Ігноруємо)
-    "0"
-    // [11] Unused field
+    1672531200000,   // [0] Open Time (Мілісекунди, Long) -> Instant.ofEpochMilli(long)
+    "63100.00",      // [1] Open Price (String -> BigDecimal)
+    "63500.00",      // [2] High Price (String -> BigDecimal)
+    "62900.00",      // [3] Low Price (String -> BigDecimal)
+    "63400.00",      // [4] Close Price (String -> BigDecimal)
+    "125.45300000",  // [5] Volume (String -> BigDecimal)
+    1672534799999,   // [6] Close Time (Мілісекунди, Long) — Ігноруємо
+    "7953723.12",    // [7] Asset Volume — Ігноруємо
+    3084,            // [8] Number of trades — Ігноруємо
+    "62.11",         // [9] Taker buy base asset volume — Ігноруємо
+    "3923.4",        // [10] Taker buy quote asset volume — Ігноруємо
+    "0"              // [11] Unused field
   ]
 ]
 ```
@@ -90,20 +78,6 @@ WebFlux / Reactive stack).
 * `start` (`String`): ISO 8601 рядок початку вибірки (`startTime.toString()`, приклад: `2026-06-10T12:00:00Z`).
 * `end` (`String`): ISO 8601 рядок кінця вибірки (`cursor.toString()`, приклад: `2026-06-10T14:00:00Z`).
 
-### ⚠️ Критичні пастки розробника (Coinbase Overlap & Sorting)
-
-1. **Ефект Дублювання:** Оскільки межі `start` та `end` є включними, якщо відправляти `cursor` у чистому вигляді,
-   Coinbase поверне свічку, яка вже є на фронтенді.
-    * **Рішення:** Зміщуйте курсор на 1 мілісекунду назад перед обчисленнями:
-      `Instant cursor = request.getCursor().minusMillis(1);`.
-2. **Проблема Паркану:** Формула розрахунку `startTime` не повинна містити декремент (`limit - 1`), оскільки зміщення
-   курсора на 1 мс вже відрізало верхній "стовп паркану". Формула:
-   `long startTime = cursor.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());`.
-3. **Зворотний порядок:** Найновіша свічка йде на початку відповіді. Для сумісності з бібліотеками графіків (наприклад,
-   TradingView) масив потрібно обов'язково розвернути у хронологічний порядок.
-    * **Рішення в Java Stream:** `.sorted(Comparator.comparing(HistoricalPriceDto::openTime))` перед термінальним
-      оператором `.toList()`.
-
 ### Структура відповіді (JSON)
 
 Повертає масив масивів. Увага: Найновіші свічки йдуть на початку масиву (Індекс [0] — це найсвіжіша свічка). Потрібне
@@ -112,18 +86,12 @@ WebFlux / Reactive stack).
 ```json5
 [
   [
-    1781179200,
-    // 0: Open Time (Секунди, Long) -> Потрібно Instant.ofEpochSecond()
-    61082.33,
-    // 1: Low Price (Number -> BigDecimal)
-    62568.00,
-    // 2: High Price (Number -> BigDecimal)
-    62262.01,
-    // 3: Open Price (Number -> BigDecimal)
-    61881.79,
-    // 4: Close Price (Number -> BigDecimal)
-    1918.66864234
-    // 5: Volume (Number -> BigDecimal)
+    1781179200,     // [0] Open Time (Секунди, Long) -> Instant.ofEpochSecond()
+    61082.33,       // [1] Low Price (Number -> BigDecimal)
+    62568.00,       // [2] High Price (Number -> BigDecimal)
+    62262.01,       // [3] Open Price (Number -> BigDecimal)
+    61881.79,       // [4] Close Price (Number -> BigDecimal)
+    1918.66864234   // [5] Volume (Number -> BigDecimal)
   ]
 ]
 ```
@@ -155,29 +123,19 @@ WebFlux / Reactive stack).
 {
   "error": [],
   "result": {
-    "XXBTZUSD": [
-      // Динамічний ключ (назва пари)
+    "XXBTZUSD": [                    // Динамічний ключ (назва пари)
       [
-        1672531200,
-        // 0: Open Time (Секунди, Long) -> Потрібно Instant.ofEpochSecond()
-        "63100.0",
-        // 1: Open Price (String -> BigDecimal)
-        "63500.0",
-        // 2: High Price (String -> BigDecimal)
-        "62900.0",
-        // 3: Low Price (String -> BigDecimal)
-        "63400.0",
-        // 4: Close Price (String -> BigDecimal)
-        "63250.5",
-        // 5: Vwap Price (Ігноруємо)
-        "125.453",
-        // 6: Volume (String -> BigDecimal)
-        432
-        // 7: Count (Кількість угод, Ігноруємо)
+        1672531200,   // [0] Open Time (Секунди, Long) -> Instant.ofEpochSecond()
+        "63100.0",    // [1] Open Price (String -> BigDecimal)
+        "63500.0",    // [2] High Price (String -> BigDecimal)
+        "62900.0",    // [3] Low Price (String -> BigDecimal)
+        "63400.0",    // [4] Close Price (String -> BigDecimal)
+        "63250.5",    // [5] VWAP Price — Ігноруємо
+        "125.453",    // [6] Volume (String -> BigDecimal)
+        432           // [7] Count (Кількість угод) — Ігноруємо
       ]
     ],
-    "last": 1672534800
-    // Timestamp останньої свічки (Секунди)
+    "last": 1672534800               // Timestamp останньої свічки (Секунди)
   }
 }
 ```
