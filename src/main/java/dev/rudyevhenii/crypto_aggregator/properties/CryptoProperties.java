@@ -12,7 +12,7 @@ public record CryptoProperties(
         Map<Exchange, ExchangeProperties> exchanges
 ) {
     public record ExchangeProperties(
-            Map<TradingPair, String> symbols,
+            Map<TradingPair, String> tradingPair,
             Map<ChartInterval, String> chartInterval
     ) {
     }

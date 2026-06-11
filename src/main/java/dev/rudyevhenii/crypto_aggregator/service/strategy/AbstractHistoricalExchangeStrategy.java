@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.function.Function;
 
 @Slf4j
-public abstract class AbstractCryptoExchangeStrategy implements CryptoExchangeStrategy {
+public abstract class AbstractHistoricalExchangeStrategy implements HistoricalExchangeStrategy {
 
     private final WebClient webClient;
     private final Exchange exchange;
 
-    protected AbstractCryptoExchangeStrategy(WebClient webClient, Exchange exchange) {
+    protected AbstractHistoricalExchangeStrategy(WebClient webClient, Exchange exchange) {
         this.webClient = webClient;
         this.exchange = exchange;
     }
@@ -76,6 +76,6 @@ public abstract class AbstractCryptoExchangeStrategy implements CryptoExchangeSt
     }
 
     protected String getTradingPairCode(TradingPair tradingPair) {
-        return getExchangeProperties().symbols().get(tradingPair);
+        return getExchangeProperties().tradingPair().get(tradingPair);
     }
 }

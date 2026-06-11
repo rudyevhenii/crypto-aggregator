@@ -1,12 +1,10 @@
-package dev.rudyevhenii.crypto_aggregator.service.strategy;
+package dev.rudyevhenii.crypto_aggregator.service.strategy.binance;
 
-import dev.rudyevhenii.crypto_aggregator.dto.BinanceResponse;
-import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
-import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
+import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractHistoricalExchangeStrategy;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -19,31 +17,20 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class BinanceExchangeStrategy extends AbstractCryptoExchangeStrategy {
+public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
     private static final Exchange EXCHANGE_NAME = Exchange.BINANCE;
     private static final ParameterizedTypeReference<List<List<Number>>> PARAMETERIZED_TYPE_REFERENCE
             = new ParameterizedTypeReference<>() {
     };
-
-    private static final String TICKER_URI = "/api/v3/ticker/price?symbol=%s";
     private static final String KLINES_URI = "/api/v3/klines?symbol=%s&interval=%s&endTime=%d&limit=%d";
 
     private final CryptoProperties properties;
 
-    public BinanceExchangeStrategy(@Qualifier("binanceWebClient") WebClient webClient,
-                                   CryptoProperties properties) {
+    public BinanceHistoricalExchangeStrategy(@Qualifier("binanceWebClient") WebClient webClient,
+                                             CryptoProperties properties) {
         super(webClient, EXCHANGE_NAME);
         this.properties = properties;
-    }
-
-    @Override
-    public Mono<CryptoPriceDto> streamPrice(TradingPair tradingPair) {
-        String symbol = getTradingPairCode(tradingPair);
-
-        return executeFetch(TICKER_URI.formatted(symbol),
-                BinanceResponse.class,
-                response -> toCryptoPriceBuilder(response, tradingPair));
     }
 
     @Override
@@ -60,11 +47,6 @@ public class BinanceExchangeStrategy extends AbstractCryptoExchangeStrategy {
         return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalCode, endTimeMillis, request.getLimit()),
                 PARAMETERIZED_TYPE_REFERENCE,
                 this::toBinanceKlines);
-    }
-
-    @Override
-    public CryptoProperties getCryptoProperties() {
-        return properties;
     }
 
     private List<HistoricalPriceDto> toBinanceKlines(List<List<Number>> klines) {
@@ -89,13 +71,9 @@ public class BinanceExchangeStrategy extends AbstractCryptoExchangeStrategy {
                 .toList();
     }
 
-    private CryptoPriceDto toCryptoPriceBuilder(BinanceResponse res, TradingPair tradingPair) {
-        return CryptoPriceDto.builder()
-                .exchange(getExchangeType())
-                .tradingPair(tradingPair)
-                .price(res.price())
-                .timestamp(Instant.now())
-                .build();
+    @Override
+    public CryptoProperties getCryptoProperties() {
+        return properties;
     }
 
     @Override

@@ -1,7 +1,7 @@
 crypto:
   exchanges:
     BINANCE:
-      symbols:
+      trading-pair:
         BTC_USD: "BTCUSDT"
         ETH_USD: "ETHUSDT"
         SOL_USD: "SOLUSDT"
@@ -30,7 +30,7 @@ crypto:
         ONE_WEEK: "1w"
         ONE_MONTH: "1M"
     COINBASE:
-      symbols:
+      trading-pair:
         BTC_USD: "BTC-USD"
         ETH_USD: "ETH-USD"
         SOL_USD: "SOL-USD"
@@ -49,7 +49,7 @@ crypto:
         SIX_HOURS: "21600"
         ONE_DAY: "86400"
     KRAKEN:
-      symbols:
+      trading-pair:
         BTC_USD: "XBTUSD"
         ETH_USD: "ETHUSD"
         SOL_USD: "SOLUSD"
