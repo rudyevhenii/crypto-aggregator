@@ -1,13 +1,11 @@
-package dev.rudyevhenii.crypto_aggregator.service.strategy;
+package dev.rudyevhenii.crypto_aggregator.service.strategy.kraken;
 
-import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.dto.KrakenOhlcResponse;
-import dev.rudyevhenii.crypto_aggregator.dto.KrakenResponse;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
-import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
+import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractHistoricalExchangeStrategy;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,28 +20,17 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class KrakenExchangeStrategy extends AbstractCryptoExchangeStrategy {
+public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
     private static final Exchange EXCHANGE_NAME = Exchange.KRAKEN;
-
-    private static final String TICKER_URI = "/0/public/Ticker?pair=%s";
     private static final String KLINES_URI = "/0/public/OHLC?pair=%s&interval=%s&since=%d";
 
     private final CryptoProperties properties;
 
-    public KrakenExchangeStrategy(@Qualifier("krakenWebClient") WebClient webClient,
-                                  CryptoProperties properties) {
+    public KrakenHistoricalExchangeStrategy(@Qualifier("krakenWebClient") WebClient webClient,
+                                            CryptoProperties properties) {
         super(webClient, EXCHANGE_NAME);
         this.properties = properties;
-    }
-
-    @Override
-    public Mono<CryptoPriceDto> streamPrice(TradingPair tradingPair) {
-        String symbol = getTradingPairCode(tradingPair);
-
-        return executeFetch(TICKER_URI.formatted(symbol),
-                KrakenResponse.class,
-                response -> toCryptoPriceBuilder(response, tradingPair));
     }
 
     @Override
@@ -61,11 +48,6 @@ public class KrakenExchangeStrategy extends AbstractCryptoExchangeStrategy {
         return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalInMinutes, startTime),
                 KrakenOhlcResponse.class,
                 response -> toKrakenKlines(response, effectiveEntTime));
-    }
-
-    @Override
-    public CryptoProperties getCryptoProperties() {
-        return properties;
     }
 
     private List<HistoricalPriceDto> toKrakenKlines(KrakenOhlcResponse response, Instant cursor) {
@@ -102,16 +84,9 @@ public class KrakenExchangeStrategy extends AbstractCryptoExchangeStrategy {
         return klines;
     }
 
-    private CryptoPriceDto toCryptoPriceBuilder(KrakenResponse res, TradingPair tradingPair) {
-        KrakenResponse.KrakenTicker ticker = res.result().values().iterator().next();
-        BigDecimal price = new BigDecimal(ticker.c().get(0));
-
-        return CryptoPriceDto.builder()
-                .exchange(getExchangeType())
-                .tradingPair(tradingPair)
-                .price(price)
-                .timestamp(Instant.now())
-                .build();
+    @Override
+    public CryptoProperties getCryptoProperties() {
+        return properties;
     }
 
     @Override
