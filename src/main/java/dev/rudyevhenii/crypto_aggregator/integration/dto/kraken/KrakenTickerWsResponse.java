@@ -1,4 +1,4 @@
-package dev.rudyevhenii.crypto_aggregator.dto;
+package dev.rudyevhenii.crypto_aggregator.integration.dto.kraken;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
