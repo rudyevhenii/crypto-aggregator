@@ -1,9 +1,9 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy.binance;
 
-import dev.rudyevhenii.crypto_aggregator.dto.BinanceTickerWsResponse;
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.integration.dto.binance.BinanceTickerWsResponse;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractLiveExchangeStrategy;
 import lombok.extern.slf4j.Slf4j;
@@ -50,14 +50,14 @@ public class BinanceLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
             BinanceTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, BinanceTickerWsResponse.class);
             TradingPair tradingPair = resolveTradingPair(response.tradingPair());
-            return toCryptoPriceBuilder(response, tradingPair);
+            return mapCryptoPrice(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Binance: {}", jsonPayload);
             return null;
         }
     }
 
-    private CryptoPriceDto toCryptoPriceBuilder(BinanceTickerWsResponse res, TradingPair tradingPair) {
+    private CryptoPriceDto mapCryptoPrice(BinanceTickerWsResponse res, TradingPair tradingPair) {
         return CryptoPriceDto.builder()
                 .exchange(getExchangeType())
                 .tradingPair(tradingPair)

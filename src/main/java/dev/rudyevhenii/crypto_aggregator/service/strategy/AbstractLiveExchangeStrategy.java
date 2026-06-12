@@ -43,7 +43,9 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     }
 
     protected abstract URI getWebSocketUri();
+
     protected abstract Mono<WebSocketMessage> createSubscribeMessage(WebSocketSession webSocketSession);
+
     protected abstract CryptoPriceDto parseMessage(String payload);
 
     @Override
@@ -58,7 +60,7 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     }
 
     @Override
-    public CryptoProperties getCryptoProperties() {
+    public CryptoProperties getProperties() {
         return properties;
     }
 
@@ -125,6 +127,6 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     }
 
     protected CryptoProperties.ExchangeProperties getExchangeProperties() {
-        return getCryptoProperties().exchanges().get(getExchangeType());
+        return getProperties().exchanges().get(getExchangeType());
     }
 }

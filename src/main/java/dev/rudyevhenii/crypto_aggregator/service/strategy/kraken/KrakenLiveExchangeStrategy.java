@@ -1,9 +1,9 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy.kraken;
 
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
-import dev.rudyevhenii.crypto_aggregator.dto.KrakenTickerWsResponse;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.integration.dto.kraken.KrakenTickerWsResponse;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractLiveExchangeStrategy;
 import lombok.extern.slf4j.Slf4j;
@@ -48,14 +48,14 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
             KrakenTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, KrakenTickerWsResponse.class);
             TradingPair tradingPair = resolveTradingPair(response.data().getFirst().tradingPair());
-            return toCryptoPriceBuilder(response, tradingPair);
+            return mapCryptoPrice(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Kraken: {}", jsonPayload);
             return null;
         }
     }
 
-    private CryptoPriceDto toCryptoPriceBuilder(KrakenTickerWsResponse res, TradingPair tradingPair) {
+    private CryptoPriceDto mapCryptoPrice(KrakenTickerWsResponse res, TradingPair tradingPair) {
         KrakenTickerWsResponse.KrakenTickerData tickerData = res.data().getFirst();
 
         return CryptoPriceDto.builder()

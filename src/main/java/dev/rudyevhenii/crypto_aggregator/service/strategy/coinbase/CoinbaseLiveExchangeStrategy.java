@@ -1,9 +1,9 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy.coinbase;
 
-import dev.rudyevhenii.crypto_aggregator.dto.CoinbaseTickerWsResponse;
 import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.integration.dto.coinbase.CoinbaseTickerWsResponse;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractLiveExchangeStrategy;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.kraken.KrakenSubscribeRequest;
@@ -50,14 +50,14 @@ public class CoinbaseLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
             CoinbaseTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, CoinbaseTickerWsResponse.class);
             TradingPair tradingPair = resolveTradingPair(response.tradingPair());
-            return toCryptoPriceBuilder(response, tradingPair);
+            return mapCryptoPrice(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Coinbase: {}", jsonPayload);
             return null;
         }
     }
 
-    private CryptoPriceDto toCryptoPriceBuilder(CoinbaseTickerWsResponse res, TradingPair tradingPair) {
+    private CryptoPriceDto mapCryptoPrice(CoinbaseTickerWsResponse res, TradingPair tradingPair) {
         return CryptoPriceDto.builder()
                 .exchange(getExchangeType())
                 .tradingPair(tradingPair)
