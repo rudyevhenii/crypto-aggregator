@@ -1,68 +1,71 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy;
 
-import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
+import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.enums.ChartInterval;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.exception.UnsupportedIntervalException;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
+import dev.rudyevhenii.crypto_aggregator.service.strategy.model.KlinesRequestContext;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.time.Instant;
 import java.util.List;
-import java.util.function.Function;
 
 @Slf4j
 public abstract class AbstractHistoricalExchangeStrategy implements HistoricalExchangeStrategy {
 
-    private final WebClient webClient;
     private final Exchange exchange;
+    private final CryptoProperties properties;
 
-    protected AbstractHistoricalExchangeStrategy(WebClient webClient, Exchange exchange) {
-        this.webClient = webClient;
+    protected AbstractHistoricalExchangeStrategy(Exchange exchange, CryptoProperties properties) {
         this.exchange = exchange;
+        this.properties = properties;
     }
 
-    protected <T> Mono<CryptoPriceDto> executeFetch(String uri, Class<T> responseClass,
-                                                    Function<T, CryptoPriceDto> mapper) {
-        return webClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(responseClass)
-                .onErrorStop()
-                .doOnError(error -> log.warn("Exception occurred while fetching price from {}: {}",
-                        exchange.name(), error.getMessage()))
-                .map(mapper);
+    protected abstract Instant calculateStartTimeCursor(HistoricalPriceRequest request, Instant endTimeCursor);
+
+    protected abstract URI getKlinesUri(String tradingPair);
+
+    protected abstract URI resolveKlinesUri(KlinesRequestContext context);
+
+    protected abstract Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context);
+
+    @Override
+    public CryptoProperties getProperties() {
+        return properties;
     }
 
-    protected <T> Mono<List<HistoricalPriceDto>> executeHistoricalFetch(String uri, Class<T> responseClass,
-                                                                        Function<T, List<HistoricalPriceDto>> mapper) {
-        return webClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(responseClass)
-                .onErrorStop()
-                .doOnError(error -> log.warn("Exception occurred while fetching price from {}: {}",
-                        exchange.name(), error.getMessage()))
-                .map(mapper);
+    @Override
+    public Mono<List<HistoricalPriceDto>> fetchHistoricalData(HistoricalPriceRequest request) {
+        String resolvedTradingPair = getTradingPairCode(request.getTradingPair());
+        String intervalCode = getExchangeInterval(request.getInterval());
+        Instant endTimeCursor = resolveEndTimeCursor(request);
+        Instant startTimeCursor = calculateStartTimeCursor(request, endTimeCursor);
+
+        KlinesRequestContext requestContext = KlinesRequestContext.builder()
+                .uri(getKlinesUri(resolvedTradingPair))
+                .tradingPair(resolvedTradingPair)
+                .intervalCode(intervalCode)
+                .endTimeCursor(endTimeCursor)
+                .startTimeCursor(startTimeCursor)
+                .originalRequest(request)
+                .build();
+
+        URI uri = resolveKlinesUri(requestContext);
+        return executeFetch(uri, requestContext);
     }
 
-    protected <T> Mono<List<HistoricalPriceDto>> executeHistoricalFetch(String uri, ParameterizedTypeReference<T> responseClass,
-                                                                        Function<T, List<HistoricalPriceDto>> mapper) {
-        return webClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(responseClass)
-                .onErrorStop()
-                .doOnError(error -> log.warn("Exception occurred while fetching price from {}: {}",
-                        exchange.name(), error.getMessage()))
-                .map(mapper);
+    private static Instant resolveEndTimeCursor(HistoricalPriceRequest request) {
+        return request.getCursor() == null
+                ? Instant.now()
+                : request.getCursor().minusMillis(1);
     }
 
-    protected String getAndValidateExchangeInterval(ChartInterval chartInterval) {
+    private String getExchangeInterval(ChartInterval chartInterval) {
         String intervalCode = getExchangeProperties().chartInterval().get(chartInterval);
         if (intervalCode == null) {
             throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'".formatted(
@@ -71,11 +74,11 @@ public abstract class AbstractHistoricalExchangeStrategy implements HistoricalEx
         return intervalCode;
     }
 
-    private CryptoProperties.ExchangeProperties getExchangeProperties() {
-        return getCryptoProperties().exchanges().get(getExchangeType());
+    private String getTradingPairCode(TradingPair tradingPair) {
+        return getExchangeProperties().tradingPair().get(tradingPair);
     }
 
-    protected String getTradingPairCode(TradingPair tradingPair) {
-        return getExchangeProperties().tradingPair().get(tradingPair);
+    private CryptoProperties.ExchangeProperties getExchangeProperties() {
+        return getProperties().exchanges().get(getExchangeType());
     }
 }

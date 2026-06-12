@@ -2,55 +2,78 @@ package dev.rudyevhenii.crypto_aggregator.service.strategy.kraken;
 
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
-import dev.rudyevhenii.crypto_aggregator.dto.KrakenOhlcResponse;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
+import dev.rudyevhenii.crypto_aggregator.integration.dto.kraken.KrakenOhlcResponse;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractHistoricalExchangeStrategy;
+import dev.rudyevhenii.crypto_aggregator.service.strategy.model.KlinesRequestContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import tools.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
     private static final Exchange EXCHANGE_NAME = Exchange.KRAKEN;
-    private static final String KLINES_URI = "/0/public/OHLC?pair=%s&interval=%s&since=%d";
+    private static final URI KLINES_URI = URI.create("/0/public/OHLC");
 
-    private final CryptoProperties properties;
+    private final WebClient webClient;
 
     public KrakenHistoricalExchangeStrategy(@Qualifier("krakenWebClient") WebClient webClient,
                                             CryptoProperties properties) {
-        super(webClient, EXCHANGE_NAME);
-        this.properties = properties;
+        super(EXCHANGE_NAME, properties);
+        this.webClient = webClient;
     }
 
     @Override
-    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(HistoricalPriceRequest request) {
-        String symbol = getTradingPairCode(request.getTradingPair());
-        String intervalInMinutes = getAndValidateExchangeInterval(request.getInterval());
-
-        Instant effectiveEntTime = request.getCursor() == null
-                ? Instant.now()
-                : request.getCursor().minusMillis(1);
-
+    protected Instant calculateStartTimeCursor(HistoricalPriceRequest request, Instant endTimeCursor) {
         Duration intervalDuration = request.getInterval().getDuration();
-        long startTime = effectiveEntTime.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());
-
-        return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalInMinutes, startTime),
-                KrakenOhlcResponse.class,
-                response -> toKrakenKlines(response, effectiveEntTime));
+        long startTimeCursor = endTimeCursor.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());
+        return Instant.ofEpochSecond(startTimeCursor);
     }
 
-    private List<HistoricalPriceDto> toKrakenKlines(KrakenOhlcResponse response, Instant cursor) {
+    @Override
+    protected URI getKlinesUri(String tradingPair) {
+        return KLINES_URI;
+    }
+
+    @Override
+    protected URI resolveKlinesUri(KlinesRequestContext context) {
+        return UriComponentsBuilder.fromUri(context.uri())
+                .queryParam("pair", context.tradingPair())
+                .queryParam("interval", context.intervalCode())
+                .queryParam("since", context.startTimeCursor().getEpochSecond())
+                .build()
+                .toUri();
+    }
+
+    @Override
+    protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
+        return webClient.get()
+                .uri(uri)
+                .retrieve()
+                .bodyToMono(KrakenOhlcResponse.class)
+                .map(response -> mapHistoricalPrice(response, context.endTimeCursor()))
+                .doOnError(error -> log.warn("[{}] Failed to fetch or parse klines from {}. Error: {}",
+                        EXCHANGE_NAME.name(), uri, error.getMessage()))
+                .onErrorResume(error -> Mono.just(Collections.emptyList()));
+    }
+
+    private List<HistoricalPriceDto> mapHistoricalPrice(KrakenOhlcResponse response, Instant cursor) {
         JsonNode resultNode = response.result();
         JsonNode klinesArray = null;
 
@@ -82,11 +105,6 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
                     .build());
         }
         return klines;
-    }
-
-    @Override
-    public CryptoProperties getCryptoProperties() {
-        return properties;
     }
 
     @Override

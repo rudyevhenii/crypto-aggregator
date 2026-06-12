@@ -5,14 +5,17 @@ import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractHistoricalExchangeStrategy;
+import dev.rudyevhenii.crypto_aggregator.service.strategy.model.KlinesRequestContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -24,45 +27,54 @@ import java.util.List;
 public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
     private static final Exchange EXCHANGE_NAME = Exchange.COINBASE;
-    private static final String KLINES_URI = "/products/%s/candles?granularity=%d&start=%s&end=%s";
-    private static final ParameterizedTypeReference<List<List<Number>>> PARAMETERIZED_TYPE_REFERENCE
+    private static final String KLINES_URI = "/products/%s/candles";
+    private static final ParameterizedTypeReference<List<List<Number>>> TYPE_REFERENCE
             = new ParameterizedTypeReference<>() {
     };
 
-    private final WebClient exchangeWebClient;
-    private final CryptoProperties properties;
+    private final WebClient webClient;
 
-    public CoinbaseHistoricalExchangeStrategy(@Qualifier("coinbaseExchangeWebClient") WebClient exchangeWebClient,
+    public CoinbaseHistoricalExchangeStrategy(@Qualifier("coinbaseWebClient") WebClient webClient,
                                               CryptoProperties properties) {
-        super(exchangeWebClient, EXCHANGE_NAME);
-        this.exchangeWebClient = exchangeWebClient;
-        this.properties = properties;
+        super(EXCHANGE_NAME, properties);
+        this.webClient = webClient;
     }
 
     @Override
-    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(HistoricalPriceRequest request) {
-        String resolvedTradingPair = getTradingPairCode(request.getTradingPair());
-        long intervalInSeconds = Long.parseLong(getAndValidateExchangeInterval(request.getInterval()));
-
-        Instant effectiveEndTime = request.getCursor() == null
-                ? Instant.now()
-                : request.getCursor().minusMillis(1);
-
+    protected Instant calculateStartTimeCursor(HistoricalPriceRequest request, Instant endTimeCursor) {
         Duration intervalDuration = request.getInterval().getDuration();
-        long startTime = effectiveEndTime.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());
-
-        return exchangeWebClient.get()
-                .uri(KLINES_URI.formatted(resolvedTradingPair, intervalInSeconds,
-                        Instant.ofEpochSecond(startTime), effectiveEndTime))
-                .retrieve()
-                .bodyToMono(PARAMETERIZED_TYPE_REFERENCE)
-                .onErrorStop()
-                .doOnError(error -> log.warn("Exception occurred while fetching price from {}: {}",
-                        getExchangeType().name(), error.getMessage()))
-                .map(this::toCoinbaseKlines);
+        long startTimeCursor = endTimeCursor.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());
+        return Instant.ofEpochSecond(startTimeCursor);
     }
 
-    private List<HistoricalPriceDto> toCoinbaseKlines(List<List<Number>> klines) {
+    @Override
+    protected URI getKlinesUri(String resolvedTradingPair) {
+        return URI.create(KLINES_URI.formatted(resolvedTradingPair));
+    }
+
+    @Override
+    protected URI resolveKlinesUri(KlinesRequestContext context) {
+        return UriComponentsBuilder.fromUri(context.uri())
+                .queryParam("granularity", Long.parseLong(context.intervalCode()))
+                .queryParam("start", context.startTimeCursor())
+                .queryParam("end", context.endTimeCursor())
+                .build()
+                .toUri();
+    }
+
+    @Override
+    protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
+        return webClient.get()
+                .uri(uri)
+                .retrieve()
+                .bodyToMono(TYPE_REFERENCE)
+                .map(this::mapHistoricalPrice)
+                .doOnError(error -> log.warn("[{}] Failed to fetch or parse klines from {}. Error: {}",
+                        EXCHANGE_NAME.name(), uri, error.getMessage()))
+                .onErrorResume(error -> Mono.just(Collections.emptyList()));
+    }
+
+    private List<HistoricalPriceDto> mapHistoricalPrice(List<List<Number>> klines) {
         if (klines == null || klines.isEmpty()) {
             return Collections.emptyList();
         }
@@ -83,11 +95,6 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
                 })
                 .sorted(Comparator.comparing(HistoricalPriceDto::openTime))
                 .toList();
-    }
-
-    @Override
-    public CryptoProperties getCryptoProperties() {
-        return properties;
     }
 
     @Override

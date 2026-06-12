@@ -5,7 +5,7 @@ import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 
 public interface ExchangeStrategy {
 
-    CryptoProperties getCryptoProperties();
+    CryptoProperties getProperties();
 
     Exchange getExchangeType();
 }

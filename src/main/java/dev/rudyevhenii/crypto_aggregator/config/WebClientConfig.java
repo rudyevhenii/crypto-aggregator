@@ -13,12 +13,7 @@ public class WebClientConfig {
     }
 
     @Bean
-    public WebClient coinbaseRetailWebClient(WebClient.Builder builder) {
-        return builder.baseUrl("https://api.coinbase.com").build();
-    }
-
-    @Bean
-    public WebClient coinbaseExchangeWebClient(WebClient.Builder builder) {
+    public WebClient coinbaseWebClient(WebClient.Builder builder) {
         return builder.baseUrl("https://api.exchange.coinbase.com").build();
     }
 

@@ -5,51 +5,73 @@ import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractHistoricalExchangeStrategy;
+import dev.rudyevhenii.crypto_aggregator.service.strategy.model.KlinesRequestContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Component
 public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
     private static final Exchange EXCHANGE_NAME = Exchange.BINANCE;
-    private static final ParameterizedTypeReference<List<List<Number>>> PARAMETERIZED_TYPE_REFERENCE
+    private static final ParameterizedTypeReference<List<List<Number>>> TYPE_REFERENCE
             = new ParameterizedTypeReference<>() {
     };
-    private static final String KLINES_URI = "/api/v3/klines?symbol=%s&interval=%s&endTime=%d&limit=%d";
+    private static final URI KLINES_URI = URI.create("/api/v3/klines");
 
-    private final CryptoProperties properties;
+    private final WebClient webClient;
 
     public BinanceHistoricalExchangeStrategy(@Qualifier("binanceWebClient") WebClient webClient,
                                              CryptoProperties properties) {
-        super(webClient, EXCHANGE_NAME);
-        this.properties = properties;
+        super(EXCHANGE_NAME, properties);
+        this.webClient = webClient;
     }
 
     @Override
-    public Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(HistoricalPriceRequest request) {
-        String symbol = getTradingPairCode(request.getTradingPair());
-        String intervalCode = getAndValidateExchangeInterval(request.getInterval());
-
-        Instant cursor = request.getCursor() == null
-                ? Instant.now()
-                : request.getCursor().minusMillis(1);
-
-        long endTimeMillis = cursor.toEpochMilli();
-
-        return executeHistoricalFetch(KLINES_URI.formatted(symbol, intervalCode, endTimeMillis, request.getLimit()),
-                PARAMETERIZED_TYPE_REFERENCE,
-                this::toBinanceKlines);
+    protected Instant calculateStartTimeCursor(HistoricalPriceRequest request, Instant endTimeCursor) {
+        return endTimeCursor;
     }
 
-    private List<HistoricalPriceDto> toBinanceKlines(List<List<Number>> klines) {
+    @Override
+    protected URI getKlinesUri(String resolvedTradingPair) {
+        return KLINES_URI;
+    }
+
+    @Override
+    protected URI resolveKlinesUri(KlinesRequestContext context) {
+        return UriComponentsBuilder.fromUri(context.uri())
+                .queryParam("symbol", context.tradingPair())
+                .queryParam("interval", context.intervalCode())
+                .queryParam("endTime", context.endTimeCursor().toEpochMilli())
+                .queryParam("limit", context.originalRequest().getLimit())
+                .build()
+                .toUri();
+    }
+
+    @Override
+    protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
+        return webClient.get()
+                .uri(uri)
+                .retrieve()
+                .bodyToMono(TYPE_REFERENCE)
+                .map(this::mapHistoricalPrice)
+                .doOnError(error -> log.warn("[{}] Failed to fetch or parse klines from {}. Error: {}",
+                        EXCHANGE_NAME.name(), uri, error.getMessage()))
+                .onErrorResume(error -> Mono.just(Collections.emptyList()));
+    }
+
+    private List<HistoricalPriceDto> mapHistoricalPrice(List<List<Number>> klines) {
         if (klines == null || klines.isEmpty()) {
             return Collections.emptyList();
         }
@@ -69,11 +91,6 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
                             .build();
                 })
                 .toList();
-    }
-
-    @Override
-    public CryptoProperties getCryptoProperties() {
-        return properties;
     }
 
     @Override

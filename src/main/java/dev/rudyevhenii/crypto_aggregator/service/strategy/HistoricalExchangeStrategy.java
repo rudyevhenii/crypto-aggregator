@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface HistoricalExchangeStrategy extends ExchangeStrategy {
 
-    Mono<List<HistoricalPriceDto>> fetchHistoricalPrices(HistoricalPriceRequest request);
+    Mono<List<HistoricalPriceDto>> fetchHistoricalData(HistoricalPriceRequest request);
 
 }
