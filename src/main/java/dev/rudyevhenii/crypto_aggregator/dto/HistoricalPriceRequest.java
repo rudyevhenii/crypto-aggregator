@@ -20,5 +20,5 @@ public class HistoricalPriceRequest {
     private ChartInterval interval;
     @Builder.Default
     private Integer limit = 50;
-    private Instant cursor;
+    private Instant endTimeCursor;
 }

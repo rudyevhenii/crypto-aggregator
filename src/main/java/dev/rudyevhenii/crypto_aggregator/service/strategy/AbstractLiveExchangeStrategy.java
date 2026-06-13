@@ -1,7 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy;
 
-import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.ExchangeHealthDto;
+import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.ConnectionStatus;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
@@ -31,7 +31,7 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     private final CryptoProperties properties;
     private final WebSocketClient webSocketClient;
 
-    private final Sinks.Many<CryptoPriceDto> priceSink;
+    private final Sinks.Many<LivePriceDto> priceSink;
     private final Sinks.Many<ExchangeHealthDto> healthSink;
 
     protected AbstractLiveExchangeStrategy(Exchange exchange, CryptoProperties cryptoProperties) {
@@ -46,10 +46,10 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
 
     protected abstract Mono<WebSocketMessage> createSubscribeMessage(WebSocketSession webSocketSession);
 
-    protected abstract CryptoPriceDto parseMessage(String payload);
+    protected abstract LivePriceDto parseMessage(String payload);
 
     @Override
-    public Flux<CryptoPriceDto> streamPrice(TradingPair tradingPair) {
+    public Flux<LivePriceDto> streamPrice(TradingPair tradingPair) {
         return priceSink.asFlux()
                 .filter(cryptoPriceDto -> cryptoPriceDto.tradingPair().equals(tradingPair));
     }

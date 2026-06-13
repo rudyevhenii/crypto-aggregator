@@ -60,9 +60,9 @@ public abstract class AbstractHistoricalExchangeStrategy implements HistoricalEx
     }
 
     private static Instant resolveEndTimeCursor(HistoricalPriceRequest request) {
-        return request.getCursor() == null
+        return request.getEndTimeCursor() == null
                 ? Instant.now()
-                : request.getCursor().minusMillis(1);
+                : request.getEndTimeCursor().minusMillis(1);
     }
 
     private String getExchangeInterval(ChartInterval chartInterval) {

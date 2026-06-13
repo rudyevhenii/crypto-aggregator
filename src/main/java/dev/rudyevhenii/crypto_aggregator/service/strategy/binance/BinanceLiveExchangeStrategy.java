@@ -1,6 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy.binance;
 
-import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
+import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.integration.dto.binance.BinanceTickerWsResponse;
@@ -45,23 +45,27 @@ public class BinanceLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
     }
 
     @Override
-    protected CryptoPriceDto parseMessage(String jsonPayload) {
+    protected LivePriceDto parseMessage(String jsonPayload) {
         try {
             BinanceTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, BinanceTickerWsResponse.class);
             TradingPair tradingPair = resolveTradingPair(response.tradingPair());
-            return mapCryptoPrice(response, tradingPair);
+            return mapLivePrice(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Binance: {}", jsonPayload);
             return null;
         }
     }
 
-    private CryptoPriceDto mapCryptoPrice(BinanceTickerWsResponse res, TradingPair tradingPair) {
-        return CryptoPriceDto.builder()
+    private LivePriceDto mapLivePrice(BinanceTickerWsResponse res, TradingPair tradingPair) {
+        return LivePriceDto.builder()
                 .exchange(getExchangeType())
                 .tradingPair(tradingPair)
-                .price(new BigDecimal(res.price()))
+                .price(new BigDecimal(res.lastPrice()))
+                .priceChangePercent24h(new BigDecimal(res.priceChangePercent24h()))
+                .high24h(new BigDecimal(res.high24h()))
+                .low24h(new BigDecimal(res.low24h()))
+                .volume24h(new BigDecimal(res.volume24h()))
                 .timestamp(Instant.ofEpochMilli(res.eventTime()))
                 .build();
     }

@@ -8,10 +8,14 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Builder
-public record CryptoPriceDto(
+public record LivePriceDto(
         Exchange exchange,
         TradingPair tradingPair,
         BigDecimal price,
+        BigDecimal priceChangePercent24h,
+        BigDecimal high24h,
+        BigDecimal low24h,
+        BigDecimal volume24h,
         Instant timestamp
 ) {
 }

@@ -1,6 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy.kraken;
 
-import dev.rudyevhenii.crypto_aggregator.dto.CryptoPriceDto;
+import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.integration.dto.kraken.KrakenTickerWsResponse;
@@ -43,25 +43,29 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
     }
 
     @Override
-    protected CryptoPriceDto parseMessage(String jsonPayload) {
+    protected LivePriceDto parseMessage(String jsonPayload) {
         try {
             KrakenTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, KrakenTickerWsResponse.class);
             TradingPair tradingPair = resolveTradingPair(response.data().getFirst().tradingPair());
-            return mapCryptoPrice(response, tradingPair);
+            return mapLivePrice(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Kraken: {}", jsonPayload);
             return null;
         }
     }
 
-    private CryptoPriceDto mapCryptoPrice(KrakenTickerWsResponse res, TradingPair tradingPair) {
+    private LivePriceDto mapLivePrice(KrakenTickerWsResponse res, TradingPair tradingPair) {
         KrakenTickerWsResponse.KrakenTickerData tickerData = res.data().getFirst();
 
-        return CryptoPriceDto.builder()
+        return LivePriceDto.builder()
                 .exchange(getExchangeType())
                 .tradingPair(tradingPair)
-                .price(tickerData.price())
+                .price(tickerData.lastPrice())
+                .priceChangePercent24h(tickerData.priceChangePercent24h())
+                .high24h(tickerData.high24h())
+                .low24h(tickerData.low24h())
+                .volume24h(tickerData.volume24h())
                 .timestamp(tickerData.timestamp())
                 .build();
     }

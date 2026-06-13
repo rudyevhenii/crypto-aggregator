@@ -5,8 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record BinanceTickerWsResponse(
+        @JsonProperty("E") long eventTime,
         @JsonProperty("s") String tradingPair,
-        @JsonProperty("c") String price,
-        @JsonProperty("E") long eventTime
+        @JsonProperty("P") String priceChangePercent24h,
+        @JsonProperty("c") String lastPrice,
+        @JsonProperty("h") String high24h,
+        @JsonProperty("l") String low24h,
+        @JsonProperty("v") String volume24h
 ) {
 }
