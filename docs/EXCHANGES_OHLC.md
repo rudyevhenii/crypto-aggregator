@@ -23,7 +23,6 @@
 
 * **Базовий URL:** `https://api.binance.com`
 * **Ендпоінт:** `/api/v3/klines`
-* **Патерн Java URI:** `/api/v3/klines?symbol=%s&interval=%s&endTime=%d&limit=%d`
 
 ### ⚙️ Параметри запиту
 
@@ -52,8 +51,8 @@
     1672534799999,   // [6] Close Time (Мілісекунди, Long) — Ігноруємо
     "7953723.12",    // [7] Asset Volume — Ігноруємо
     3084,            // [8] Number of trades — Ігноруємо
-    "62.11",         // [9] Taker buy base asset volume — Ігноруємо
-    "3923.4",        // [10] Taker buy quote asset volume — Ігноруємо
+    "62.11",         // [9] Taker buy base asset volume24h — Ігноруємо
+    "3923.4",        // [10] Taker buy quote asset volume24h — Ігноруємо
     "0"              // [11] Unused field
   ]
 ]
@@ -68,7 +67,6 @@
 
 * **Базовий URL:** `https://api.exchange.coinbase.com` *(Увага: Не використовувати роздрібний домен api.coinbase.com!)*
 * **Ендпоінт:** `/products/{product_id}/candles`
-* **Патерн Java URI:** `/products/%s/candles?granularity=%d&start=%s&end=%s`
 
 ### ⚙️ Параметри запиту
 
@@ -105,7 +103,6 @@
 
 * **Базовий URL:** `https://api.kraken.com`
 * **Ендпоінт:** `/0/public/OHLC`
-* **Патерн Java URI:** `/0/public/OHLC?pair=%s&interval=%d&since=%d`
 
 ### ⚙️ Параметри запиту
 
