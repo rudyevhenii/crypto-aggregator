@@ -3,8 +3,10 @@ package dev.rudyevhenii.crypto_aggregator.service.strategy.kraken;
 import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
-import dev.rudyevhenii.crypto_aggregator.integration.dto.kraken.KrakenTickerWsResponse;
-import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
+import dev.rudyevhenii.crypto_aggregator.integration.kraken.dto.KrakenSubscribeRequest;
+import dev.rudyevhenii.crypto_aggregator.integration.kraken.dto.KrakenTickerWsResponse;
+import dev.rudyevhenii.crypto_aggregator.integration.kraken.mapper.KrakenTickerMapper;
+import dev.rudyevhenii.crypto_aggregator.integration.kraken.properties.KrakenProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractLiveExchangeStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,14 +22,19 @@ import java.net.URI;
 @Component
 public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
-    private static final Exchange EXCHANGE_NAME = Exchange.KRAKEN;
+    private static final Exchange EXCHANGE_TYPE = Exchange.KRAKEN;
     private static final URI WS_KRAKEN_URI = URI.create("wss://ws.kraken.com/v2");
 
+    private final KrakenProperties properties;
+    private final KrakenTickerMapper mapper;
     private final ObjectMapper objectMapper;
 
-    public KrakenLiveExchangeStrategy(CryptoProperties properties, ObjectMapper objectMapper) {
-        super(EXCHANGE_NAME, properties);
+    public KrakenLiveExchangeStrategy(ObjectMapper objectMapper, KrakenProperties properties,
+                                      KrakenTickerMapper mapper) {
+        super(EXCHANGE_TYPE);
+        this.properties = properties;
         this.objectMapper = objectMapper;
+        this.mapper = mapper;
     }
 
     @Override
@@ -37,7 +44,7 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
     @Override
     protected Mono<WebSocketMessage> createSubscribeMessage(WebSocketSession session) {
-        KrakenSubscribeRequest request = KrakenSubscribeRequest.create(getExchangeProperties());
+        KrakenSubscribeRequest request = KrakenSubscribeRequest.create(properties.tradingPair());
         String jsonPayload = objectMapper.writeValueAsString(request);
         return Mono.just(session.textMessage(jsonPayload));
     }
@@ -47,31 +54,18 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
         try {
             KrakenTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, KrakenTickerWsResponse.class);
-            TradingPair tradingPair = resolveTradingPair(response.data().getFirst().tradingPair());
-            return mapLivePrice(response, tradingPair);
+            TradingPair tradingPair = resolveTradingPair(properties.tradingPair(), response.data()
+                    .getFirst()
+                    .tradingPair());
+            return mapper.toLivePriceDto(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Kraken: {}", jsonPayload);
             return null;
         }
     }
 
-    private LivePriceDto mapLivePrice(KrakenTickerWsResponse res, TradingPair tradingPair) {
-        KrakenTickerWsResponse.KrakenTickerData tickerData = res.data().getFirst();
-
-        return LivePriceDto.builder()
-                .exchange(getExchangeType())
-                .tradingPair(tradingPair)
-                .price(tickerData.lastPrice())
-                .priceChangePercent24h(tickerData.priceChangePercent24h())
-                .high24h(tickerData.high24h())
-                .low24h(tickerData.low24h())
-                .volume24h(tickerData.volume24h())
-                .timestamp(tickerData.timestamp())
-                .build();
-    }
-
     @Override
     public Exchange getExchangeType() {
-        return EXCHANGE_NAME;
+        return EXCHANGE_TYPE;
     }
 }

@@ -5,7 +5,6 @@ import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.ConnectionStatus;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
-import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -28,15 +27,13 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
 
     private final Exchange exchange;
 
-    private final CryptoProperties properties;
     private final WebSocketClient webSocketClient;
 
     private final Sinks.Many<LivePriceDto> priceSink;
     private final Sinks.Many<ExchangeHealthDto> healthSink;
 
-    protected AbstractLiveExchangeStrategy(Exchange exchange, CryptoProperties cryptoProperties) {
+    protected AbstractLiveExchangeStrategy(Exchange exchange) {
         this.exchange = exchange;
-        this.properties = cryptoProperties;
         this.webSocketClient = new ReactorNettyWebSocketClient();
         this.priceSink = Sinks.many().multicast().directBestEffort();
         this.healthSink = Sinks.many().replay().latest();
@@ -57,11 +54,6 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     @Override
     public Flux<ExchangeHealthDto> streamHealth() {
         return healthSink.asFlux();
-    }
-
-    @Override
-    public CryptoProperties getProperties() {
-        return properties;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -116,17 +108,11 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
         log.info("[{}] Health Status: {}", exchange, connectionStatus);
     }
 
-    protected TradingPair resolveTradingPair(String tradingPair) {
-        Map<TradingPair, String> tradingPairMap = getExchangeProperties().tradingPair();
-
+    protected TradingPair resolveTradingPair(Map<TradingPair, String> tradingPairMap, String tradingPair) {
         return tradingPairMap.entrySet().stream()
                 .filter(entry -> entry.getValue().equals(tradingPair))
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElse(null);
-    }
-
-    protected CryptoProperties.ExchangeProperties getExchangeProperties() {
-        return getProperties().exchanges().get(getExchangeType());
     }
 }

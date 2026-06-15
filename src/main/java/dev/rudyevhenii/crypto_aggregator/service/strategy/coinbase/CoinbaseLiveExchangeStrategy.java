@@ -3,8 +3,10 @@ package dev.rudyevhenii.crypto_aggregator.service.strategy.coinbase;
 import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
-import dev.rudyevhenii.crypto_aggregator.integration.dto.coinbase.CoinbaseTickerWsResponse;
-import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
+import dev.rudyevhenii.crypto_aggregator.integration.coinbase.dto.CoinbaseSubscribeRequest;
+import dev.rudyevhenii.crypto_aggregator.integration.coinbase.dto.CoinbaseTickerWsResponse;
+import dev.rudyevhenii.crypto_aggregator.integration.coinbase.mapper.CoinbaseTickerMapper;
+import dev.rudyevhenii.crypto_aggregator.integration.coinbase.properties.CoinbaseProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractLiveExchangeStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,23 +16,25 @@ import reactor.core.publisher.Mono;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.URI;
 
 @Slf4j
 @Component
 public class CoinbaseLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
-    private static final Exchange EXCHANGE_NAME = Exchange.COINBASE;
+    private static final Exchange EXCHANGE_TYPE = Exchange.COINBASE;
     private static final URI WS_COINBASE_URI = URI.create("wss://ws-feed.exchange.coinbase.com");
-    private static final int PERCENT_TO_MULTIPLIER_SHIFT = 2;
 
+    private final CoinbaseProperties properties;
+    private final CoinbaseTickerMapper mapper;
     private final ObjectMapper objectMapper;
 
-    public CoinbaseLiveExchangeStrategy(CryptoProperties properties, ObjectMapper objectMapper) {
-        super(EXCHANGE_NAME, properties);
+    public CoinbaseLiveExchangeStrategy(ObjectMapper objectMapper, CoinbaseProperties properties,
+                                        CoinbaseTickerMapper mapper) {
+        super(EXCHANGE_TYPE);
+        this.properties = properties;
         this.objectMapper = objectMapper;
+        this.mapper = mapper;
     }
 
     @Override
@@ -40,7 +44,7 @@ public class CoinbaseLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
     @Override
     protected Mono<WebSocketMessage> createSubscribeMessage(WebSocketSession session) {
-        CoinbaseSubscribeRequest request = CoinbaseSubscribeRequest.create(getExchangeProperties());
+        CoinbaseSubscribeRequest request = CoinbaseSubscribeRequest.create(properties.tradingPair());
         String jsonPayload = objectMapper.writeValueAsString(request);
         return Mono.just(session.textMessage(jsonPayload));
     }
@@ -50,44 +54,16 @@ public class CoinbaseLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
         try {
             CoinbaseTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, CoinbaseTickerWsResponse.class);
-            TradingPair tradingPair = resolveTradingPair(response.tradingPair());
-            return mapLivePrice(response, tradingPair);
+            TradingPair tradingPair = resolveTradingPair(properties.tradingPair(), response.tradingPair());
+            return mapper.toLivePriceDto(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Coinbase: {}", jsonPayload);
             return null;
         }
     }
 
-    private LivePriceDto mapLivePrice(CoinbaseTickerWsResponse res, TradingPair tradingPair) {
-        BigDecimal lastPrice = new BigDecimal(res.lastPrice());
-        BigDecimal open24h = new BigDecimal(res.open24h());
-        BigDecimal percentChange = calculatePercentChange(lastPrice, open24h);
-
-        return LivePriceDto.builder()
-                .exchange(getExchangeType())
-                .tradingPair(tradingPair)
-                .price(lastPrice)
-                .priceChangePercent24h(percentChange)
-                .high24h(new BigDecimal(res.high24h()))
-                .low24h(new BigDecimal(res.low24h()))
-                .volume24h(new BigDecimal(res.volume24h()))
-                .timestamp(res.timestamp())
-                .build();
-    }
-
-    private BigDecimal calculatePercentChange(BigDecimal lastPrice, BigDecimal open24h) {
-        if (open24h == null || open24h.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.ZERO;
-        }
-
-        return lastPrice.subtract(open24h)
-                .divide(open24h, 6, RoundingMode.HALF_EVEN)
-                .movePointRight(PERCENT_TO_MULTIPLIER_SHIFT)
-                .setScale(2, RoundingMode.HALF_EVEN);
-    }
-
     @Override
     public Exchange getExchangeType() {
-        return EXCHANGE_NAME;
+        return EXCHANGE_TYPE;
     }
 }
