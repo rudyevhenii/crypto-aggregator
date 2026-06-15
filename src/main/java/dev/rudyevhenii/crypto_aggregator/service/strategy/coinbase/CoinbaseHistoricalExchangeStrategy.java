@@ -2,8 +2,13 @@ package dev.rudyevhenii.crypto_aggregator.service.strategy.coinbase;
 
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceDto;
 import dev.rudyevhenii.crypto_aggregator.dto.HistoricalPriceRequest;
+import dev.rudyevhenii.crypto_aggregator.dto.Ticker24hDto;
+import dev.rudyevhenii.crypto_aggregator.enums.ChartInterval;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
-import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
+import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.integration.coinbase.dto.CoinbaseTicker24hResponse;
+import dev.rudyevhenii.crypto_aggregator.integration.coinbase.mapper.CoinbaseTickerMapper;
+import dev.rudyevhenii.crypto_aggregator.integration.coinbase.properties.CoinbaseProperties;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractHistoricalExchangeStrategy;
 import dev.rudyevhenii.crypto_aggregator.service.strategy.model.KlinesRequestContext;
 import lombok.extern.slf4j.Slf4j;
@@ -12,32 +17,34 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
 @Component
 public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
-    private static final Exchange EXCHANGE_NAME = Exchange.COINBASE;
-    private static final String KLINES_URI = "/products/%s/candles";
-    private static final ParameterizedTypeReference<List<List<Number>>> TYPE_REFERENCE
+    private static final Exchange EXCHANGE_TYPE = Exchange.COINBASE;
+    private static final ParameterizedTypeReference<List<List<Number>>> KLINES_RESPONSE_REFERENCE
             = new ParameterizedTypeReference<>() {
     };
 
-    private final WebClient webClient;
+    private static final String KLINES_URI = "/products/{product_id}/candles";
+    private static final String TICKER_24H_URI = "/products/{product_id}/stats";
+
+    private final CoinbaseProperties properties;
+    private final CoinbaseTickerMapper mapper;
 
     public CoinbaseHistoricalExchangeStrategy(@Qualifier("coinbaseWebClient") WebClient webClient,
-                                              CryptoProperties properties) {
-        super(EXCHANGE_NAME, properties);
-        this.webClient = webClient;
+                                              CoinbaseProperties properties, CoinbaseTickerMapper mapper) {
+        super(EXCHANGE_TYPE, webClient);
+        this.properties = properties;
+        this.mapper = mapper;
     }
 
     @Override
@@ -49,7 +56,8 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected URI getKlinesUri(String resolvedTradingPair) {
-        return URI.create(KLINES_URI.formatted(resolvedTradingPair));
+        return UriComponentsBuilder.fromUriString(KLINES_URI)
+                .build(resolvedTradingPair);
     }
 
     @Override
@@ -64,41 +72,42 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
-        return webClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(TYPE_REFERENCE)
-                .map(this::mapHistoricalPrice)
-                .doOnError(error -> log.warn("[{}] Failed to fetch or parse klines from {}. Error: {}",
-                        EXCHANGE_NAME.name(), uri, error.getMessage()))
-                .onErrorResume(error -> Mono.just(Collections.emptyList()));
+        return executeFetch(uri, KLINES_RESPONSE_REFERENCE, mapper::toHistoricalPriceDto);
     }
 
-    private List<HistoricalPriceDto> mapHistoricalPrice(List<List<Number>> klines) {
-        if (klines == null || klines.isEmpty()) {
-            return Collections.emptyList();
-        }
+    @Override
+    protected URI resolveTickerUri(String tradingPair) {
+        return UriComponentsBuilder.fromUriString(TICKER_24H_URI)
+                .build(tradingPair);
+    }
 
-        return klines.stream()
-                .map(kline -> {
-                    long timeInSeconds = kline.get(0).longValue();
-                    Instant openTime = Instant.ofEpochSecond(timeInSeconds);
+    @Override
+    protected Mono<Ticker24hDto> executeWebClientTickerRequest(URI uri, TradingPair pair) {
+        return executeFetch(uri, CoinbaseTicker24hResponse.class,
+                res -> mapper.toTickerDto(res, pair));
+    }
 
-                    return HistoricalPriceDto.builder()
-                            .openTime(openTime)
-                            .low(new BigDecimal(kline.get(1).toString()))
-                            .high(new BigDecimal(kline.get(2).toString()))
-                            .open(new BigDecimal(kline.get(3).toString()))
-                            .close(new BigDecimal(kline.get(4).toString()))
-                            .volume(new BigDecimal(kline.get(5).toString()))
-                            .build();
-                })
-                .sorted(Comparator.comparing(HistoricalPriceDto::openTime))
-                .toList();
+    @Override
+    protected String getExchangeInterval(ChartInterval chartInterval) {
+        String intervalCode = properties.chartInterval().get(chartInterval);
+        validateExchangeInterval(chartInterval, intervalCode);
+        return intervalCode;
+    }
+
+    @Override
+    protected String getTradingPairValue(TradingPair tradingPair) {
+        return properties.tradingPair().get(tradingPair);
+    }
+
+    @Override
+    public Mono<List<Ticker24hDto>> fetch24hTickers(List<TradingPair> pairs) {
+        return Flux.fromIterable(pairs)
+                .flatMap(this::fetch24hTicker)
+                .collectList();
     }
 
     @Override
     public Exchange getExchangeType() {
-        return EXCHANGE_NAME;
+        return EXCHANGE_TYPE;
     }
 }
