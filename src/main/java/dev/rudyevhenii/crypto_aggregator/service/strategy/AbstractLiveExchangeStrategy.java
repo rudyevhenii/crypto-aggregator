@@ -46,14 +46,23 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     protected abstract LivePriceDto parseMessage(String payload);
 
     @Override
-    public Flux<LivePriceDto> streamPrice(TradingPair tradingPair) {
+    public Flux<LivePriceDto> streamAllPrices(Exchange exchange) {
         return priceSink.asFlux()
-                .filter(cryptoPriceDto -> cryptoPriceDto.tradingPair().equals(tradingPair));
+                .filter(cryptoPriceDto -> cryptoPriceDto.exchange().equals(exchange));
     }
 
     @Override
-    public Flux<ExchangeHealthDto> streamHealth() {
-        return healthSink.asFlux();
+    public Flux<LivePriceDto> streamPrice(Exchange exchange, TradingPair tradingPair) {
+        return priceSink.asFlux()
+                .filter(cryptoPriceDto ->
+                        cryptoPriceDto.tradingPair().equals(tradingPair)
+                                && cryptoPriceDto.exchange().equals(exchange));
+    }
+
+    @Override
+    public Flux<ExchangeHealthDto> streamHealth(Exchange exchange) {
+        return healthSink.asFlux()
+                .filter(healthDto -> healthDto.exchange().equals(exchange));
     }
 
     @EventListener(ApplicationReadyEvent.class)

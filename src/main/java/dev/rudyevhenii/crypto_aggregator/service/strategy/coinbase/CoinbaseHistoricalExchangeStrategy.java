@@ -100,8 +100,9 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
     }
 
     @Override
-    public Mono<List<Ticker24hDto>> fetch24hTickers(List<TradingPair> pairs) {
-        return Flux.fromIterable(pairs)
+    public Mono<List<Ticker24hDto>> fetch24hTickers() {
+        List<TradingPair> tradingPairs = properties.tradingPair().keySet().stream().toList();
+        return Flux.fromIterable(tradingPairs)
                 .flatMap(this::fetch24hTicker)
                 .collectList();
     }

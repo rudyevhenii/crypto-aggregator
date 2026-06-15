@@ -103,11 +103,18 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
     }
 
     @Override
-    public Mono<List<Ticker24hDto>> fetch24hTickers(List<TradingPair> pairs) {
-        String pairsParam = formatQueryParams(pairs);
+    public Mono<List<Ticker24hDto>> fetch24hTickers() {
+        List<TradingPair> tradingPairs = properties.tradingPair().keySet().stream().toList();
+
+        String pairsParam = formatQueryParams(tradingPairs);
         URI uri = resolveTickerUri(pairsParam);
 
         return executeFetch(uri, TICKER_RESPONSE_REFERENCE, this::toTicker24h);
+    }
+
+    @Override
+    public Exchange getExchangeType() {
+        return EXCHANGE_TYPE;
     }
 
     private List<Ticker24hDto> toTicker24h(List<KrakenTicker24hResponse> res) {
@@ -121,10 +128,5 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
                 .filter(entry -> pairs.contains(entry.getKey()))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.joining(","));
-    }
-
-    @Override
-    public Exchange getExchangeType() {
-        return EXCHANGE_TYPE;
     }
 }

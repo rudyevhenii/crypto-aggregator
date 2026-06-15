@@ -12,7 +12,7 @@ public interface HistoricalExchangeStrategy extends ExchangeStrategy {
 
     Mono<List<HistoricalPriceDto>> fetchHistoricalData(HistoricalPriceRequest request);
 
-    Mono<List<Ticker24hDto>> fetch24hTickers(List<TradingPair> pairs);
+    Mono<List<Ticker24hDto>> fetch24hTickers();
 
     Mono<Ticker24hDto> fetch24hTicker(TradingPair pair);
 }
