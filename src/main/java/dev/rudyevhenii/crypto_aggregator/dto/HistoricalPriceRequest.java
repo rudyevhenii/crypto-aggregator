@@ -21,4 +21,10 @@ public class HistoricalPriceRequest {
     @Builder.Default
     private Integer limit = 50;
     private Instant endTimeCursor;
+
+    public Instant resolveEndTimeCursor() {
+        return getEndTimeCursor() == null
+                ? Instant.now()
+                : getEndTimeCursor().minusMillis(1);
+    }
 }

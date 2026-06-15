@@ -8,13 +8,13 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Builder
-public record LivePriceDto(
+public record Ticker24hDto(
         Exchange exchange,
         TradingPair tradingPair,
         BigDecimal lastPrice,
         BigDecimal priceChangePercent24h,
-        BigDecimal highPrice24h,
-        BigDecimal lowPrice24h,
+        BigDecimal high24h,
+        BigDecimal low24h,
         BigDecimal volume24h,
         Instant timestamp
 ) {

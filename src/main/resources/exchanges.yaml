@@ -1,6 +1,6 @@
 crypto:
   exchanges:
-    BINANCE:
+    binance:
       trading-pair:
         BTC_USD: "BTCUSDT"
         ETH_USD: "ETHUSDT"
@@ -29,7 +29,7 @@ crypto:
         THREE_DAYS: "3d"
         ONE_WEEK: "1w"
         ONE_MONTH: "1M"
-    COINBASE:
+    coinbase:
       trading-pair:
         BTC_USD: "BTC-USD"
         ETH_USD: "ETH-USD"
@@ -48,17 +48,17 @@ crypto:
         ONE_HOUR: "3600"
         SIX_HOURS: "21600"
         ONE_DAY: "86400"
-    KRAKEN:
+    kraken:
       trading-pair:
-        BTC_USD: "XBTUSD"
-        ETH_USD: "ETHUSD"
+        BTC_USD: "XXBTZUSD"
+        ETH_USD: "XETHZUSD"
         SOL_USD: "SOLUSD"
         ADA_USD: "ADAUSD"
-        XRP_USD: "XRPUSD"
+        XRP_USD: "XXRPZUSD"
         DOT_USD: "DOTUSD"
-        DOGE_USD: "XDGUSD"
+        DOGE_USD: "XXDGZUSD"
         LINK_USD: "LINKUSD"
-        LTC_USD: "LTCUSD"
+        LTC_USD: "XLTCZUSD"
         AVAX_USD: "AVAXUSD"
       chart-interval:
         ONE_MINUTE: "1"
