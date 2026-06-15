@@ -1,7 +1,6 @@
-package dev.rudyevhenii.crypto_aggregator.service.strategy.binance;
+package dev.rudyevhenii.crypto_aggregator.integration.binance.dto;
 
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
-import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,20 +13,23 @@ import java.util.Map;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class BinanceSubscribeRequest {
+
+    private static final String SUBSCRIBE_MESSAGE = "SUBSCRIBE";
+
     private String method;
     private List<String> params;
     private Integer id;
 
-    public static BinanceSubscribeRequest create(CryptoProperties.ExchangeProperties cryptoProperties) {
+    public static BinanceSubscribeRequest create(Map<TradingPair, String> tradingPairMap) {
         return BinanceSubscribeRequest.builder()
-                .method("SUBSCRIBE")
-                .params(getTradingPairs(cryptoProperties.tradingPair()))
+                .method(SUBSCRIBE_MESSAGE)
+                .params(getTradingPairs(tradingPairMap))
                 .id(1)
                 .build();
     }
 
-    private static List<String> getTradingPairs(Map<TradingPair, String> cryptoProperties) {
-        return cryptoProperties.values().stream()
+    private static List<String> getTradingPairs(Map<TradingPair, String> tradingPairMap) {
+        return tradingPairMap.values().stream()
                 .map(String::toLowerCase)
                 .map("%s@ticker"::formatted)
                 .toList();

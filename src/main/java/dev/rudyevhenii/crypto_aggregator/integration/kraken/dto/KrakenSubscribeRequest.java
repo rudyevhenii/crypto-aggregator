@@ -1,7 +1,6 @@
-package dev.rudyevhenii.crypto_aggregator.service.strategy.kraken;
+package dev.rudyevhenii.crypto_aggregator.integration.kraken.dto;
 
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
-import dev.rudyevhenii.crypto_aggregator.properties.CryptoProperties;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,10 +19,10 @@ public class KrakenSubscribeRequest {
     @Builder
     record KrakenSubscriptionParams(String channel, List<String> symbol) {
 
-        public static KrakenSubscriptionParams create(CryptoProperties.ExchangeProperties cryptoProperties) {
+        public static KrakenSubscriptionParams create(Map<TradingPair, String> tradingPairMap) {
             return KrakenSubscriptionParams.builder()
                     .channel("ticker")
-                    .symbol(getTradingPairs(cryptoProperties.tradingPair()))
+                    .symbol(getTradingPairs(tradingPairMap))
                     .build();
         }
 
@@ -32,10 +31,10 @@ public class KrakenSubscribeRequest {
         }
     }
 
-    public static KrakenSubscribeRequest create(CryptoProperties.ExchangeProperties cryptoProperties) {
+    public static KrakenSubscribeRequest create(Map<TradingPair, String> tradingPairMap) {
         return KrakenSubscribeRequest.builder()
                 .method("subscribe")
-                .params(KrakenSubscriptionParams.create(cryptoProperties))
+                .params(KrakenSubscriptionParams.create(tradingPairMap))
                 .build();
     }
 }
