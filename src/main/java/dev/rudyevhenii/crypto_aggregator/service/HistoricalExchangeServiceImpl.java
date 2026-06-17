@@ -20,8 +20,8 @@ public class HistoricalExchangeServiceImpl implements HistoricalExchangeService 
     private final Map<Exchange, HistoricalExchangeStrategy> liveExchangeStrategies;
 
     @Override
-    public Mono<List<HistoricalPriceDto>> getHistoricalPrices(HistoricalPriceRequest request) {
-        return liveExchangeStrategies.get(request.getExchange())
+    public Mono<List<HistoricalPriceDto>> getHistoricalPrices(Exchange exchange, HistoricalPriceRequest request) {
+        return liveExchangeStrategies.get(exchange)
                 .fetchHistoricalData(request);
     }
 

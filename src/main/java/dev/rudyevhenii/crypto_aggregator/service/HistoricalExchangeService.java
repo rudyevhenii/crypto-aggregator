@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface HistoricalExchangeService {
 
-    Mono<List<HistoricalPriceDto>> getHistoricalPrices(HistoricalPriceRequest request);
+    Mono<List<HistoricalPriceDto>> getHistoricalPrices(Exchange exchange, HistoricalPriceRequest request);
 
     Mono<List<Ticker24hDto>> get24hTickersByExchange(Exchange exchange);
 

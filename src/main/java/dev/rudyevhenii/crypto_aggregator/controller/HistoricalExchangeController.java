@@ -23,8 +23,8 @@ public class HistoricalExchangeController {
     private final HistoricalExchangeService historicalExchangeService;
 
     @GetMapping("/{exchange}/klines")
-    public Mono<List<HistoricalPriceDto>> getHistoricalPrices(HistoricalPriceRequest request) {
-        return historicalExchangeService.getHistoricalPrices(request);
+    public Mono<List<HistoricalPriceDto>> getHistoricalPrices(@PathVariable Exchange exchange, HistoricalPriceRequest request) {
+        return historicalExchangeService.getHistoricalPrices(exchange, request);
     }
 
     @GetMapping("/{exchange}/tickers/24h")
