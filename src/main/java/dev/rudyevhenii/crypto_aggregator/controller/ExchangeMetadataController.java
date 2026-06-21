@@ -1,14 +1,15 @@
 package dev.rudyevhenii.crypto_aggregator.controller;
 
-import dev.rudyevhenii.crypto_aggregator.dto.ExchangeMetadataDto;
-import dev.rudyevhenii.crypto_aggregator.enums.ChartInterval;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ChartIntervalRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeMetadataRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.TradingPairRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.interfaces.ExchangeMetadataApi;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
-import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.mapper.ExchangeMapper;
 import dev.rudyevhenii.crypto_aggregator.service.ExchangeMetadataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,27 +18,38 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/exchanges")
 @RequiredArgsConstructor
-public class ExchangeMetadataController {
+public class ExchangeMetadataController implements ExchangeMetadataApi {
 
     private final ExchangeMetadataService metadataService;
+    private final ExchangeMapper metadataMapper;
 
-    @GetMapping
-    public ResponseEntity<List<Exchange>> getSupportedExchanges() {
-        return ResponseEntity.ok(metadataService.getSupportedExchanges());
+    @Override
+    public ResponseEntity<List<ExchangeRqDto>> getSupportedExchanges() {
+        return ResponseEntity.ok(metadataService.getSupportedExchanges().stream()
+                .map(metadataMapper::toResponse)
+                .toList());
     }
 
-    @GetMapping("/{exchange}/pairs")
-    public ResponseEntity<List<TradingPair>> getSupportedPairs(@PathVariable Exchange exchange) {
-        return ResponseEntity.ok(metadataService.getSupportedPairs(exchange));
+    @Override
+    public ResponseEntity<List<TradingPairRqDto>> getSupportedPairs(ExchangeRqDto exchange) {
+        Exchange domain = metadataMapper.toDomain(exchange);
+        return ResponseEntity.ok(metadataService.getSupportedPairs(domain).stream()
+                .map(metadataMapper::toResponse)
+                .toList());
     }
 
-    @GetMapping("/{exchange}/intervals")
-    public ResponseEntity<List<ChartInterval>> getSupportedIntervals(@PathVariable Exchange exchange) {
-        return ResponseEntity.ok(metadataService.getSupportedIntervals(exchange));
+    @Override
+    public ResponseEntity<List<ChartIntervalRqDto>> getSupportedIntervals(ExchangeRqDto exchange) {
+        Exchange domain = metadataMapper.toDomain(exchange);
+        return ResponseEntity.ok(metadataService.getSupportedIntervals(domain).stream()
+                .map(metadataMapper::toResponse)
+                .toList());
     }
 
-    @GetMapping("/metadata")
-    public ResponseEntity<List<ExchangeMetadataDto>> getAllMetadata() {
-        return ResponseEntity.ok(metadataService.getAllMetadata());
+    @Override
+    public ResponseEntity<List<ExchangeMetadataRqDto>> getAllMetadata() {
+        return ResponseEntity.ok(metadataService.getAllMetadata().stream()
+                .map(metadataMapper::toResponse)
+                .toList());
     }
 }

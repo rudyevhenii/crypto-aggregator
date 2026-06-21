@@ -1,0 +1,356 @@
+openapi: 3.1.0
+info:
+  title: Crypto API aggregator
+  description: Crypto API aggregator
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+paths:
+  /api/exchanges:
+    get:
+      summary: "Get all exchanges"
+      operationId: "getSupportedExchanges"
+      tags:
+        - "ExchangeMetadata"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exchange'
+
+  /api/exchanges/{exchange}/pairs:
+    get:
+      summary: "Get all trading pairs"
+      operationId: "getSupportedPairs"
+      tags:
+        - "ExchangeMetadata"
+      description: "Returns all trading pairs for exchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TradingPair'
+
+  /api/exchanges/{exchange}/intervals:
+    get:
+      summary: "Get intervals for the exchange"
+      operationId: "getSupportedIntervals"
+      tags:
+        - "ExchangeMetadata"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChartInterval'
+
+  /api/exchanges/metadata:
+    get:
+      summary: "Get all metadata"
+      operationId: "getAllMetadata"
+      tags:
+        - "ExchangeMetadata"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangeMetadata'
+
+  /api/historical/exchanges/{exchange}/klines:
+    get:
+      summary: "Get klines charts"
+      operationId: "getHistoricalPrices"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - name: request
+          in: query
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/HistoricalPriceRequest'
+      responses:
+        "200":
+          description: "Successfully retrieves array of historical chars"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricalPrice'
+
+  /api/historical/exchanges/{exchange}/tickers/24h:
+    get:
+      summary: "Get tickers for the exchange"
+      operationId: "get24hTickersByExchange"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        "200":
+          description: "Successfully retrieves array of tickers data for exchange"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticker24h'
+
+  /api/historical/exchanges/{exchange}/tickers/24h/{pair}:
+    get:
+      summary: "Get tickers for a trading pair"
+      operationId: "get24hTickerForPair"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - $ref: '#/components/parameters/TradingPairParam'
+      responses:
+        "200":
+          description: "Successfully retrieves ticker for a trading pair"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticker24h'
+
+  /api/stream/exchanges/{exchange}/prices:
+    get:
+      summary: "Stream prices for the exchange (SSE)"
+      operationId: "streamPriceByExchange"
+      tags:
+        - "LiveExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        "200":
+          description: "Continuous event stream for updating all prices in exchange"
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/LivePrice'
+
+  /api/stream/exchanges/{exchange}/prices/{pair}:
+    get:
+      summary: "Stream prices for a trading pair (SSE)"
+      operationId: "streamSinglePair"
+      tags:
+        - "LiveExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - $ref: '#/components/parameters/TradingPairParam'
+      responses:
+        "200":
+          description: "Continuous event stream for updating prices for specific trading pair"
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/LivePrice'
+
+  /api/stream/exchanges/{exchange}/health:
+    get:
+      summary: "Stream exchange health (SSE)"
+      operationId: "streamExchangeHealth"
+      tags:
+        - "LiveExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        "200":
+          description: "Continuous event stream for the health state of the exchange"
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/ExchangeHealth'
+
+components:
+  schemas:
+    Exchange:
+      type: string
+      enum:
+        - BINANCE
+        - COINBASE
+        - KRAKEN
+
+    TradingPair:
+      type: string
+      enum:
+        - BTC_USD
+        - ETH_USD
+        - SOL_USD
+        - ADA_USD
+        - XRP_USD
+        - DOT_USD
+        - DOGE_USD
+        - LINK_USD
+        - LTC_USD
+        - AVAX_USD
+
+    ChartInterval:
+      type: string
+      enum:
+        - ONE_SECOND
+        - ONE_MINUTE
+        - THREE_MINUTES
+        - FIVE_MINUTES
+        - FIFTEEN_MINUTES
+        - THIRTY_MINUTES
+        - ONE_HOUR
+        - TWO_HOURS
+        - FOUR_HOURS
+        - SIX_HOURS
+        - EIGHT_HOURS
+        - TWELVE_HOURS
+        - ONE_DAY
+        - THREE_DAYS
+        - FIFTEEN_DAYS
+        - ONE_WEEK
+        - ONE_MONTH
+
+    ConnectionStatus:
+      type: string
+      enum:
+        - CONNECTED
+        - DISCONNECTED
+        - RECONNECTING
+        - ERROR
+
+    ExchangeMetadata:
+      type: object
+      properties:
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        supportedPairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/TradingPair'
+        supportedIntervals:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartInterval'
+
+    HistoricalPriceRequest:
+      type: object
+      required:
+        - tradingPair
+        - chartInterval
+      properties:
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        chartInterval:
+          $ref: '#/components/schemas/ChartInterval'
+        limit:
+          type: integer
+          format: int32
+          default: 50
+          minimum: 1
+          maximum: 200
+        endTimeCursor:
+          type: string
+          format: date-time
+
+    HistoricalPrice:
+      type: object
+      properties:
+        openTime:
+          type: string
+          format: date-time
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        close:
+          type: number
+        volume:
+          type: number
+
+    Ticker24h:
+      type: object
+      properties:
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        lastPrice:
+          type: number
+        priceChangePercent24h:
+          type: number
+        high24h:
+          type: number
+        low24h:
+          type: number
+        volume24h:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    LivePrice:
+      type: object
+      properties:
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        lastPrice:
+          type: number
+        priceChangePercent24h:
+          type: number
+        highPrice24h:
+          type: number
+        lowPrice24h:
+          type: number
+        volume24h:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    ExchangeHealth:
+      type: object
+      properties:
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        connectionStatus:
+          $ref: '#/components/schemas/ConnectionStatus'
+        timestamp:
+          type: string
+          format: date-time
+
+  parameters:
+    ExchangeParam:
+      in: path
+      name: exchange
+      required: true
+      schema:
+        $ref: '#/components/schemas/Exchange'
+
+    TradingPairParam:
+      in: path
+      name: pair
+      required: true
+      schema:
+        $ref: '#/components/schemas/TradingPair'

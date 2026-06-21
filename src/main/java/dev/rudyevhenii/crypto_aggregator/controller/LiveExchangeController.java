@@ -1,9 +1,12 @@
 package dev.rudyevhenii.crypto_aggregator.controller;
 
-import dev.rudyevhenii.crypto_aggregator.dto.ExchangeHealthDto;
-import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeHealthRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.LivePriceRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.TradingPairRqDto;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.mapper.ExchangeMapper;
 import dev.rudyevhenii.crypto_aggregator.service.LiveExchangeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -19,19 +22,28 @@ import reactor.core.publisher.Flux;
 public class LiveExchangeController {
 
     private final LiveExchangeService liveExchangeService;
+    private final ExchangeMapper mapper;
 
     @GetMapping(value = "/{exchange}/prices", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<LivePriceDto> streamPriceByExchange(@PathVariable Exchange exchange) {
-        return liveExchangeService.streamPriceByExchange(exchange);
+    public Flux<LivePriceRqDto> streamPriceByExchange(@PathVariable ExchangeRqDto exchange) {
+        Exchange exchangeDomain = mapper.toDomain(exchange);
+        return liveExchangeService.streamPriceByExchange(exchangeDomain)
+                .map(mapper::toResponse);
     }
 
     @GetMapping(value = "/{exchange}/prices/{pair}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<LivePriceDto> streamPricesByPair(@PathVariable Exchange exchange, @PathVariable TradingPair pair) {
-        return liveExchangeService.streamSinglePair(exchange, pair);
+    public Flux<LivePriceRqDto> streamSinglePair(@PathVariable ExchangeRqDto exchange,
+                                                 @PathVariable TradingPairRqDto pair) {
+        Exchange exchangeDomain = mapper.toDomain(exchange);
+        TradingPair tradingPairDomain = mapper.toDomain(pair);
+        return liveExchangeService.streamSinglePair(exchangeDomain, tradingPairDomain)
+                .map(mapper::toResponse);
     }
 
     @GetMapping(value = "/{exchange}/health", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ExchangeHealthDto> streamPricesByExchange(@PathVariable Exchange exchange) {
-        return liveExchangeService.streamExchangeHealth(exchange);
+    public Flux<ExchangeHealthRqDto> streamExchangeHealth(@PathVariable ExchangeRqDto exchange) {
+        Exchange exchangeDomain = mapper.toDomain(exchange);
+        return liveExchangeService.streamExchangeHealth(exchangeDomain)
+                .map(mapper::toResponse);
     }
 }
