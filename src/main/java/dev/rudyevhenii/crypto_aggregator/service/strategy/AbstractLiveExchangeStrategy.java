@@ -92,16 +92,17 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
                     return session.send(createSubscribeMessage(session))
                             .thenMany(session.receive())
                             .map(WebSocketMessage::getPayloadAsText)
+                            .doOnNext(rawJson -> log.debug("[{}] RAW: {}", exchange.name(), rawJson))
                             .mapNotNull(this::parseMessage)
                             .doOnNext(priceSink::tryEmitNext)
                             .then();
                 })
                 .doOnError(err -> {
-                    log.error("Kraken Connection Error", err);
+                    log.error("[{}] Connection Error", exchange.name(), err);
                     emitHealth(ConnectionStatus.ERROR);
                 })
                 .doFinally(signalType -> {
-                    log.warn("Kraken WebSocket Closed. Signal: {}", signalType);
+                    log.warn("[{}] WebSocket Closed. Signal: {}", exchange.name(), signalType);
                     emitHealth(ConnectionStatus.DISCONNECTED);
                 });
     }

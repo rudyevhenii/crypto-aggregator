@@ -9,6 +9,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record KrakenTickerWsResponse(
+        @JsonProperty("channel") String type,
         @JsonProperty("data") List<KrakenTickerData> data
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)

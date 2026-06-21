@@ -1,6 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy.binance;
 
 import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
+import dev.rudyevhenii.crypto_aggregator.enums.EventType;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.integration.binance.dto.BinanceSubscribeRequest;
@@ -44,9 +45,11 @@ public class BinanceLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
     @Override
     protected Mono<WebSocketMessage> createSubscribeMessage(WebSocketSession session) {
-        BinanceSubscribeRequest request = BinanceSubscribeRequest.create(properties.tradingPair());
-        String jsonPayload = objectMapper.writeValueAsString(request);
-        return Mono.just(session.textMessage(jsonPayload));
+        return Mono.fromCallable(() -> {
+            BinanceSubscribeRequest request = BinanceSubscribeRequest.create(properties.tradingPair());
+            String jsonPayload = objectMapper.writeValueAsString(request);
+            return session.textMessage(jsonPayload);
+        }).onErrorMap(e -> new RuntimeException("Failed to serialize subscribe message", e));
     }
 
     @Override
@@ -54,7 +57,12 @@ public class BinanceLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
         try {
             BinanceTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, BinanceTickerWsResponse.class);
+
+            if (!EventType.BINANCE.getEventType().equals(response.type())) {
+                return null;
+            }
             TradingPair tradingPair = resolveTradingPair(properties.tradingPair(), response.tradingPair());
+
             return mapper.toLivePriceDto(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Binance: {}", jsonPayload);

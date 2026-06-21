@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record BinanceTickerWsResponse(
+        @JsonProperty("e") String type,
         @JsonProperty("E") long eventTime,
         @JsonProperty("s") String tradingPair,
         @JsonProperty("P") BigDecimal priceChangePercent24h,

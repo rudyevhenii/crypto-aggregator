@@ -4,15 +4,20 @@ import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class KrakenSubscribeRequest {
+
+    private static final String SUBSCRIBE_MESSAGE = "subscribe";
+
     private String method;
     private KrakenSubscriptionParams params;
 
@@ -27,13 +32,15 @@ public class KrakenSubscribeRequest {
         }
 
         private static List<String> getTradingPairs(Map<TradingPair, String> tradingPairProperties) {
-            return tradingPairProperties.values().stream().toList();
+            return tradingPairProperties.keySet().stream()
+                    .map(pair -> pair.name().replace("_", "/"))
+                    .toList();
         }
     }
 
     public static KrakenSubscribeRequest create(Map<TradingPair, String> tradingPairMap) {
         return KrakenSubscribeRequest.builder()
-                .method("subscribe")
+                .method(SUBSCRIBE_MESSAGE)
                 .params(KrakenSubscriptionParams.create(tradingPairMap))
                 .build();
     }

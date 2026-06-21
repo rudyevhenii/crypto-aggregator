@@ -1,6 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy.kraken;
 
 import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
+import dev.rudyevhenii.crypto_aggregator.enums.EventType;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.integration.kraken.dto.KrakenSubscribeRequest;
@@ -44,9 +45,11 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
     @Override
     protected Mono<WebSocketMessage> createSubscribeMessage(WebSocketSession session) {
-        KrakenSubscribeRequest request = KrakenSubscribeRequest.create(properties.tradingPair());
-        String jsonPayload = objectMapper.writeValueAsString(request);
-        return Mono.just(session.textMessage(jsonPayload));
+        return Mono.fromCallable(() -> {
+            KrakenSubscribeRequest request = KrakenSubscribeRequest.create(properties.tradingPair());
+            String jsonPayload = objectMapper.writeValueAsString(request);
+            return session.textMessage(jsonPayload);
+        }).onErrorMap(e -> new RuntimeException("Failed to serialize subscribe message", e));
     }
 
     @Override
@@ -54,9 +57,14 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
         try {
             KrakenTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, KrakenTickerWsResponse.class);
+
+            if (!EventType.KRAKEN.getEventType().equals(response.type())) {
+                return null;
+            }
             TradingPair tradingPair = resolveTradingPair(properties.tradingPair(), response.data()
                     .getFirst()
                     .tradingPair());
+
             return mapper.toLivePriceDto(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Kraken: {}", jsonPayload);

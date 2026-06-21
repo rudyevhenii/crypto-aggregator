@@ -8,8 +8,9 @@ import java.time.Instant;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CoinbaseTickerWsResponse(
+        @JsonProperty("type") String type,
         @JsonProperty("product_id") String tradingPair,
-        @JsonProperty("lastPrice") BigDecimal lastPrice,
+        @JsonProperty("price") BigDecimal lastPrice,
         @JsonProperty("open_24h") BigDecimal openPrice24h,
         @JsonProperty("volume_24h") BigDecimal volume24h,
         @JsonProperty("low_24h") BigDecimal lowPrice24h,

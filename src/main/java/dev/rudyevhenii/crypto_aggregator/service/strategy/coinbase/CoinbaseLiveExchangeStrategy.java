@@ -1,6 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.service.strategy.coinbase;
 
 import dev.rudyevhenii.crypto_aggregator.dto.LivePriceDto;
+import dev.rudyevhenii.crypto_aggregator.enums.EventType;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.integration.coinbase.dto.CoinbaseSubscribeRequest;
@@ -44,9 +45,11 @@ public class CoinbaseLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
     @Override
     protected Mono<WebSocketMessage> createSubscribeMessage(WebSocketSession session) {
-        CoinbaseSubscribeRequest request = CoinbaseSubscribeRequest.create(properties.tradingPair());
-        String jsonPayload = objectMapper.writeValueAsString(request);
-        return Mono.just(session.textMessage(jsonPayload));
+        return Mono.fromCallable(() -> {
+            CoinbaseSubscribeRequest request = CoinbaseSubscribeRequest.create(properties.tradingPair());
+            String jsonPayload = objectMapper.writeValueAsString(request);
+            return session.textMessage(jsonPayload);
+        }).onErrorMap(e -> new RuntimeException("Failed to serialize subscribe message", e));
     }
 
     @Override
@@ -54,7 +57,12 @@ public class CoinbaseLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
         try {
             CoinbaseTickerWsResponse response = objectMapper
                     .readValue(jsonPayload, CoinbaseTickerWsResponse.class);
+
+            if (!EventType.COINBASE.getEventType().equals(response.type())) {
+                return null;
+            }
             TradingPair tradingPair = resolveTradingPair(properties.tradingPair(), response.tradingPair());
+
             return mapper.toLivePriceDto(response, tradingPair);
         } catch (JacksonException e) {
             log.debug("Ignored non-ticker message from Coinbase: {}", jsonPayload);
