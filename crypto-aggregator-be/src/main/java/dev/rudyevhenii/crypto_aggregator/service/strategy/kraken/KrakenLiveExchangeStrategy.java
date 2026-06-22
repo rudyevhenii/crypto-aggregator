@@ -61,10 +61,10 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
             if (!EventType.KRAKEN.getEventType().equals(response.type())) {
                 return null;
             }
-            // TODO: tradingPair resolves to null
-            TradingPair tradingPair = resolveTradingPair(properties.tradingPair(), response.data()
-                    .getFirst()
-                    .tradingPair());
+
+            // TODO: Resolve to return an array of prices for different trading pair.
+            String rawTradingPair = response.data().getFirst().tradingPair();
+            TradingPair tradingPair = TradingPair.valueOf(rawTradingPair.replace("/", "_"));
 
             return mapper.toLivePriceDto(response, tradingPair);
         } catch (JacksonException e) {

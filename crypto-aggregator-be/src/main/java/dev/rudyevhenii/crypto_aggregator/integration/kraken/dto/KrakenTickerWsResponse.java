@@ -16,7 +16,7 @@ public record KrakenTickerWsResponse(
     public record KrakenTickerData(
             @JsonProperty("symbol") String tradingPair,
             @JsonProperty("last") BigDecimal lastPrice,
-            @JsonProperty("eventTime") Instant timestamp,
+            @JsonProperty("timestamp") Instant timestamp,
             @JsonProperty("change_pct") BigDecimal priceChangePercent24h,
             @JsonProperty("high") BigDecimal high24h,
             @JsonProperty("low") BigDecimal low24h,
