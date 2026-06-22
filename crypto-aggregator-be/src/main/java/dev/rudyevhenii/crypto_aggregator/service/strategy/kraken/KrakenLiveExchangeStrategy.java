@@ -61,6 +61,7 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
             if (!EventType.KRAKEN.getEventType().equals(response.type())) {
                 return null;
             }
+            // TODO: tradingPair resolves to null
             TradingPair tradingPair = resolveTradingPair(properties.tradingPair(), response.data()
                     .getFirst()
                     .tradingPair());

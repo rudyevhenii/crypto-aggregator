@@ -19,6 +19,7 @@ import dev.rudyevhenii.crypto_aggregator.enums.ChartInterval;
 import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 import java.time.Instant;
@@ -36,11 +37,14 @@ public interface ExchangeMapper {
 
     TradingPairRqDto toResponse(TradingPair tradingPair);
 
+    ChartInterval toDomain(ChartIntervalRqDto chartIntervalRqDto);
+
     ChartIntervalRqDto toResponse(ChartInterval chartInterval);
 
     ExchangeMetadataRqDto toResponse(ExchangeMetadataDto exchangeMetadataDto);
 
-    HistoricalPriceRequest toDomain(HistoricalPriceRequestRqDto historicalPriceRequestRqDto);
+    @Mapping(target = "limit", defaultValue = "100")
+    HistoricalPriceRequest toDomain(HistoricalPriceRequestRqDto request);
 
     HistoricalPriceRqDto toResponse(HistoricalPriceDto historicalPriceDto);
 
@@ -51,10 +55,10 @@ public interface ExchangeMapper {
     ExchangeHealthRqDto toResponse(ExchangeHealthDto exchangeHealthDto);
 
     default Instant toInstant(OffsetDateTime endTimeCursor) {
-        return endTimeCursor.toInstant();
+        return endTimeCursor == null ? null : endTimeCursor.toInstant();
     }
 
     default OffsetDateTime toOffsetDateTime(Instant endTimeCursor) {
-        return endTimeCursor.atOffset(ZoneOffset.UTC);
+        return endTimeCursor == null ? null : endTimeCursor.atOffset(ZoneOffset.UTC);
     }
 }

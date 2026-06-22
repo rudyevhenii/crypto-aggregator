@@ -51,7 +51,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
 
     @Override
     protected Instant calculateStartTimeCursor(HistoricalPriceRequest request, Instant endTimeCursor) {
-        Duration intervalDuration = request.getInterval().getDuration();
+        Duration intervalDuration = request.getChartInterval().getDuration();
         long startTimeCursor = endTimeCursor.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());
         return Instant.ofEpochSecond(startTimeCursor);
     }
@@ -63,7 +63,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
 
     @Override
     protected URI resolveKlinesUri(KlinesRequestContext context) {
-        return UriComponentsBuilder.fromUri(context.uri())
+        return UriComponentsBuilder.fromUri(URI.create("https://api.kraken.com").resolve(context.uri()))
                 .queryParam("pair", context.tradingPair())
                 .queryParam("interval", context.intervalCode())
                 .queryParam("since", context.startTimeCursor().getEpochSecond())

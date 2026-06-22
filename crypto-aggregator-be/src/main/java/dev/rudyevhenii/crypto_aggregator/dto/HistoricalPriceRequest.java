@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,19 +17,17 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class HistoricalPriceRequest {
 
     @NotNull(message = "Trading pair is mandatory")
     private TradingPair tradingPair;
 
     @NotNull(message = "Chart interval is mandatory")
-    private ChartInterval interval;
+    private ChartInterval chartInterval;
 
     @Min(value = 1, message = "Limit must be at least 1")
     @Max(value = 200, message = "Limit cannot exceed 200 exchanges limit")
-    @Builder.Default
-    private Integer limit = 50;
+    private Integer limit;
 
     @PastOrPresent(message = "End time cursor cannot be in the future")
     private Instant endTimeCursor;

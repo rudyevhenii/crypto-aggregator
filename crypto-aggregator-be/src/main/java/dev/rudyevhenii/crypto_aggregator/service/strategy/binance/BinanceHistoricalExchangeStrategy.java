@@ -61,7 +61,7 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
 
     @Override
     protected URI resolveKlinesUri(KlinesRequestContext context) {
-        return UriComponentsBuilder.fromUri(context.uri())
+        return UriComponentsBuilder.fromUri(URI.create("https://api.binance.com").resolve(context.uri()))
                 .queryParam("symbol", context.tradingPair())
                 .queryParam("interval", context.intervalCode())
                 .queryParam("endTime", context.endTimeCursor().toEpochMilli())

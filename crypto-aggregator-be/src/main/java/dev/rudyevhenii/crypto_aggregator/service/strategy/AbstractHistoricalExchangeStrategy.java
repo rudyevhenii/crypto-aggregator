@@ -49,7 +49,7 @@ public abstract class AbstractHistoricalExchangeStrategy implements HistoricalEx
     public Mono<List<HistoricalPriceDto>> fetchHistoricalData(HistoricalPriceRequest request) {
         return Mono.defer(() -> {
             String resolvedTradingPair = getTradingPairValue(request.getTradingPair());
-            String intervalCode = getExchangeInterval(request.getInterval());
+            String intervalCode = getExchangeInterval(request.getChartInterval());
             Instant endTimeCursor = request.resolveEndTimeCursor();
             Instant startTimeCursor = calculateStartTimeCursor(request, endTimeCursor);
 

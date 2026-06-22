@@ -10,13 +10,11 @@ import dev.rudyevhenii.crypto_aggregator.mapper.ExchangeMapper;
 import dev.rudyevhenii.crypto_aggregator.service.ExchangeMetadataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/exchanges")
 @RequiredArgsConstructor
 public class ExchangeMetadataController implements ExchangeMetadataApi {
 

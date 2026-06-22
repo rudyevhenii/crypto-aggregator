@@ -92,7 +92,6 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
                     return session.send(createSubscribeMessage(session))
                             .thenMany(session.receive())
                             .map(WebSocketMessage::getPayloadAsText)
-                            .doOnNext(rawJson -> log.debug("[{}] RAW: {}", exchange.name(), rawJson))
                             .mapNotNull(this::parseMessage)
                             .doOnNext(priceSink::tryEmitNext)
                             .then();

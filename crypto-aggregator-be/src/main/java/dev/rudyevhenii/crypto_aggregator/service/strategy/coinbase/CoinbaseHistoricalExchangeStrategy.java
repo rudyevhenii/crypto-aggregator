@@ -49,7 +49,7 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected Instant calculateStartTimeCursor(HistoricalPriceRequest request, Instant endTimeCursor) {
-        Duration intervalDuration = request.getInterval().getDuration();
+        Duration intervalDuration = request.getChartInterval().getDuration();
         long startTimeCursor = endTimeCursor.getEpochSecond() - (intervalDuration.getSeconds() * request.getLimit());
         return Instant.ofEpochSecond(startTimeCursor);
     }
@@ -62,7 +62,7 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected URI resolveKlinesUri(KlinesRequestContext context) {
-        return UriComponentsBuilder.fromUri(context.uri())
+        return UriComponentsBuilder.fromUri(URI.create("https://api.exchange.coinbase.com").resolve(context.uri()))
                 .queryParam("granularity", Long.parseLong(context.intervalCode()))
                 .queryParam("start", context.startTimeCursor())
                 .queryParam("end", context.endTimeCursor())
