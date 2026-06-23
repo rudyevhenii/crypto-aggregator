@@ -3,7 +3,7 @@ import {
   Exchange,
   ExchangeMetadata,
   HistoricalPrice,
-  HistoricalPriceRequest,
+  HistoricalPriceRequest, Ticker24h,
   TradingPair
 } from "./types.ts";
 
@@ -64,9 +64,20 @@ export const api = {
     return new EventSource(`${BASE_URL}/api/stream/exchanges/${exchange}/prices/${pair}`);
   },
 
+  // ДОДАНО: Ендпоінт для стрімінгу всіх цін конкретної біржі
+  streamPricesByExchange: (exchange: Exchange): EventSource => {
+    return new EventSource(`${BASE_URL}/api/stream/exchanges/${exchange}/prices`);
+  },
+
   // ДОДАНО: Ендпоінт для статусу біржі
   streamExchangeHealth: (exchange: Exchange): EventSource => {
     return new EventSource(`${BASE_URL}/api/stream/exchanges/${exchange}/health`);
+  },
+
+  get24hTickers: async (exchange: Exchange): Promise<Ticker24h[]> => {
+    const res = await fetch(`${BASE_URL}/api/historical/exchanges/${exchange}/tickers/24h`);
+    if (!res.ok) return [];
+    return res.json();
   },
 };
 

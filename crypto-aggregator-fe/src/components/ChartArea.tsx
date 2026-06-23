@@ -12,6 +12,15 @@ type Props = {
   onLoadMore?: (oldestTime: string) => void;
 };
 
+// ❗ ДОДАНО: Функція для динамічного визначення точності
+const getPrecisionParams = (price: number) => {
+  if (price > 1000) return { precision: 2, minMove: 0.01 };      // BTC, ETH (напр. 64000.12)
+  if (price > 10) return { precision: 3, minMove: 0.001 };       // SOL, AVAX (напр. 69.123)
+  if (price > 1) return { precision: 4, minMove: 0.0001 };       // DOT, UNI (напр. 7.1234)
+  if (price > 0.01) return { precision: 5, minMove: 0.00001 };   // DOGE, TRX (напр. 0.07912)
+  return { precision: 6, minMove: 0.000001 };                    // SHIB, PEPE та інші дрібні
+};
+
 const ChartArea = forwardRef<ChartHandle, Props>(({ interval, historical, onLoadMore }, ref) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -22,7 +31,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({ interval, historical, onLoad
 
   const isFetchingRef = useRef<boolean>(false);
 
-  // ДОДАНО: Рефи для уникнення "Closure Trap"
+  // Рефи для уникнення "Closure Trap"
   const historicalRef = useRef(historical);
   const onLoadMoreRef = useRef(onLoadMore);
 
@@ -67,11 +76,16 @@ const ChartArea = forwardRef<ChartHandle, Props>(({ interval, historical, onLoad
     });
 
     chartRef.current = chart;
+
+    // Створюємо серію з базовими налаштуваннями (точність оновимо пізніше)
     seriesRef.current = chart.addSeries(CandlestickSeries, {
-      upColor: '#0ecb81', downColor: '#f6465d', borderVisible: false, wickUpColor: '#0ecb81', wickDownColor: '#f6465d',
+      upColor: '#0ecb81',
+      downColor: '#f6465d',
+      borderVisible: false,
+      wickUpColor: '#0ecb81',
+      wickDownColor: '#f6465d',
     });
 
-    // ОНОВЛЕНО: Тепер використовуємо .current, щоб отримати найсвіжіші дані
     chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
       if (logicalRange !== null && logicalRange.from < 20 && !isFetchingRef.current) {
         const currentHistory = historicalRef.current;
@@ -102,17 +116,39 @@ const ChartArea = forwardRef<ChartHandle, Props>(({ interval, historical, onLoad
 
     isFetchingRef.current = false;
 
-    const data: CandlestickData[] = historical
+    // Дедуплікація
+    const uniqueCandles = new Map<number, CandlestickData>();
+
+    historical
       .filter((h) => h.openTime != null && h.open != null && h.high != null && h.low != null && h.close != null)
-      .map((h) => ({
-        time: Math.floor(new Date(h.openTime as string).getTime() / 1000) as UTCTimestamp,
-        open: Number(h.open), high: Number(h.high), low: Number(h.low), close: Number(h.close),
-      }))
+      .forEach((h) => {
+        const time = Math.floor(new Date(h.openTime as string).getTime() / 1000) as UTCTimestamp;
+        uniqueCandles.set(time, {
+          time: time,
+          open: Number(h.open),
+          high: Number(h.high),
+          low: Number(h.low),
+          close: Number(h.close),
+        });
+      });
+
+    const data: CandlestickData[] = Array.from(uniqueCandles.values())
       .sort((a, b) => (a.time as number) - (b.time as number));
 
     if (data.length > 0) {
-      seriesRef.current.setData(data);
       const lastCandle = data[data.length - 1];
+
+      // ❗ ДОДАНО: Динамічне оновлення формату ціни перед встановленням даних
+      const formatParams = getPrecisionParams(lastCandle.close);
+      seriesRef.current.applyOptions({
+        priceFormat: {
+          type: 'price',
+          precision: formatParams.precision,
+          minMove: formatParams.minMove,
+        },
+      });
+
+      seriesRef.current.setData(data);
       lastBucketRef.current = lastCandle.time as number;
       currentCandleRef.current = { ...lastCandle };
     } else {

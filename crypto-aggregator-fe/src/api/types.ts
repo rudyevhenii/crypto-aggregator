@@ -54,6 +54,17 @@ export interface ExchangeMetadata {
   supportedIntervals: ChartInterval[];
 }
 
+export interface Ticker24h {
+  exchange: Exchange;
+  tradingPair: TradingPair;
+  lastPrice: number;
+  priceChangePercent24h: number;
+  high24h: number;
+  low24h: number;
+  volume24h: number;
+  timestamp: string;
+}
+
 // --- UTILS ---
 export function intervalToSeconds(interval: ChartInterval): number {
   switch (interval) {
