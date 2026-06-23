@@ -11,6 +11,7 @@ import dev.rudyevhenii.crypto_aggregator.integration.kraken.dto.KrakenTickerWsRe
 import dev.rudyevhenii.crypto_aggregator.integration.kraken.properties.KrakenProperties;
 import dev.rudyevhenii.crypto_aggregator.util.ExchangeUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class KrakenTickerMapper {
@@ -49,7 +51,39 @@ public class KrakenTickerMapper {
                 .build();
     }
 
+    public List<Ticker24hDto> toTickerDtoList(KrakenTicker24hResponse res) {
+        if (res == null || res.result() == null || res.result().isEmpty()) {
+            return List.of();
+        }
+
+        return res.result().entrySet().stream()
+                .map(entry -> {
+                    String rawTradingPair = entry.getKey();
+                    KrakenTicker24hResponse.KrakenTickerData tickerData = entry.getValue();
+
+                    BigDecimal lastPrice = new BigDecimal(tickerData.lastPrice().getFirst());
+                    BigDecimal openPrice24h = tickerData.openPrice24h();
+
+                    return Ticker24hDto.builder()
+                            .exchange(EXCHANGE_TYPE)
+                            .tradingPair(resolveTradingPair(rawTradingPair))
+                            .lastPrice(lastPrice)
+                            .priceChangePercent24h(ExchangeUtils.calculatePercentChange(lastPrice, openPrice24h))
+                            .high24h(new BigDecimal(tickerData.highPrice24h().get(1)))
+                            .low24h(new BigDecimal(tickerData.lowPrice24h().get(1)))
+                            .volume24h(new BigDecimal(tickerData.volume24h().get(1)))
+                            .timestamp(Instant.now())
+                            .build();
+                })
+                .toList();
+    }
+
     public List<HistoricalPriceDto> toHistoricalPriceDto(KrakenOhlcResponse response, Instant endTimeCursor) {
+        if (response == null || response.result() == null || response.result().isNull()) {
+            log.warn("Kraken API returned empty result or error. Response: {}", response);
+            return List.of();
+        }
+
         JsonNode resultNode = response.result();
         JsonNode klinesArray = null;
 

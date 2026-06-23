@@ -14,7 +14,6 @@ import dev.rudyevhenii.crypto_aggregator.service.strategy.AbstractHistoricalExch
 import dev.rudyevhenii.crypto_aggregator.service.strategy.model.KlinesRequestContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -32,9 +31,6 @@ import java.util.stream.Collectors;
 public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
     private static final Exchange EXCHANGE_TYPE = Exchange.KRAKEN;
-    private static final ParameterizedTypeReference<List<KrakenTicker24hResponse>> TICKER_RESPONSE_REFERENCE
-            = new ParameterizedTypeReference<>() {
-    };
 
     private static final URI KLINES_URI = URI.create("/0/public/OHLC");
     private static final URI TICKER_24H_URI = URI.create("/0/public/Ticker");
@@ -79,7 +75,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
 
     @Override
     protected URI resolveTickerUri(String tradingPair) {
-        return UriComponentsBuilder.fromUri(TICKER_24H_URI)
+        return UriComponentsBuilder.fromUri(URI.create("https://api.kraken.com").resolve(TICKER_24H_URI))
                 .queryParam("pair", tradingPair)
                 .build()
                 .toUri();
@@ -109,18 +105,12 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
         String pairsParam = formatQueryParams(tradingPairs);
         URI uri = resolveTickerUri(pairsParam);
 
-        return executeFetch(uri, TICKER_RESPONSE_REFERENCE, this::toTicker24h);
+        return executeFetch(uri, KrakenTicker24hResponse.class, mapper::toTickerDtoList);
     }
 
     @Override
     public Exchange getExchangeType() {
         return EXCHANGE_TYPE;
-    }
-
-    private List<Ticker24hDto> toTicker24h(List<KrakenTicker24hResponse> res) {
-        return res.stream()
-                .map(mapper::toTickerDto)
-                .toList();
     }
 
     private String formatQueryParams(List<TradingPair> pairs) {

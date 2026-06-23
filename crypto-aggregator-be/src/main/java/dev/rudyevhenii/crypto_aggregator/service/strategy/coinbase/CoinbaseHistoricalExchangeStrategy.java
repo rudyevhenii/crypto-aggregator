@@ -56,13 +56,14 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected URI getKlinesUri(String resolvedTradingPair) {
-        return UriComponentsBuilder.fromUriString(KLINES_URI)
-                .build(resolvedTradingPair);
+        return UriComponentsBuilder.fromUriString("https://api.exchange.coinbase.com" + KLINES_URI)
+                .buildAndExpand(resolvedTradingPair)
+                .toUri();
     }
 
     @Override
     protected URI resolveKlinesUri(KlinesRequestContext context) {
-        return UriComponentsBuilder.fromUri(URI.create("https://api.exchange.coinbase.com").resolve(context.uri()))
+        return UriComponentsBuilder.fromUri(context.uri())
                 .queryParam("granularity", Long.parseLong(context.intervalCode()))
                 .queryParam("start", context.startTimeCursor())
                 .queryParam("end", context.endTimeCursor())
@@ -77,8 +78,9 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected URI resolveTickerUri(String tradingPair) {
-        return UriComponentsBuilder.fromUriString(TICKER_24H_URI)
-                .build(tradingPair);
+        return UriComponentsBuilder.fromUriString("https://api.exchange.coinbase.com" + TICKER_24H_URI)
+                .buildAndExpand(tradingPair)
+                .toUri();
     }
 
     @Override

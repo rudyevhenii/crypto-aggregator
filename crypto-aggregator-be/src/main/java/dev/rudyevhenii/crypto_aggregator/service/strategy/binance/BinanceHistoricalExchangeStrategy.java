@@ -37,7 +37,7 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
     };
 
     private static final URI KLINES_URI = URI.create("/api/v3/klines");
-    private static final URI TICKER_24H_URI = URI.create("/api/v3/ticker/24h");
+    private static final URI TICKER_24H_URI = URI.create("/api/v3/ticker/24hr");
 
     private final BinanceProperties properties;
     private final BinanceTickerMapper mapper;
@@ -77,7 +77,7 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
 
     @Override
     protected URI resolveTickerUri(String tradingPair) {
-        return UriComponentsBuilder.fromUri(TICKER_24H_URI)
+        return UriComponentsBuilder.fromUri(URI.create("https://api.binance.com").resolve(TICKER_24H_URI))
                 .queryParam("symbol", tradingPair)
                 .build()
                 .toUri();
@@ -104,9 +104,16 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
     public Mono<List<Ticker24hDto>> fetch24hTickers() {
         List<TradingPair> tradingPairs = properties.tradingPair().keySet().stream().toList();
         String pairsParam = formatQueryParams(tradingPairs);
-        URI uri = resolveTickerUri(pairsParam);
+        URI uri = resolveTickerUriWithMultipleParameters(pairsParam);
 
         return executeFetch(uri, TICKER_RESPONSE_REFERENCE, this::toTicker24h);
+    }
+
+    private URI resolveTickerUriWithMultipleParameters(String tradingPair) {
+        return UriComponentsBuilder.fromUri(URI.create("https://api.binance.com").resolve(TICKER_24H_URI))
+                .queryParam("symbols", tradingPair)
+                .build()
+                .toUri();
     }
 
     @Override
