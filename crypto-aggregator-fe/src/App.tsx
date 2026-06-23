@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import TopBar from './components/TopBar';
 import Sidebar from './components/Sidebar';
 import ChartArea, { ChartHandle } from './components/ChartArea';
-import { api, Exchange, TradingPair, ChartInterval, LivePrice, HistoricalPrice, ExchangeMetadata } from './api';
+import { api, Exchange, TradingPair, ChartInterval, LivePrice, HistoricalPrice, ExchangeMetadata, ExchangeHealthDto } from './api';
 
 function App() {
   const [metadata, setMetadata] = useState<ExchangeMetadata[]>([]);
@@ -13,6 +13,7 @@ function App() {
 
   const [livePrice, setLivePrice] = useState<LivePrice | null>(null);
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
+  const [exchangeHealth, setExchangeHealth] = useState<ExchangeHealthDto | null>(null);
 
   // Стан для відстеження, чи є ще старіші дані на бекенді
   const [hasMoreHistory, setHasMoreHistory] = useState<boolean>(true);
@@ -42,7 +43,7 @@ function App() {
   const availablePairs = activeExchangeData?.supportedPairs || [];
   const availableIntervals = activeExchangeData?.supportedIntervals || [];
 
-  // 3. Завантаження історії та SSE
+  // 3. Завантаження історії та SSE (Ціни + Статус Біржі)
   useEffect(() => {
     if (!selectedExchange || !selectedPair || !selectedInterval) return;
 
@@ -56,10 +57,10 @@ function App() {
       .then(setHistorical)
       .catch(console.error);
 
-    // Якщо у вашому api.ts метод називається streamPairPrices, замініть streamPrices на streamPairPrices
-    const eventSource = api.streamPrices(selectedExchange, selectedPair);
+    // --- Потік Цін ---
+    const priceSource = api.streamPrices(selectedExchange, selectedPair);
 
-    eventSource.onmessage = (event) => {
+    priceSource.onmessage = (event) => {
       try {
         const price: LivePrice = JSON.parse(event.data);
         setLivePrice(price);
@@ -69,11 +70,30 @@ function App() {
       }
     };
 
-    eventSource.onerror = () => eventSource.close();
+    priceSource.onerror = () => priceSource.close();
+
+    // --- Потік Статусу Біржі ---
+    const healthSource = api.streamExchangeHealth(selectedExchange);
+
+    healthSource.onmessage = (event) => {
+      try {
+        const health: ExchangeHealthDto = JSON.parse(event.data);
+        setExchangeHealth(health);
+      } catch (err) {
+        console.error("Health SSE Parse Error:", err);
+      }
+    };
+
+    healthSource.onerror = () => {
+      setExchangeHealth(prev => prev ? { ...prev, connectionStatus: 'DISCONNECTED' } : null);
+      healthSource.close();
+    };
 
     return () => {
-      eventSource.close();
+      priceSource.close();
+      healthSource.close();
       setLivePrice(null);
+      setExchangeHealth(null);
     };
   }, [selectedExchange, selectedPair, selectedInterval]);
 
@@ -102,7 +122,13 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen w-full bg-[#0b0e14] font-sans overflow-hidden">
-      <TopBar pair={selectedPair} livePrice={livePrice} />
+      {/* Передаємо health та exchange у TopBar */}
+      <TopBar
+        exchange={selectedExchange}
+        pair={selectedPair}
+        livePrice={livePrice}
+        health={exchangeHealth}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 flex flex-col">
@@ -111,7 +137,7 @@ function App() {
               ref={chartRef}
               interval={selectedInterval}
               historical={historical}
-              onLoadMore={handleLoadMoreHistory} // Передаємо функцію пагінації у графік
+              onLoadMore={handleLoadMoreHistory}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center text-[#848e9c]">

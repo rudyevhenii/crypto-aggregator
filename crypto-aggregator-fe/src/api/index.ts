@@ -1,6 +1,16 @@
 // --- TYPES (Generated from OpenAPI) ---
 export type Exchange = 'BINANCE' | 'COINBASE' | 'KRAKEN';
 
+// Точне відображення вашого Java Enum
+export type ConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'RECONNECTING' | 'ERROR';
+
+// Точне відображення вашого Java record ExchangeHealthDto
+export interface ExchangeHealthDto {
+  exchange: Exchange;
+  connectionStatus: ConnectionStatus;
+  timestamp: string; // Java Instant приходить у JSON як ISO рядок
+}
+
 export type TradingPair =
   | 'BTC_USD' | 'ETH_USD' | 'SOL_USD' | 'ADA_USD' | 'XRP_USD'
   | 'DOT_USD' | 'DOGE_USD' | 'LINK_USD' | 'LTC_USD' | 'AVAX_USD';
@@ -81,7 +91,6 @@ export const api = {
       params.append('limit', request.limit.toString());
     }
 
-    // ДОДАНО: Передаємо курсор, якщо він є
     if (request.endTimeCursor) {
       params.append('endTimeCursor', request.endTimeCursor);
     }
@@ -95,8 +104,14 @@ export const api = {
 
     return res.json();
   },
+
   streamPrices: (exchange: Exchange, pair: TradingPair): EventSource => {
     return new EventSource(`${BASE_URL}/api/stream/exchanges/${exchange}/prices/${pair}`);
+  },
+
+  // ДОДАНО: Ендпоінт для статусу біржі
+  streamExchangeHealth: (exchange: Exchange): EventSource => {
+    return new EventSource(`${BASE_URL}/api/stream/exchanges/${exchange}/health`);
   },
 };
 
