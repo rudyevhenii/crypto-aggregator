@@ -8,9 +8,9 @@ import reactor.core.publisher.Flux;
 
 public interface LiveExchangeStrategy extends ExchangeStrategy {
 
-    Flux<LivePriceDto> streamAllPrices(Exchange exchange);
+    Flux<LivePriceDto> streamPriceByExchange(Exchange exchange);
 
-    Flux<LivePriceDto> streamPrice(Exchange exchange, TradingPair tradingPair);
+    Flux<LivePriceDto> streamSinglePair(Exchange exchange, TradingPair tradingPair);
 
-    Flux<ExchangeHealthDto> streamHealth(Exchange exchange);
+    Flux<ExchangeHealthDto> streamExchangeHealth(Exchange exchange);
 }

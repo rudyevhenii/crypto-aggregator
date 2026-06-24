@@ -135,6 +135,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/Ticker24h'
 
+  /api/stream/exchanges/prices:
+    get:
+      summary: "Stream prices from all exchanges (SSE)"
+      operationId: "streamAllPrices"
+      tags:
+        - "LiveExchange"
+      responses:
+        "200":
+          description: "Continuous event stream for updating all prices"
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LivePrice'
+
   /api/stream/exchanges/{exchange}/prices:
     get:
       summary: "Stream prices for the exchange (SSE)"

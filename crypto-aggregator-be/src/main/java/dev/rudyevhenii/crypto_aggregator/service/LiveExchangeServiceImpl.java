@@ -9,29 +9,41 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class LiveExchangeServiceImpl implements LiveExchangeService {
 
+    private static final int BUFFER_DELAY = 500;
+
     private final Map<Exchange, LiveExchangeStrategy> liveExchangeStrategies;
+
+    @Override
+    public Flux<List<LivePriceDto>> streamAllPrices() {
+        return Flux.merge(liveExchangeStrategies.entrySet().stream()
+                .map(entry -> entry.getValue().streamPriceByExchange(entry.getKey()))
+                .toList())
+                .buffer(Duration.ofMillis(BUFFER_DELAY));
+    }
 
     @Override
     public Flux<LivePriceDto> streamPriceByExchange(Exchange exchange) {
         return liveExchangeStrategies.get(exchange)
-                .streamAllPrices(exchange);
+                .streamPriceByExchange(exchange);
     }
 
     @Override
     public Flux<LivePriceDto> streamSinglePair(Exchange exchange, TradingPair pair) {
         return liveExchangeStrategies.get(exchange)
-                .streamPrice(exchange, pair);
+                .streamSinglePair(exchange, pair);
     }
 
     @Override
     public Flux<ExchangeHealthDto> streamExchangeHealth(Exchange exchange) {
         return liveExchangeStrategies.get(exchange)
-                .streamHealth(exchange);
+                .streamExchangeHealth(exchange);
     }
 }

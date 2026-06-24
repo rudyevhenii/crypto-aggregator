@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/stream/exchanges")
 @RequiredArgsConstructor
@@ -23,6 +25,14 @@ public class LiveExchangeController {
 
     private final LiveExchangeService liveExchangeService;
     private final ExchangeMapper mapper;
+
+    @GetMapping(value = "/prices", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<List<LivePriceRqDto>> streamAllPrices() {
+        return liveExchangeService.streamAllPrices()
+                .map(list -> list.stream()
+                        .map(mapper::toResponse)
+                        .toList());
+    }
 
     @GetMapping(value = "/{exchange}/prices", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<LivePriceRqDto> streamPriceByExchange(@PathVariable ExchangeRqDto exchange) {

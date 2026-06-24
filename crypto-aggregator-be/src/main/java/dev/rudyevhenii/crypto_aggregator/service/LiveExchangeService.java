@@ -6,7 +6,11 @@ import dev.rudyevhenii.crypto_aggregator.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.enums.TradingPair;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
 public interface LiveExchangeService {
+
+    Flux<List<LivePriceDto>> streamAllPrices();
 
     Flux<LivePriceDto> streamPriceByExchange(Exchange exchange);
 

@@ -46,13 +46,13 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     protected abstract LivePriceDto parseMessage(String payload);
 
     @Override
-    public Flux<LivePriceDto> streamAllPrices(Exchange exchange) {
+    public Flux<LivePriceDto> streamPriceByExchange(Exchange exchange) {
         return priceSink.asFlux()
                 .filter(cryptoPriceDto -> cryptoPriceDto.exchange().equals(exchange));
     }
 
     @Override
-    public Flux<LivePriceDto> streamPrice(Exchange exchange, TradingPair tradingPair) {
+    public Flux<LivePriceDto> streamSinglePair(Exchange exchange, TradingPair tradingPair) {
         return priceSink.asFlux()
                 .filter(cryptoPriceDto ->
                         cryptoPriceDto.tradingPair().equals(tradingPair)
@@ -60,7 +60,7 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     }
 
     @Override
-    public Flux<ExchangeHealthDto> streamHealth(Exchange exchange) {
+    public Flux<ExchangeHealthDto> streamExchangeHealth(Exchange exchange) {
         return healthSink.asFlux()
                 .filter(healthDto -> healthDto.exchange().equals(exchange));
     }
