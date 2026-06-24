@@ -1,0 +1,64 @@
+package dev.rudyevhenii.crypto_aggregator.exchange.mapper;
+
+import dev.rudyevhenii.crypto_aggregator.api.dto.ChartIntervalRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeHealthRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeMetadataRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.HistoricalPriceRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.HistoricalPriceRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.LivePriceRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.Ticker24hRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.TradingPairRqDto;
+import dev.rudyevhenii.crypto_aggregator.core.enums.ChartInterval;
+import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
+import dev.rudyevhenii.crypto_aggregator.core.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPriceDto;
+import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPriceRequest;
+import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
+import dev.rudyevhenii.crypto_aggregator.exchange.live.model.ExchangeHealthDto;
+import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
+import dev.rudyevhenii.crypto_aggregator.exchange.metadata.model.ExchangeMetadataDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface ExchangeMapper {
+
+    Exchange toDomain(ExchangeRqDto exchangeRqDto);
+
+    ExchangeRqDto toResponse(Exchange exchange);
+
+    TradingPair toDomain(TradingPairRqDto tradingPairRqDto);
+
+    TradingPairRqDto toResponse(TradingPair tradingPair);
+
+    ChartInterval toDomain(ChartIntervalRqDto chartIntervalRqDto);
+
+    ChartIntervalRqDto toResponse(ChartInterval chartInterval);
+
+    ExchangeMetadataRqDto toResponse(ExchangeMetadataDto exchangeMetadataDto);
+
+    @Mapping(target = "limit", defaultValue = "100")
+    HistoricalPriceRequest toDomain(HistoricalPriceRequestRqDto request);
+
+    HistoricalPriceRqDto toResponse(HistoricalPriceDto historicalPriceDto);
+
+    Ticker24hRqDto toResponse(Ticker24hDto ticker24hDto);
+
+    LivePriceRqDto toResponse(LivePriceDto livePriceDto);
+
+    ExchangeHealthRqDto toResponse(ExchangeHealthDto exchangeHealthDto);
+
+    default Instant toInstant(OffsetDateTime endTimeCursor) {
+        return endTimeCursor == null ? null : endTimeCursor.toInstant();
+    }
+
+    default OffsetDateTime toOffsetDateTime(Instant endTimeCursor) {
+        return endTimeCursor == null ? null : endTimeCursor.atOffset(ZoneOffset.UTC);
+    }
+}
