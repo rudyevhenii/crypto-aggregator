@@ -1,0 +1,89 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.6'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.openapi.generator' version '7.4.0'
+}
+
+group = 'dev.rudyevhenii'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '21'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-webclient'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	implementation 'org.springframework.boot:spring-boot-starter-flyway'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+	runtimeOnly 'org.postgresql:postgresql'
+
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-webclient-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+}
+
+openApiGenerate {
+	generatorName = "spring"
+	inputSpec = "$rootDir/src/main/resources/openapi/crypto-api.yaml".replace('\\', '/')
+
+	apiPackage = "dev.rudyevhenii.crypto_aggregator.api.interfaces"
+	modelPackage = "dev.rudyevhenii.crypto_aggregator.api.dto"
+	modelNameSuffix = "RqDto"
+
+	configOptions = [
+			interfaceOnly       : "true",
+			useSpringBoot3      : "true",
+			useJakartaEe        : "true",
+			skipDefaultInterface: "true",
+			useTags             : "true"
+	]
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs += layout.buildDirectory.dir("generated-openapi/src/main/java").get().asFile
+		}
+	}
+}
+
+tasks.named('openApiGenerate') {
+	outputDir = layout.buildDirectory.dir("generated-openapi").get().asFile.absolutePath
+}
+
+tasks.named('compileJava') {
+	dependsOn tasks.named('openApiGenerate')
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
