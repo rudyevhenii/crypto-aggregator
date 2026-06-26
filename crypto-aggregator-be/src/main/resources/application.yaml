@@ -2,7 +2,9 @@ spring:
   application:
     name: crypto-aggregator-be
   config:
-    import: classpath:exchanges.yaml
+    import:
+      - 'classpath:exchanges.yaml'
+      - 'optional:file:.env'
   datasource:
     username: postgres
     password: postgres
@@ -10,8 +12,6 @@ spring:
     url: jdbc:postgresql://localhost:5432/crypto_aggregator_db
   jpa:
     show-sql: true
-    hibernate:
-      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
@@ -19,3 +19,9 @@ spring:
     locations:
       - 'classpath:/db/migration/schema'
       - 'classpath:/db/migration/data'
+
+security:
+  jwt:
+    secret-key: ${SECRET_TOKEN:519265gRvMBWa8iSB8Qj0Za1pZM998WiGELw9L8y56yitcTLOFaEjqrJTGKbYMxr}
+    access-token-expiration: ${ACCESS_TOKEN:3600000}
+    refresh-token-expiration: ${REFRESH_TOKEN:604800000}
