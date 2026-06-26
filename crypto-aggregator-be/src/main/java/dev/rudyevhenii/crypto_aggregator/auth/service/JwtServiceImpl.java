@@ -2,7 +2,7 @@ package dev.rudyevhenii.crypto_aggregator.auth.service;
 
 import dev.rudyevhenii.crypto_aggregator.core.exception.InvalidJwtTokenException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.JwtTokenExpirationException;
-import dev.rudyevhenii.crypto_aggregator.user.UserEntity;
+import dev.rudyevhenii.crypto_aggregator.user.domain.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -49,12 +49,12 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        UserEntity user = (UserEntity) userDetails;
+        User user = (User) userDetails;
         return !isTokenExpired(token) && user.getId().equals(extractSubject(token));
     }
 
     private String generateToken(UserDetails userDetails, long expiration) {
-        UserEntity user = (UserEntity) userDetails;
+        User user = (User) userDetails;
 
         return Jwts.builder()
                 .subject(user.getId().toString())
