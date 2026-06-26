@@ -1,14 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+
+// Імпортуємо всі компоненти
+import LandingPage from './components/LandingPage.tsx';
 import TopBar from './components/TopBar';
 import Sidebar from './components/Sidebar';
 import ChartArea from './components/ChartArea';
 import Dashboard from './components/Dashboard';
+
 import useMarketData from './hooks/useMarketData';
 import { Exchange, TradingPair } from './api';
 
-function App() {
-  // Керування сторінками: 'dashboard' - головна, 'chart' - термінал
+// 1. Змінили назву з App на TradingPlatform
+function TradingPlatform() {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'dashboard' | 'chart'>('dashboard');
+
+  // ❗ Захист роуту: якщо токена немає, викидаємо назад на Landing
+  useEffect(() => {
+    if (!localStorage.getItem('accessToken')) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   const {
     metadata,
@@ -27,12 +40,10 @@ function App() {
     setSelectedInterval,
   } = useMarketData();
 
-  // Функція переходу на графік при кліку на рядок в таблиці
   const handleSelectPair = (exchange: Exchange, pair: TradingPair) => {
     setSelectedExchange(exchange);
     setSelectedPair(pair);
 
-    // Встановлюємо дефолтний інтервал при переході
     const exData = metadata.find(m => m.exchange === exchange);
     if (exData && !selectedInterval) {
       setSelectedInterval(
@@ -46,7 +57,6 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen w-full bg-[#0b0e14] font-sans overflow-hidden">
-
       {currentView === 'dashboard' ? (
         <Dashboard
           metadata={metadata}
@@ -54,13 +64,11 @@ function App() {
         />
       ) : (
         <div className="flex flex-col h-full">
-          {/* TopBar показується ТІЛЬКИ в режимі графіка */}
           <TopBar
             exchange={selectedExchange}
             pair={selectedPair}
             livePrice={livePrice}
             health={exchangeHealth}
-            // Передайте цю функцію у TopBar, якщо хочете додати кнопку "Back" біля логотипу
             onBack={() => setCurrentView('dashboard')}
           />
 
@@ -106,8 +114,19 @@ function App() {
           </div>
         </div>
       )}
-
     </div>
+  );
+}
+
+function App(): JSX.Element {
+  return (
+    <Routes>
+      {/* Головна сторінка з реєстрацією та входом */}
+      <Route path="/" element={<LandingPage />} />
+
+      {/* Захищений термінал з дашбордом та графіками */}
+      <Route path="/app" element={<TradingPlatform />} />
+    </Routes>
   );
 }
 
