@@ -4,6 +4,7 @@ import dev.rudyevhenii.crypto_aggregator.core.dto.ErrorResponseDto;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
+import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -26,16 +27,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnsupportedIntervalException.class)
     public ResponseEntity<ErrorResponseDto> handleException(UnsupportedIntervalException ex) {
-        log.warn("Business validation failed: {}", ex.getMessage());
         HttpStatus status = HttpStatus.BAD_REQUEST;
+        logErrorMessage(status, ex);
         return ResponseEntity.status(status)
-                .body(buildErrorResponse(status.value(), ex.getMessage()));
+                .body(buildErrorResponse(status, ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDto> handleException(MethodArgumentNotValidException ex) {
-        log.warn("Input validation failed");
         HttpStatus status = HttpStatus.BAD_REQUEST;
+        logErrorMessage(status, ex);
 
         BindingResult result = ex.getBindingResult();
         List<ErrorResponseDto.FieldError> fieldErrors = result.getFieldErrors().stream()
@@ -43,52 +44,97 @@ public class GlobalExceptionHandler {
                 .toList();
 
         return ResponseEntity.status(status)
-                .body(buildErrorResponse(status.value(), ex.getMessage(), fieldErrors));
+                .body(buildErrorResponse(status, ex.getMessage(), fieldErrors));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponseDto> handleException(ConstraintViolationException ex) {
-        log.warn("Constraint violation: {}", ex.getMessage());
         HttpStatus status = HttpStatus.BAD_REQUEST;
+        logErrorMessage(status, ex);
         return ResponseEntity.status(status)
-                .body(buildErrorResponse(status.value(), ex.getMessage()));
+                .body(buildErrorResponse(status, ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponseDto> handleException(MethodArgumentTypeMismatchException ex) {
         String message = String.format("Parameter '%s' value '%s' is invalid", ex.getName(), ex.getValue());
-        log.warn("Type mismatch: {}", message);
+        log.error("Type mismatch: {}", message);
         HttpStatus status = HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status)
-                .body(buildErrorResponse(status.value(), message));
+                .body(buildErrorResponse(status, message));
+    }
+
+    @ExceptionHandler(InvalidJwtTokenException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(InvalidJwtTokenException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        logErrorMessage(status, ex);
+        return ResponseEntity.status(status)
+                .body(buildErrorResponse(status, ex.getMessage()));
+    }
+
+    @ExceptionHandler(JwtTokenExpirationException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(JwtTokenExpirationException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        logErrorMessage(status, ex);
+        return ResponseEntity.status(status)
+                .body(buildErrorResponse(status, ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(ResourceAlreadyExistsException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        logErrorMessage(status, ex);
+        return ResponseEntity.status(status)
+                .body(buildErrorResponse(status, ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(ResourceNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        logErrorMessage(status, ex);
+        return ResponseEntity.status(status)
+                .body(buildErrorResponse(status, ex.getMessage()));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(AuthenticationException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        logErrorMessage(status, ex);
+        return ResponseEntity.status(status)
+                .body(buildErrorResponse(status, ex.getMessage()));
     }
 
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<ErrorResponseDto> handleException(WebClientResponseException ex) {
-        log.error("External Exchange API failed with status {}: {}", ex.getStatusCode(), ex.getResponseBodyAsString());
         HttpStatus status = HttpStatus.BAD_GATEWAY;
+        log.error("External Exchange API failed with status {}: {}", ex.getStatusCode(), ex.getResponseBodyAsString());
         return ResponseEntity.status(status)
-                .body(buildErrorResponse(status.value(), ex.getResponseBodyAsString()));
+                .body(buildErrorResponse(status, ex.getResponseBodyAsString()));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
-        log.error("Unknown internal server error occurred", ex);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        logErrorMessage(status, ex);
         return ResponseEntity.status(status)
-                .body(buildErrorResponse(status.value(), ex.getMessage()));
+                .body(buildErrorResponse(status, ex.getMessage()));
     }
 
-    private ErrorResponseDto buildErrorResponse(int code, String message) {
+    private void logErrorMessage(HttpStatus status, Exception ex) {
+        log.error("Status: {}, error message: {}", status, ex.getMessage());
+    }
+
+    private ErrorResponseDto buildErrorResponse(HttpStatus status, String message) {
         return ErrorResponseDto.builder()
-                .code(code)
+                .code(status.value())
                 .message(message)
                 .build();
     }
 
-    private ErrorResponseDto buildErrorResponse(int code, String message, List<ErrorResponseDto.FieldError> fieldErrors) {
+    private ErrorResponseDto buildErrorResponse(HttpStatus status, String message,
+                                                List<ErrorResponseDto.FieldError> fieldErrors) {
         return ErrorResponseDto.builder()
-                .code(code)
+                .code(status.value())
                 .message(message)
                 .errors(fieldErrors)
                 .build();
