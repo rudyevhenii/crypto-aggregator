@@ -23,10 +23,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/exchanges/**").permitAll()
-                        .requestMatchers("/api/historical/**").permitAll()
-                        .requestMatchers("/api/stream/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/exchanges/**", "/api/historical/**",
+                                "/api/stream/**").permitAll()
+                        .requestMatchers("/api/exchange-pairs/**").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

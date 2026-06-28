@@ -290,6 +290,56 @@ paths:
                 items:
                   $ref: '#/components/schemas/ExchangeMetadata'
 
+  # ════════════════════════════════════════════════════════════════
+  #  Exchange Pair
+  # ════════════════════════════════════════════════════════════════
+
+  /api/exchange-pairs:
+    get:
+      summary: "Get all exchange pairs"
+      operationId: "findAllExchangePairs"
+      tags:
+        - "ExchangePair"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangePair'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/exchange-pairs/search:
+    parameters:
+      - name: pattern
+        in: query
+        required: true
+        schema:
+          type: string
+    get:
+      summary: "Search exchange pairs by parameter"
+      operationId: "searchExchangePairs"
+      tags:
+        - "ExchangePair"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangePair'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
 
 components:
   schemas:
@@ -507,6 +557,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ChartInterval'
+
+    # ── Exchange pair schemas ──────────────────────────────────────
+    ExchangePair:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        exchange:
+          $ref: '#/components/schemas/Exchange'
 
   parameters:
     ExchangeParam:
