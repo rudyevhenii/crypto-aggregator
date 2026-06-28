@@ -1,12 +1,226 @@
 openapi: 3.1.0
 info:
-  title: Crypto API aggregator
-  description: Crypto API aggregator
+  title: Crypto Aggregator API
+  description: Crypto Aggregator API
   version: 1.0.0
 servers:
   - url: 'http://localhost:8080'
 
 paths:
+  # ════════════════════════════════════════════════════════════════
+  #  Auth
+  # ════════════════════════════════════════════════════════════════
+
+  /api/auth/register:
+    post:
+      summary: "Endpoint to register a user"
+      operationId: "register"
+      tags:
+        - "Auth"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "200":
+          description: "Successfully registers a user and returns access and refresh jwt tokens"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "409":
+          $ref: 'common-components.yaml#/components/responses/Conflict'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/auth/login:
+    post:
+      summary: "Endpoint to login a user"
+      operationId: "login"
+      tags:
+        - "Auth"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: "Successfully registers a user and returns access and refresh jwt tokens"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/auth/refresh-token:
+    post:
+      summary: "Refreshes jwt access and refresh tokens"
+      operationId: "refreshToken"
+      tags:
+        - "Auth"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        "200":
+          description: "Returns refreshed jwt tokens"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  # ════════════════════════════════════════════════════════════════
+  #  Historical
+  # ════════════════════════════════════════════════════════════════
+
+  /api/historical/exchanges/{exchange}/klines:
+    get:
+      summary: "Get klines charts"
+      operationId: "getHistoricalPrices"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - name: request
+          in: query
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/HistoricalPriceRequest'
+      responses:
+        "200":
+          description: "Successfully retrieves array of historical chars"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricalPrice'
+
+  /api/historical/exchanges/{exchange}/tickers/24h:
+    get:
+      summary: "Get tickers for the exchange"
+      operationId: "get24hTickersByExchange"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        "200":
+          description: "Successfully retrieves array of tickers data for exchange"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticker24h'
+
+  /api/historical/exchanges/{exchange}/tickers/24h/{pair}:
+    get:
+      summary: "Get tickers for a trading pair"
+      operationId: "get24hTickerForPair"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - $ref: '#/components/parameters/TradingPairParam'
+      responses:
+        "200":
+          description: "Successfully retrieves ticker for a trading pair"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticker24h'
+
+  # ════════════════════════════════════════════════════════════════
+  #  Live / SSE
+  # ════════════════════════════════════════════════════════════════
+
+  /api/stream/exchanges/prices:
+    get:
+      summary: "Stream prices from all exchanges (SSE)"
+      operationId: "streamAllPrices"
+      tags:
+        - "LiveExchange"
+      responses:
+        "200":
+          description: "Continuous event stream for updating all prices"
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LivePrice'
+
+  /api/stream/exchanges/{exchange}/prices:
+    get:
+      summary: "Stream prices for the exchange (SSE)"
+      operationId: "streamPriceByExchange"
+      tags:
+        - "LiveExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        "200":
+          description: "Continuous event stream for updating all prices in exchange"
+          content:
+            text-event-stream:
+              schema:
+                $ref: '#/components/schemas/LivePrice'
+
+  /api/stream/exchanges/{exchange}/prices/{pair}:
+    get:
+      summary: "Stream prices for a trading pair (SSE)"
+      operationId: "streamSinglePair"
+      tags:
+        - "LiveExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - $ref: '#/components/parameters/TradingPairParam'
+      responses:
+        "200":
+          description: "Continuous event stream for updating prices for specific trading pair"
+          content:
+            text-event-stream:
+              schema:
+                $ref: '#/components/schemas/LivePrice'
+
+  /api/stream/exchanges/{exchange}/health:
+    get:
+      summary: "Stream exchange health (SSE)"
+      operationId: "streamExchangeHealth"
+      tags:
+        - "LiveExchange"
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        "200":
+          description: "Continuous event stream for the health state of the exchange"
+          content:
+            text-event-stream:
+              schema:
+                $ref: '#/components/schemas/ExchangeHealth'
+
+  # ════════════════════════════════════════════════════════════════
+  #  Metadata
+  # ════════════════════════════════════════════════════════════════
+
   /api/exchanges:
     get:
       summary: "Get all exchanges"
@@ -76,234 +290,10 @@ paths:
                 items:
                   $ref: '#/components/schemas/ExchangeMetadata'
 
-  /api/historical/exchanges/{exchange}/klines:
-    get:
-      summary: "Get klines charts"
-      operationId: "getHistoricalPrices"
-      tags:
-        - "HistoricalExchange"
-      parameters:
-        - $ref: '#/components/parameters/ExchangeParam'
-        - name: request
-          in: query
-          style: form
-          explode: true
-          schema:
-            $ref: '#/components/schemas/HistoricalPriceRequest'
-      responses:
-        "200":
-          description: "Successfully retrieves array of historical chars"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/HistoricalPrice'
-
-  /api/historical/exchanges/{exchange}/tickers/24h:
-    get:
-      summary: "Get tickers for the exchange"
-      operationId: "get24hTickersByExchange"
-      tags:
-        - "HistoricalExchange"
-      parameters:
-        - $ref: '#/components/parameters/ExchangeParam'
-      responses:
-        "200":
-          description: "Successfully retrieves array of tickers data for exchange"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Ticker24h'
-
-  /api/historical/exchanges/{exchange}/tickers/24h/{pair}:
-    get:
-      summary: "Get tickers for a trading pair"
-      operationId: "get24hTickerForPair"
-      tags:
-        - "HistoricalExchange"
-      parameters:
-        - $ref: '#/components/parameters/ExchangeParam'
-        - $ref: '#/components/parameters/TradingPairParam'
-      responses:
-        "200":
-          description: "Successfully retrieves ticker for a trading pair"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Ticker24h'
-
-  /api/stream/exchanges/prices:
-    get:
-      summary: "Stream prices from all exchanges (SSE)"
-      operationId: "streamAllPrices"
-      tags:
-        - "LiveExchange"
-      responses:
-        "200":
-          description: "Continuous event stream for updating all prices"
-          content:
-            text/event-stream:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/LivePrice'
-
-  /api/stream/exchanges/{exchange}/prices:
-    get:
-      summary: "Stream prices for the exchange (SSE)"
-      operationId: "streamPriceByExchange"
-      tags:
-        - "LiveExchange"
-      parameters:
-        - $ref: '#/components/parameters/ExchangeParam'
-      responses:
-        "200":
-          description: "Continuous event stream for updating all prices in exchange"
-          content:
-            text/event-stream:
-              schema:
-                $ref: '#/components/schemas/LivePrice'
-
-  /api/stream/exchanges/{exchange}/prices/{pair}:
-    get:
-      summary: "Stream prices for a trading pair (SSE)"
-      operationId: "streamSinglePair"
-      tags:
-        - "LiveExchange"
-      parameters:
-        - $ref: '#/components/parameters/ExchangeParam'
-        - $ref: '#/components/parameters/TradingPairParam'
-      responses:
-        "200":
-          description: "Continuous event stream for updating prices for specific trading pair"
-          content:
-            text/event-stream:
-              schema:
-                $ref: '#/components/schemas/LivePrice'
-
-  /api/stream/exchanges/{exchange}/health:
-    get:
-      summary: "Stream exchange health (SSE)"
-      operationId: "streamExchangeHealth"
-      tags:
-        - "LiveExchange"
-      parameters:
-        - $ref: '#/components/parameters/ExchangeParam'
-      responses:
-        "200":
-          description: "Continuous event stream for the health state of the exchange"
-          content:
-            text/event-stream:
-              schema:
-                $ref: '#/components/schemas/ExchangeHealth'
-
-  /api/auth/register:
-    post:
-      summary: "Endpoint to register a user"
-      operationId: "register"
-      tags:
-        - "Auth"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-      responses:
-        "200":
-          description: "Successfully registers a user and returns access and refresh jwt tokens"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenResponse'
-        "409":
-          description: "Conflict"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "500":
-          description: "Internal server error"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/auth/login:
-    post:
-      summary: "Endpoint to login a user"
-      operationId: "login"
-      tags:
-        - "Auth"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      responses:
-        "200":
-          description: "Successfully registers a user and returns access and refresh jwt tokens"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenResponse'
-        "401":
-          description: "Unauthorized"
-          content: 
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "500":
-          description: "Internal server error"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    
-  /api/auth/refresh-token:
-    post:
-      summary: "Refreshes jwt access and refresh tokens"
-      operationId: "refreshToken"
-      tags:
-        - "Auth"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
-      responses:
-        "200":
-          description: "Returns refreshed jwt tokens"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenResponse'
-        "401":
-          description: "Unauthorized"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "404":
-          description: "Not found"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "500":
-          description: "Internal server error"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
+    # ── Common enums & error models ───────────────────────────────
     Exchange:
       type: string
       enum:
@@ -346,117 +336,7 @@ components:
         - ONE_WEEK
         - ONE_MONTH
 
-    ConnectionStatus:
-      type: string
-      enum:
-        - CONNECTED
-        - DISCONNECTED
-        - RECONNECTING
-        - ERROR
-
-    ExchangeMetadata:
-      type: object
-      properties:
-        exchange:
-          $ref: '#/components/schemas/Exchange'
-        supportedPairs:
-          type: array
-          items:
-            $ref: '#/components/schemas/TradingPair'
-        supportedIntervals:
-          type: array
-          items:
-            $ref: '#/components/schemas/ChartInterval'
-
-    HistoricalPriceRequest:
-      type: object
-      required:
-        - tradingPair
-        - chartInterval
-      properties:
-        tradingPair:
-          $ref: '#/components/schemas/TradingPair'
-        chartInterval:
-          $ref: '#/components/schemas/ChartInterval'
-        limit:
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 200
-        endTimeCursor:
-          type: string
-          format: date-time
-
-    HistoricalPrice:
-      type: object
-      properties:
-        openTime:
-          type: string
-          format: date-time
-        open:
-          type: number
-        high:
-          type: number
-        low:
-          type: number
-        close:
-          type: number
-        volume:
-          type: number
-
-    Ticker24h:
-      type: object
-      properties:
-        exchange:
-          $ref: '#/components/schemas/Exchange'
-        tradingPair:
-          $ref: '#/components/schemas/TradingPair'
-        lastPrice:
-          type: number
-        priceChangePercent24h:
-          type: number
-        high24h:
-          type: number
-        low24h:
-          type: number
-        volume24h:
-          type: number
-        timestamp:
-          type: string
-          format: date-time
-
-    LivePrice:
-      type: object
-      properties:
-        exchange:
-          $ref: '#/components/schemas/Exchange'
-        tradingPair:
-          $ref: '#/components/schemas/TradingPair'
-        lastPrice:
-          type: number
-        priceChangePercent24h:
-          type: number
-        highPrice24h:
-          type: number
-        lowPrice24h:
-          type: number
-        volume24h:
-          type: number
-        timestamp:
-          type: string
-          format: date-time
-
-    ExchangeHealth:
-      type: object
-      properties:
-        exchange:
-          $ref: '#/components/schemas/Exchange'
-        connectionStatus:
-          $ref: '#/components/schemas/ConnectionStatus'
-        timestamp:
-          type: string
-          format: date-time
-
+    # ── Auth schemas ──────────────────────────────────────────────
     RegisterRequest:
       type: object
       required:
@@ -501,7 +381,7 @@ components:
       type: object
       required:
         - refreshToken
-      properties: 
+      properties:
         refreshToken:
           type: string
 
@@ -513,24 +393,120 @@ components:
         refreshToken:
           type: string
 
-    ErrorResponse:
+    # ── Historical schemas ────────────────────────────────────────
+    HistoricalPriceRequest:
       type: object
+      required:
+        - tradingPair
+        - chartInterval
       properties:
-        code:
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        chartInterval:
+          $ref: '#/components/schemas/ChartInterval'
+        limit:
           type: integer
           format: int32
-        message:
+          minimum: 1
+          default: 100
+          maximum: 200
+        endTimeCursor:
           type: string
-        errors:
-          $ref: '#/components/schemas/FieldError'
+          format: date-time
 
-    FieldError:
+    HistoricalPrice:
       type: object
       properties:
-        field:
+        openTime:
           type: string
-        error:
+          format: date-time
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        close:
+          type: number
+        volume:
+          type: number
+
+    Ticker24h:
+      type: object
+      properties:
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        lastPrice:
+          type: number
+        priceChangePercent24h:
+          type: number
+        high24h:
+          type: number
+        low24h:
+          type: number
+        volume24h:
+          type: number
+        timestamp:
           type: string
+          format: date-time
+
+    # ── Live schemas ──────────────────────────────────────────────
+    LivePrice:
+      type: object
+      properties:
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        lastPrice:
+          type: number
+        priceChangePercent24h:
+          type: number
+        highPrice24h:
+          type: number
+        lowPrice24h:
+          type: number
+        volume24h:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    ExchangeHealth:
+      type: object
+      properties:
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        connectionStatus:
+          $ref: '#/components/schemas/ConnectionStatus'
+        timestamp:
+          type: string
+          format: date-time
+
+    ConnectionStatus:
+      type: string
+      enum:
+        - CONNECTED
+        - DISCONNECTED
+        - RECONNECTING
+        - ERROR
+
+    # ── Metadata schemas ──────────────────────────────────────────
+    ExchangeMetadata:
+      type: object
+      properties:
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        supportedPairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/TradingPair'
+        supportedIntervals:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartInterval'
 
   parameters:
     ExchangeParam:

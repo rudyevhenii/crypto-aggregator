@@ -59,7 +59,7 @@ dependencies {
 
 openApiGenerate {
 	generatorName = "spring"
-	inputSpec = "$rootDir/src/main/resources/openapi/crypto-api.yaml".replace('\\', '/')
+	inputSpec = "$rootDir/src/main/resources/openapi/openapi-crypto.yaml".replace('\\', '/')
 
 	apiPackage = "dev.rudyevhenii.crypto_aggregator.api.interfaces"
 	modelPackage = "dev.rudyevhenii.crypto_aggregator.api.dto"
@@ -92,6 +92,6 @@ tasks.named('compileJava') {
 	dependsOn tasks.named('openApiGenerate')
 }
 
-tasks.named('test') {
+tasks.named('test', Test) {
 	useJUnitPlatform()
 }
