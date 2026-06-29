@@ -77,6 +77,7 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected URI resolveTickerUri(String tradingPair) {
+        // TODO: extract this url somewhere else. Do the same in other strategies
         return UriComponentsBuilder.fromUriString("https://api.exchange.coinbase.com" + TICKER_24H_URI)
                 .buildAndExpand(tradingPair)
                 .toUri();

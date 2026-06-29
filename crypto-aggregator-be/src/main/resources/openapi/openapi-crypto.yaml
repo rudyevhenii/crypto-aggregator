@@ -180,7 +180,7 @@ paths:
         "200":
           description: "Continuous event stream for updating all prices in exchange"
           content:
-            text-event-stream:
+            text/event-stream:
               schema:
                 $ref: '#/components/schemas/LivePrice'
 
@@ -197,7 +197,7 @@ paths:
         "200":
           description: "Continuous event stream for updating prices for specific trading pair"
           content:
-            text-event-stream:
+            text/event-stream:
               schema:
                 $ref: '#/components/schemas/LivePrice'
 
@@ -213,7 +213,7 @@ paths:
         "200":
           description: "Continuous event stream for the health state of the exchange"
           content:
-            text-event-stream:
+            text/event-stream:
               schema:
                 $ref: '#/components/schemas/ExchangeHealth'
 

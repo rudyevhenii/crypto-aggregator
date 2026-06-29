@@ -1,4 +1,4 @@
-package dev.rudyevhenii.crypto_aggregator.auth.controller;
+package dev.rudyevhenii.crypto_aggregator.auth;
 
 import dev.rudyevhenii.crypto_aggregator.api.dto.LoginRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.RefreshTokenRequestRqDto;

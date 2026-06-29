@@ -4,12 +4,12 @@ import dev.rudyevhenii.crypto_aggregator.user.UserEntity;
 import dev.rudyevhenii.crypto_aggregator.user.domain.User;
 import dev.rudyevhenii.crypto_aggregator.user.mapper.UserEntityMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class DefaultUserRepository implements UserRepository {
 

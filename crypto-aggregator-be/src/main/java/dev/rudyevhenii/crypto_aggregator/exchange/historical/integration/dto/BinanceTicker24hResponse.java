@@ -10,6 +10,6 @@ public record BinanceTicker24hResponse(
         BigDecimal lastPrice,
         @JsonProperty("highPrice") BigDecimal highPrice24h,
         @JsonProperty("lowPrice") BigDecimal lowPrice24h,
-        @JsonProperty("volume24h") BigDecimal volume24h
+        @JsonProperty("volume") BigDecimal volume24h
 ) {
 }
