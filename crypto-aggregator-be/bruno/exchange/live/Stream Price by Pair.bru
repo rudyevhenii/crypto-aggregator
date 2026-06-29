@@ -1,0 +1,25 @@
+meta {
+  name: Stream Price by Pair
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{BASE_URL}}/api/stream/exchanges/:exchange/prices/:pair
+  body: none
+  auth: inherit
+}
+
+params:path {
+  pair: BTC_USD
+  exchange: BINANCE
+}
+
+headers {
+  Accept: text/event-stream
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

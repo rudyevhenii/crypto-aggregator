@@ -1,0 +1,32 @@
+meta {
+  name: Register User
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/auth/register
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "{{DEFAULT_EMAIL}}",
+    "password": "{{DEFAULT_PASSWORD}}",
+    "firstName": "John",
+    "lastName": "Doe"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("ACCESS_TOKEN", res.getBody().accessToken)
+    bru.setVar("REFRESH_TOKEN", res.getBody().refreshToken)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

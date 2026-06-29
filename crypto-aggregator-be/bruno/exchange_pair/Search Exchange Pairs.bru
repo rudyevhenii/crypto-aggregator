@@ -1,0 +1,20 @@
+meta {
+  name: Search Exchange Pairs
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{BASE_URL}}/api/exchange-pairs/search?pattern=BTC
+  body: none
+  auth: inherit
+}
+
+params:query {
+  pattern: BTC
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Stream Prices by Exchange
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/api/stream/exchanges/:exchange/prices
+  body: none
+  auth: inherit
+}
+
+params:path {
+  exchange: BINANCE
+}
+
+headers {
+  Accept: text/event-stream
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

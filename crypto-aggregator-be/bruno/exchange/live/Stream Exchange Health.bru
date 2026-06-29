@@ -1,0 +1,24 @@
+meta {
+  name: Stream Exchange Health
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{BASE_URL}}/api/stream/exchanges/:exchange/health
+  body: none
+  auth: inherit
+}
+
+params:path {
+  exchange: BINANCE
+}
+
+headers {
+  Accept: text/event-stream
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

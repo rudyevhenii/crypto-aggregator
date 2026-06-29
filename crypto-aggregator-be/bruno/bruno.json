@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Crypto Aggregator API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

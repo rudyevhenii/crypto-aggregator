@@ -1,0 +1,27 @@
+meta {
+  name: Get Klines
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/historical/exchanges/:exchange/klines?tradingPair=BTC_USD&chartInterval=ONE_HOUR
+  body: none
+  auth: inherit
+}
+
+params:query {
+  tradingPair: BTC_USD
+  chartInterval: ONE_HOUR
+  ~limit: 
+  ~endTimeCursor: 2026-06-25T10:00:00Z
+}
+
+params:path {
+  exchange: BINANCE
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Get Trading Pairs
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{BASE_URL}}/api/exchanges/:exchange/pairs
+  body: none
+  auth: inherit
+}
+
+params:path {
+  exchange: BINANCE
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

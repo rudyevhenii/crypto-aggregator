@@ -1,0 +1,30 @@
+meta {
+  name: Login User
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/api/auth/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "{{DEFAULT_EMAIL}}",
+    "password": "{{DEFAULT_PASSWORD}}"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("ACCESS_TOKEN", res.getBody().accessToken)
+    bru.setVar("REFRESH_TOKEN", res.getBody().refreshToken)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

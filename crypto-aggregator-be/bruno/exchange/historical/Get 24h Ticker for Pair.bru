@@ -1,0 +1,21 @@
+meta {
+  name: Get 24h Ticker for Pair
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/api/historical/exchanges/:exchange/tickers/24h/:pair
+  body: none
+  auth: inherit
+}
+
+params:path {
+  pair: BTC_USD
+  exchange: BINANCE
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

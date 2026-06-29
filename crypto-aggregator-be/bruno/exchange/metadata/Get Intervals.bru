@@ -1,0 +1,20 @@
+meta {
+  name: Get Intervals
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{BASE_URL}}/api/exchanges/:exchange/intervals
+  body: none
+  auth: inherit
+}
+
+params:path {
+  exchange: BINANCE
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

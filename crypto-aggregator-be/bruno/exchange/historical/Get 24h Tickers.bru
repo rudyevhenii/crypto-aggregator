@@ -1,0 +1,20 @@
+meta {
+  name: Get 24h Tickers
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/historical/exchanges/:exchange/tickers/24h
+  body: none
+  auth: inherit
+}
+
+params:path {
+  exchange: BINANCE
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
