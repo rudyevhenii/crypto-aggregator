@@ -1,6 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.workspace.repository;
 
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
+import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +13,9 @@ public interface WorkspaceRepository {
 
     Workspace update(UUID userId, Workspace workspace);
 
-    Optional<Workspace> findWorkspaceById(UUID userId, UUID workspaceId);
+    Optional<Workspace> findById(UUID userId, UUID id);
+
+    Optional<WorkspaceDetail> findByIdWithDetail(UUID userId, UUID workspaceId);
 
     List<Workspace> findAllWorkspaces(UUID userId);
 

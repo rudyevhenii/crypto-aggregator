@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -13,6 +15,12 @@ public class DefaultExchangePairRepository implements ExchangePairRepository {
 
     private final SpringDataExchangePairRepository repository;
     private final ExchangePairEntityMapper mapper;
+
+    @Override
+    public Optional<ExchangePair> findById(UUID id) {
+        return repository.findById(id)
+                .map(mapper::toDomain);
+    }
 
     @Override
     public List<ExchangePair> findAllTradingPairs() {
@@ -26,5 +34,10 @@ public class DefaultExchangePairRepository implements ExchangePairRepository {
         return repository.searchByPattern(pattern).stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return repository.existsById(id);
     }
 }

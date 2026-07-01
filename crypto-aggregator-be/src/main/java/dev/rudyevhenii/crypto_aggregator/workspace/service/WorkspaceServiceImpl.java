@@ -3,7 +3,10 @@ package dev.rudyevhenii.crypto_aggregator.workspace.service;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceAlreadyExistsException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
+import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
+import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
+import dev.rudyevhenii.crypto_aggregator.workspace.dto.ChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.WorkspaceRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,58 +19,66 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WorkspaceServiceImpl implements WorkspaceService {
 
-    private final WorkspaceRepository repository;
+    private final WorkspaceRepository workspaceRepository;
+    private final ChartWidgetService chartWidgetService;
     private final GeneratorUtils generator;
 
     @Override
     public Workspace create(UUID userId, WorkspaceRequest request) {
         validateUniqueWorkspaceName(userId, request);
-        Workspace workspace = toCreateDomain(request);
-        return repository.create(userId, workspace);
+        Workspace workspace = toDomain(request);
+        return workspaceRepository.create(userId, workspace);
     }
 
     @Override
     public Workspace update(UUID userId, UUID workspaceId, WorkspaceRequest request) {
-        Workspace workspace = findById(userId, workspaceId);
+        Workspace workspace = workspaceRepository.findById(userId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId)));;
         if (!workspace.getName().equals(request.name())) {
             validateUniqueWorkspaceName(userId, request);
             workspace.setName(request.name());
         }
         workspace.setUpdatedAt(generator.now());
-        return repository.update(userId, workspace);
+        return workspaceRepository.update(userId, workspace);
     }
 
     @Override
-    public Workspace getWorkspaceById(UUID userId, UUID id) {
-        return findById(userId, id);
+    public WorkspaceDetail getWorkspaceById(UUID userId, UUID workspaceId) {
+        return workspaceRepository.findByIdWithDetail(userId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId)));
     }
 
     @Override
     public List<Workspace> getAllWorkspaces(UUID userId) {
-        return repository.findAllWorkspaces(userId);
+        return workspaceRepository.findAllWorkspaces(userId);
     }
 
     @Override
     public void deleteById(UUID userId, UUID workspaceId) {
-        if (repository.existsById(userId, workspaceId)) {
-            throw new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId));
-        }
-        repository.deleteById(userId, workspaceId);
+        validateWorkspaceExists(userId, workspaceId);
+        workspaceRepository.deleteById(userId, workspaceId);
     }
 
-    private Workspace findById(UUID userId, UUID id) {
-        return repository.findWorkspaceById(userId, id)
-                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: %s".formatted(id)));
+    @Override
+    public ChartWidget createChartWidget(UUID userId, UUID workspaceId, ChartWidgetRequest request) {
+        validateWorkspaceExists(userId, workspaceId);
+        return chartWidgetService.create(workspaceId, request);
+    }
+
+    private void validateWorkspaceExists(UUID userId, UUID workspaceId) {
+        if (workspaceRepository.existsById(userId, workspaceId)) {
+            throw new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId));
+        }
     }
 
     private void validateUniqueWorkspaceName(UUID userId, WorkspaceRequest request) {
-        if (repository.existsByName(userId, request.name())) {
+        if (workspaceRepository.existsByName(userId, request.name())) {
             throw new ResourceAlreadyExistsException("Workspace with name '%s' already exists"
                     .formatted(request.name()));
         }
     }
 
-    private Workspace toCreateDomain(WorkspaceRequest request) {
+    private Workspace toDomain(WorkspaceRequest request) {
         return Workspace.builder()
                 .id(generator.uuid())
                 .name(request.name())
