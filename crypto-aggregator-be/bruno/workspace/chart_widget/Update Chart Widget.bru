@@ -1,0 +1,20 @@
+meta {
+  name: Update Chart Widget
+  type: http
+  seq: 2
+}
+
+patch {
+  url: /api/workspaces/:workspaceId/widgets/:chartWidgetId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  workspaceId: 
+  chartWidgetId: 
+}
+
+settings {
+  encodeUrl: true
+}

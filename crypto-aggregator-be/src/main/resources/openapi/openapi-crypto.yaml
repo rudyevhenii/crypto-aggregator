@@ -491,6 +491,36 @@ paths:
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
+  /api/workspaces/{workspaceId}/widgets/{chartWidgetId}:
+    patch:
+      summary: "Update specific chart widget"
+      operationId: "updateChartWidget"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+        - $ref: '#/components/parameters/ChartWidgetParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateChartWidgetRequest'
+      responses:
+        "200":
+          description: "Ok"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartWidget'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
 components:
   schemas:
     # ── Common enums & error models ───────────────────────────────
@@ -798,6 +828,14 @@ components:
           type: string
           format: date-time
 
+    UpdateChartWidgetRequest:
+      type: object
+      required:
+        - chartInterval
+      properties:
+        chartInterval:
+          $ref: '#/components/schemas/ChartInterval'
+
   parameters:
     ExchangeParam:
       in: path
@@ -816,6 +854,14 @@ components:
     WorkspaceParam:
       in: path
       name: workspaceId
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ChartWidgetParam:
+      in: path
+      name: chartWidgetId
       required: true
       schema:
         type: string

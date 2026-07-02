@@ -5,6 +5,7 @@ import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.service.ExchangePairService;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.ChartWidgetRequest;
+import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.ChartWidgetRepository;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,19 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
         ChartWidget chartWidget = toDomain(position, request.exchangePairId());
 
         return chartWidgetRepository.create(workspaceId, chartWidget);
+    }
+
+    @Override
+    @Transactional
+    public ChartWidget update(UUID userId, UUID workspaceId, UUID chartWidgetId, UpdateChartWidgetRequest request) {
+        validateWorkspaceExists(userId, workspaceId);
+        ChartWidget chartWidget = chartWidgetRepository.findById(chartWidgetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Chart widget not found with id: %s".formatted(chartWidgetId)));
+        if (!chartWidget.getChartInterval().equals(request.chartInterval())) {
+            chartWidget.setChartInterval(request.chartInterval());
+        }
+        chartWidget.setUpdatedAt(generator.now());
+        return chartWidgetRepository.update(workspaceId, chartWidget);
     }
 
     private void validateWorkspaceExists(UUID userId, UUID workspaceId) {

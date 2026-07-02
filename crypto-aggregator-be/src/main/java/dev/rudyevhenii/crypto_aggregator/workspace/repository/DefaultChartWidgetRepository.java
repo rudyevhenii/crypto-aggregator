@@ -7,6 +7,7 @@ import dev.rudyevhenii.crypto_aggregator.workspace.mapper.ChartWidgetEntityMappe
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -17,6 +18,12 @@ public class DefaultChartWidgetRepository implements ChartWidgetRepository {
     private final SpringDataWorkspaceRepository workspaceRepository;
     private final SpringDataExchangePairRepository exchangePairRepository;
     private final ChartWidgetEntityMapper mapper;
+
+    @Override
+    public Optional<ChartWidget> findById(UUID chartWidgetId) {
+        return chartWidgetRepository.findById(chartWidgetId)
+                .map(mapper::toDomain);
+    }
 
     @Override
     public ChartWidget create(UUID workspaceId, ChartWidget chartWidget) {
@@ -30,5 +37,14 @@ public class DefaultChartWidgetRepository implements ChartWidgetRepository {
     @Override
     public int findMaxPositionByWorkspaceId(UUID workspaceId) {
         return chartWidgetRepository.findMaxPositionByWorkspaceId(workspaceId);
+    }
+
+    @Override
+    public ChartWidget update(UUID workspaceId, ChartWidget chartWidget) {
+        ChartWidgetEntity updateEntity = mapper.toUpdateEntity(chartWidget);
+        updateEntity.setWorkspace(workspaceRepository.getReferenceById(workspaceId));
+        updateEntity.setExchangePair(exchangePairRepository.getReferenceById(chartWidget.getExchangePairId()));
+        ChartWidgetEntity savedEntity = chartWidgetRepository.save(updateEntity);
+        return mapper.toDomain(savedEntity);
     }
 }

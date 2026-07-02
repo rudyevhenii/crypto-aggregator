@@ -2,6 +2,7 @@ package dev.rudyevhenii.crypto_aggregator.workspace;
 
 import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.interfaces.ChartWidgetApi;
 import dev.rudyevhenii.crypto_aggregator.core.util.SecurityUtils;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
@@ -24,8 +25,16 @@ public class ChartWidgetController implements ChartWidgetApi {
     @Override
     public ResponseEntity<ChartWidgetRqDto> createChartWidget(UUID workspaceId, ChartWidgetRequestRqDto request) {
         UUID userId = SecurityUtils.getCurrentUserId();
-        ChartWidget response = chartWidgetService.create(userId, workspaceId, mapper.toDomain(request));
+        ChartWidget response = chartWidgetService.create(userId, workspaceId, mapper.toDto(request));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponse(response));
+    }
+
+    @Override
+    public ResponseEntity<ChartWidgetRqDto> updateChartWidget(UUID workspaceId, UUID chartWidgetId,
+                                                              UpdateChartWidgetRequestRqDto request) {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        ChartWidget response = chartWidgetService.update(userId, workspaceId, chartWidgetId, mapper.toDto(request));
+        return ResponseEntity.ok(mapper.toResponse(response));
     }
 }

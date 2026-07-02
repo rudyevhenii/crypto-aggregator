@@ -16,7 +16,7 @@ public interface ChartWidgetEntityMapper {
     ChartWidgetEntity toCreateEntity(ChartWidget chartWidget, UUID workspaceId);
 
     @Mapping(target = ChartWidgetEntity.Fields.newEntity, constant = "false")
-    ChartWidgetEntity toUpdateEntity(ChartWidget chartWidget, UUID workspaceId);
+    ChartWidgetEntity toUpdateEntity(ChartWidget chartWidget);
 
     @Mappings({
             @Mapping(target = "exchangePairId", source = "exchangePair.id"),
