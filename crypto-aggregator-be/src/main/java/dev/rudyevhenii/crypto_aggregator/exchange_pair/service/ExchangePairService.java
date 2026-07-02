@@ -7,8 +7,6 @@ import java.util.UUID;
 
 public interface ExchangePairService {
 
-    ExchangePair getById(UUID id);
-
     List<ExchangePair> findAllTradingPairs();
 
     List<ExchangePair> searchByPattern(String pattern);

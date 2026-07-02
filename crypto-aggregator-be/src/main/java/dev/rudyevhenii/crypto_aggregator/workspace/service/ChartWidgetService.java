@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public interface ChartWidgetService {
 
-    ChartWidget create(UUID workspaceId, ChartWidgetRequest request);
-
+    ChartWidget create(UUID userId, UUID workspaceId, ChartWidgetRequest request);
 
 }

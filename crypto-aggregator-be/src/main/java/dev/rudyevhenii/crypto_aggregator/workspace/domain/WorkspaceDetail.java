@@ -19,6 +19,6 @@ public class WorkspaceDetail {
     private UUID id;
     private String name;
     private List<ChartWidget> chartWidgets;
-    private Instant createAt;
+    private Instant createdAt;
     private Instant updatedAt;
 }

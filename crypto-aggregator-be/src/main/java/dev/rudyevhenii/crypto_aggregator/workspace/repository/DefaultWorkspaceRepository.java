@@ -1,7 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.workspace.repository;
 
+import dev.rudyevhenii.crypto_aggregator.user.repository.SpringDataUserRepository;
 import dev.rudyevhenii.crypto_aggregator.workspace.WorkspaceEntity;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
 import dev.rudyevhenii.crypto_aggregator.workspace.mapper.WorkspaceEntityMapper;
@@ -17,36 +17,35 @@ import java.util.UUID;
 public class DefaultWorkspaceRepository implements WorkspaceRepository {
 
     private final SpringDataWorkspaceRepository workspaceRepository;
-    private final ChartWidgetRepository chartWidgetRepository;
+    private final SpringDataUserRepository userRepository;
     private final WorkspaceEntityMapper mapper;
 
     @Override
     public Workspace create(UUID userId, Workspace workspace) {
         WorkspaceEntity createEntity = mapper.toCreateEntity(workspace, userId);
+        createEntity.setUser(userRepository.getReferenceById(userId));
         WorkspaceEntity savedEntity = workspaceRepository.save(createEntity);
         return mapper.toDomain(savedEntity);
     }
 
     @Override
     public Workspace update(UUID userId, Workspace workspace) {
-        WorkspaceEntity createEntity = mapper.toUpdateEntity(workspace, userId);
-        WorkspaceEntity savedEntity = workspaceRepository.save(createEntity);
+        WorkspaceEntity updateEntity = mapper.toUpdateEntity(workspace, userId);
+        updateEntity.setUser(userRepository.getReferenceById(userId));
+        WorkspaceEntity savedEntity = workspaceRepository.save(updateEntity);
         return mapper.toDomain(savedEntity);
     }
 
     @Override
-    public Optional<Workspace> findById(UUID userId, UUID id) {
-        return workspaceRepository.findByUserIdAndId(userId, id)
+    public Optional<Workspace> findById(UUID userId, UUID workspaceId) {
+        return workspaceRepository.findByUserIdAndId(userId, workspaceId)
                 .map(mapper::toDomain);
     }
 
     @Override
     public Optional<WorkspaceDetail> findByIdWithDetail(UUID userId, UUID workspaceId) {
         return workspaceRepository.findByUserIdAndId(userId, workspaceId)
-                .map(entity -> {
-                    List<ChartWidget> chartWidgets = chartWidgetRepository.findAllByWorkspaceId(workspaceId);
-                    return mapper.toDomain(entity, chartWidgets);
-                });
+                .map(mapper::toDomainDetail);
     }
 
     @Override
@@ -58,7 +57,7 @@ public class DefaultWorkspaceRepository implements WorkspaceRepository {
 
     @Override
     public void deleteById(UUID userId, UUID workspaceId) {
-        workspaceRepository.deleteByIdAndUserId(userId, workspaceId);
+        workspaceRepository.deleteByUserIdAndId(userId, workspaceId);
     }
 
     @Override

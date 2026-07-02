@@ -5,6 +5,7 @@ import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.Mappings;
 
 import java.util.UUID;
 
@@ -17,5 +18,10 @@ public interface ChartWidgetEntityMapper {
     @Mapping(target = ChartWidgetEntity.Fields.newEntity, constant = "false")
     ChartWidgetEntity toUpdateEntity(ChartWidget chartWidget, UUID workspaceId);
 
+    @Mappings({
+            @Mapping(target = "exchangePairId", source = "exchangePair.id"),
+            @Mapping(target = "tradingPair", source = "exchangePair.tradingPair"),
+            @Mapping(target = "exchange", source = "exchangePair.exchange")
+    })
     ChartWidget toDomain(ChartWidgetEntity chartWidgetEntity);
 }

@@ -21,6 +21,7 @@ public class ChartWidget {
     private UUID id;
     @Builder.Default
     private ChartInterval chartInterval = ChartInterval.FIFTEEN_MINUTES;
+    private UUID exchangePairId;
     private TradingPair tradingPair;
     private Exchange exchange;
     private int position;

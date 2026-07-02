@@ -13,7 +13,7 @@ public interface WorkspaceRepository {
 
     Workspace update(UUID userId, Workspace workspace);
 
-    Optional<Workspace> findById(UUID userId, UUID id);
+    Optional<Workspace> findById(UUID userId, UUID workspaceId);
 
     Optional<WorkspaceDetail> findByIdWithDetail(UUID userId, UUID workspaceId);
 

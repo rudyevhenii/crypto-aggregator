@@ -1,9 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.workspace.service;
 
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
-import dev.rudyevhenii.crypto_aggregator.workspace.dto.ChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.WorkspaceRequest;
 
 import java.util.List;
@@ -21,5 +19,4 @@ public interface WorkspaceService {
 
     void deleteById(UUID userId, UUID workspaceId);
 
-    ChartWidget createChartWidget(UUID userId, UUID workspaceId, ChartWidgetRequest request);
 }
