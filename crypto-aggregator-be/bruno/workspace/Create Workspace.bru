@@ -1,0 +1,28 @@
+meta {
+  name: Create Workspace
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/workspaces
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "My workspace"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("WORKSPACE_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

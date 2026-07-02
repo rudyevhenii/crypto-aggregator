@@ -10,3 +10,6 @@ CREATE TABLE workspaces
 
 ALTER TABLE workspaces
     ADD CONSTRAINT uc_workspaces_name UNIQUE (name);
+
+ALTER TABLE workspaces
+    ADD CONSTRAINT FK_WORKSPACES_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);

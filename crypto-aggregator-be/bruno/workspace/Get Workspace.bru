@@ -1,0 +1,20 @@
+meta {
+  name: Get Workspace
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/workspaces/:workspaceId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  workspaceId: {{WORKSPACE_ID}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

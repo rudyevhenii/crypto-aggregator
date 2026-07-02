@@ -26,6 +26,13 @@ components:
           type: string
 
   responses:
+    BadRequest:
+      description: "Bad request"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
     UnauthorizedError:
       description: "Unauthorized"
       content:

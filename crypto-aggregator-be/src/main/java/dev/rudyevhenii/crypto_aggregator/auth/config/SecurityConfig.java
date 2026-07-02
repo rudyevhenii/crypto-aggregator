@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/exchanges/**", "/api/historical/**",
                                 "/api/stream/**").permitAll()
                         .requestMatchers("/api/exchange-pairs/**").authenticated()
+                        .requestMatchers("/api/workspaces/**").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -1,0 +1,26 @@
+meta {
+  name: Create Chart Widget
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/workspaces/:workspaceId/widgets
+  body: json
+  auth: inherit
+}
+
+params:path {
+  workspaceId: {{WORKSPACE_ID}}
+}
+
+body:json {
+  {
+    "exchangePairId": "{{EXCHANGE_PAIR_ID}}"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

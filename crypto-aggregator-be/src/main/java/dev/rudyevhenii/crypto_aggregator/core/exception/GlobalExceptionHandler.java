@@ -1,6 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.core.exception;
 
 import dev.rudyevhenii.crypto_aggregator.core.dto.ErrorResponseDto;
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
@@ -58,7 +59,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponseDto> handleException(MethodArgumentTypeMismatchException ex) {
         String message = String.format("Parameter '%s' value '%s' is invalid", ex.getName(), ex.getValue());
-        log.error("Type mismatch: {}", message);
+        log.warn("Type mismatch: {}", message);
         HttpStatus status = HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status)
                 .body(buildErrorResponse(status, message));
@@ -74,6 +75,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JwtTokenExpirationException.class)
     public ResponseEntity<ErrorResponseDto> handleException(JwtTokenExpirationException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        logErrorMessage(status, ex);
+        return ResponseEntity.status(status)
+                .body(buildErrorResponse(status, ex.getMessage()));
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(JwtException ex) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         logErrorMessage(status, ex);
         return ResponseEntity.status(status)
@@ -107,9 +116,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<ErrorResponseDto> handleException(WebClientResponseException ex) {
         HttpStatus status = HttpStatus.BAD_GATEWAY;
-        log.error("External Exchange API failed with status {}: {}", ex.getStatusCode(), ex.getResponseBodyAsString());
+        log.warn("External Exchange API failed with status {}: {}", ex.getStatusCode(), ex.getResponseBodyAsString());
         return ResponseEntity.status(status)
                 .body(buildErrorResponse(status, ex.getResponseBodyAsString()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(UnauthorizedException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        logErrorMessage(status, ex);
+        return ResponseEntity.status(status)
+                .body(buildErrorResponse(status, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
@@ -121,7 +138,7 @@ public class GlobalExceptionHandler {
     }
 
     private void logErrorMessage(HttpStatus status, Exception ex) {
-        log.error("Status: {}, error message: {}", status, ex.getMessage());
+        log.warn("Status: {}, warn message: {}", status, ex.getMessage());
     }
 
     private ErrorResponseDto buildErrorResponse(HttpStatus status, String message) {

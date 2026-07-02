@@ -30,6 +30,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
         "409":
           $ref: 'common-components.yaml#/components/responses/Conflict'
         "500":
@@ -54,6 +56,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
         "500":
@@ -78,6 +82,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
         "404":
@@ -315,17 +321,17 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
   /api/exchange-pairs/search:
-    parameters:
-      - name: pattern
-        in: query
-        required: true
-        schema:
-          type: string
     get:
       summary: "Search exchange pairs by parameter"
       operationId: "searchExchangePairs"
       tags:
         - "ExchangePair"
+      parameters:
+        - name: pattern
+          in: query
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: "OK"
@@ -340,6 +346,150 @@ paths:
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
+  # ════════════════════════════════════════════════════════════════
+  #  Workspace
+  # ════════════════════════════════════════════════════════════════
+
+  /api/workspaces:
+    post:
+      summary: "Create new workspace"
+      operationId: "createWorkspace"
+      tags:
+        - "Workspace"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+      responses:
+        "201":
+          description: "CREATED"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "409":
+          $ref: 'common-components.yaml#/components/responses/Conflict'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      summary: "Get all workspaces"
+      operationId: "getAllWorkspaces"
+      tags:
+        - "Workspace"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workspace'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/workspaces/{workspaceId}:
+    patch:
+      summary: "Update workspace"
+      operationId: "updateWorkspace"
+      tags:
+        - "Workspace"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "409":
+          $ref: 'common-components.yaml#/components/responses/Conflict'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      summary: "Get workspace"
+      operationId: "getWorkspaceById"
+      tags:
+        - "Workspace"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceDetail'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    delete:
+      summary: "Delete a workspace"
+      operationId: "deleteWorkspace"
+      tags:
+        - "Workspace"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+      responses:
+        "204":
+          description: "No content"
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/workspaces/{workspaceId}/widgets:
+    post:
+      summary: "Create chart widget"
+      operationId: "createChartWidget"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChartWidgetRequest'
+      responses:
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartWidget'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
 components:
   schemas:
@@ -570,6 +720,84 @@ components:
         exchange:
           $ref: '#/components/schemas/Exchange'
 
+
+    # ── Workspace schemas ──────────────────────────────────────────────
+    WorkspaceRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    WorkspaceDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        chartWidgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartWidget'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChartWidgetRequest:
+      type: object
+      required:
+        - exchangePairId
+      properties:
+        exchangePairId:
+          type: string
+          format: uuid
+
+    ChartWidget:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        chartInterval:
+          $ref: '#/components/schemas/ChartInterval'
+        exchangePairId:
+          type: string
+          format: uuid
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        exchange:
+          $ref: '#/components/schemas/Exchange'
+        position:
+          type: integer
+          format: int32
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
   parameters:
     ExchangeParam:
       in: path
@@ -584,3 +812,11 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/TradingPair'
+
+    WorkspaceParam:
+      in: path
+      name: workspaceId
+      required: true
+      schema:
+        type: string
+        format: uuid
