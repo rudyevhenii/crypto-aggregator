@@ -2,10 +2,12 @@ package dev.rudyevhenii.crypto_aggregator.workspace;
 
 import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetPositionsRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.interfaces.ChartWidgetApi;
 import dev.rudyevhenii.crypto_aggregator.core.util.SecurityUtils;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
+import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetPositionsRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.mapper.ChartWidgetMapper;
 import dev.rudyevhenii.crypto_aggregator.workspace.service.ChartWidgetService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -36,5 +39,17 @@ public class ChartWidgetController implements ChartWidgetApi {
         UUID userId = SecurityUtils.getCurrentUserId();
         ChartWidget response = chartWidgetService.update(userId, workspaceId, chartWidgetId, mapper.toDto(request));
         return ResponseEntity.ok(mapper.toResponse(response));
+    }
+
+    @Override
+    public ResponseEntity<Void> updateChartWidgetPositions(UUID workspaceId,
+                                                           List<UpdateChartWidgetPositionsRequestRqDto> request) {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        List<UpdateChartWidgetPositionsRequest> requestList = request.stream()
+                .map(mapper::toDto)
+                .toList();
+        chartWidgetService.updateChartWidgetPositions(userId, workspaceId, requestList);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }

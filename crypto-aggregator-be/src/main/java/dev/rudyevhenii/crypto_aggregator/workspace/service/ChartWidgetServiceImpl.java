@@ -7,6 +7,7 @@ import dev.rudyevhenii.crypto_aggregator.workspace.ChartWidgetEntity;
 import dev.rudyevhenii.crypto_aggregator.workspace.WorkspaceEntity;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.ChartWidgetRequest;
+import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetPositionsRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.mapper.ChartWidgetEntityMapper;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.ChartWidgetRepository;
@@ -15,7 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +49,7 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId)));
         workspaceEntity.addChartWidget(chartWidgetEntity);
 
-        return mapper.toDomain(chartWidgetRepository.save(chartWidgetEntity));
+        return mapper.toDomain(chartWidgetEntity);
     }
 
     @Override
@@ -54,7 +59,29 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
         ChartWidgetEntity chartWidgetEntity = chartWidgetRepository.findById(chartWidgetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chart widget not found with id: %s".formatted(chartWidgetId)));
         updateChartWidget(request, chartWidgetEntity);
-        return mapper.toDomain(chartWidgetRepository.save(chartWidgetEntity));
+        return mapper.toDomain(chartWidgetEntity);
+    }
+
+    @Override
+    @Transactional
+    public void updateChartWidgetPositions(UUID userId, UUID workspaceId,
+                                           List<UpdateChartWidgetPositionsRequest> requestList) {
+        validateWorkspaceExists(userId, workspaceId);
+        Map<UUID, ChartWidgetEntity> chartWidgetMap = chartWidgetRepository.findAllByWorkspaceId(workspaceId).stream()
+                .collect(Collectors.toMap(ChartWidgetEntity::getId, Function.identity()));
+
+        for (UpdateChartWidgetPositionsRequest request : requestList) {
+            ChartWidgetEntity chartWidgetEntity = chartWidgetMap.get(request.chartWidgetId());
+            if (chartWidgetEntity != null) {
+                updateChartWidgetPositions(request, chartWidgetEntity);
+            }
+        }
+    }
+
+    private void updateChartWidgetPositions(UpdateChartWidgetPositionsRequest request,
+                                            ChartWidgetEntity chartWidgetEntity) {
+        chartWidgetEntity.setPosition(request.position());
+        chartWidgetEntity.setUpdatedAt(generator.now());
     }
 
     private void updateChartWidget(UpdateChartWidgetRequest request, ChartWidgetEntity chartWidgetEntity) {

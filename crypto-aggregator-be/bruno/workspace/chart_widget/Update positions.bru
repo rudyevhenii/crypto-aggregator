@@ -1,0 +1,33 @@
+meta {
+  name: Update positions
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{BASE_URL}}/api/workspaces/:workspaceId/widgets/positions
+  body: json
+  auth: inherit
+}
+
+params:path {
+  workspaceId: {{WORKSPACE_ID}}
+}
+
+body:json {
+  [
+    {
+      "chartWidgetId": "fced2695-b34c-4106-8579-4d94182be1e1",
+      "position": 2
+    },
+    {
+      "chartWidgetId": "e9e7016d-9bbf-4f54-9c0f-e4487a35165f",
+      "position": 1
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
