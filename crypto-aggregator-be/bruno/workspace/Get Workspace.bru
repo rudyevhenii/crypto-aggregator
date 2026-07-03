@@ -14,6 +14,21 @@ params:path {
   workspaceId: {{WORKSPACE_ID}}
 }
 
+script:post-response {
+  const data = res.getBody();
+  
+  if (data) {
+    if (data.id) {
+      bru.setEnvVar("WORKSPACE_ID", data.id);
+    }
+  
+    if (data.chartWidgets && data.chartWidgets.length > 0) {
+      const firstWidgetId = data.chartWidgets[0].id;
+      bru.setEnvVar("CHART_WIDGET_ID", firstWidgetId);
+    }
+  }
+}
+
 settings {
   encodeUrl: true
   timeout: 0

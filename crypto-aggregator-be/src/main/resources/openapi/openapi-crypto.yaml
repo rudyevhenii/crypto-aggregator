@@ -521,6 +521,26 @@ paths:
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
+    delete:
+      summary: "Delete specific chart widget"
+      operationId: "deleteChartWidget"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+        - $ref: '#/components/parameters/ChartWidgetParam'
+      responses:
+        "204":
+          description: "No content"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
   /api/workspaces/{workspaceId}/widgets/positions:
     put:
       summary: "Update chart widget positions"

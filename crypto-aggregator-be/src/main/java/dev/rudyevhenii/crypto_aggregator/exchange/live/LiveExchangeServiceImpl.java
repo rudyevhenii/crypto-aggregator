@@ -24,8 +24,8 @@ public class LiveExchangeServiceImpl implements LiveExchangeService {
     @Override
     public Flux<List<LivePriceDto>> streamAllPrices() {
         return Flux.merge(liveExchangeStrategies.entrySet().stream()
-                .map(entry -> entry.getValue().streamPriceByExchange(entry.getKey()))
-                .toList())
+                        .map(entry -> entry.getValue().streamPriceByExchange(entry.getKey()))
+                        .toList())
                 .buffer(Duration.ofMillis(BUFFER_DELAY));
     }
 

@@ -48,7 +48,15 @@ public class ChartWidgetController implements ChartWidgetApi {
         List<UpdateChartWidgetPositionsRequest> requestList = request.stream()
                 .map(mapper::toDto)
                 .toList();
-        chartWidgetService.updateChartWidgetPositions(userId, workspaceId, requestList);
+        chartWidgetService.updatePositions(userId, workspaceId, requestList);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteChartWidget(UUID workspaceId, UUID chartWidgetId) {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        chartWidgetService.delete(userId, workspaceId, chartWidgetId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
     }

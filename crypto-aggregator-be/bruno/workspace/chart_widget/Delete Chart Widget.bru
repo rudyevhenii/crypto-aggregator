@@ -1,0 +1,21 @@
+meta {
+  name: Delete Chart Widget
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{BASE_URL}}/api/workspaces/:workspaceId/widgets/:chartWidgetId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  chartWidgetId: {{CHART_WIDGET_ID}}
+  workspaceId: {{WORKSPACE_ID}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

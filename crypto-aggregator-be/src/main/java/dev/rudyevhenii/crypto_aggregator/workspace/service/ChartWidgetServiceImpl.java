@@ -49,7 +49,7 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId)));
         workspaceEntity.addChartWidget(chartWidgetEntity);
 
-        return mapper.toDomain(chartWidgetEntity);
+        return mapper.toDomain(chartWidgetRepository.save(chartWidgetEntity));
     }
 
     @Override
@@ -64,8 +64,8 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
 
     @Override
     @Transactional
-    public void updateChartWidgetPositions(UUID userId, UUID workspaceId,
-                                           List<UpdateChartWidgetPositionsRequest> requestList) {
+    public void updatePositions(UUID userId, UUID workspaceId,
+                                List<UpdateChartWidgetPositionsRequest> requestList) {
         validateWorkspaceExists(userId, workspaceId);
         Map<UUID, ChartWidgetEntity> chartWidgetMap = chartWidgetRepository.findAllByWorkspaceId(workspaceId).stream()
                 .collect(Collectors.toMap(ChartWidgetEntity::getId, Function.identity()));
@@ -76,6 +76,13 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
                 updateChartWidgetPositions(request, chartWidgetEntity);
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void delete(UUID userId, UUID workspaceId, UUID chartWidgetId) {
+        validateWorkspaceExists(userId, workspaceId);
+        chartWidgetRepository.deleteById(chartWidgetId);
     }
 
     private void updateChartWidgetPositions(UpdateChartWidgetPositionsRequest request,

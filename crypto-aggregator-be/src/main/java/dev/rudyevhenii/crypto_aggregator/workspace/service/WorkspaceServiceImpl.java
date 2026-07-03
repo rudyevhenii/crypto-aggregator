@@ -42,7 +42,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         validateUniqueWorkspaceName(userId, request.name());
         WorkspaceEntity workspaceEntity = findById(userId, workspaceId);
         updateWorkspace(request, workspaceEntity);
-        return mapper.toDomain(workspaceRepository.save(workspaceEntity));
+        return mapper.toDomain(workspaceEntity);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     @Transactional(readOnly = true)
     public List<Workspace> getAllWorkspaces(UUID userId) {
-        return workspaceRepository.findAll().stream()
+        return workspaceRepository.findAllByUserId(userId).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
