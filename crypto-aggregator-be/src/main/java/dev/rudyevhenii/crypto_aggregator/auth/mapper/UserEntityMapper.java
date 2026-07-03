@@ -1,7 +1,7 @@
-package dev.rudyevhenii.crypto_aggregator.user.mapper;
+package dev.rudyevhenii.crypto_aggregator.auth.mapper;
 
-import dev.rudyevhenii.crypto_aggregator.user.UserEntity;
-import dev.rudyevhenii.crypto_aggregator.user.domain.User;
+import dev.rudyevhenii.crypto_aggregator.auth.UserEntity;
+import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;

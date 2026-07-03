@@ -1,15 +1,17 @@
 package dev.rudyevhenii.crypto_aggregator.auth.service;
 
+import dev.rudyevhenii.crypto_aggregator.auth.UserEntity;
+import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LoginRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.RefreshTokenRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.RegisterRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.TokenResponseDto;
+import dev.rudyevhenii.crypto_aggregator.auth.mapper.UserEntityMapper;
+import dev.rudyevhenii.crypto_aggregator.auth.repository.UserRepository;
 import dev.rudyevhenii.crypto_aggregator.core.exception.JwtTokenExpirationException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceAlreadyExistsException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
-import dev.rudyevhenii.crypto_aggregator.user.domain.User;
-import dev.rudyevhenii.crypto_aggregator.user.repository.DefaultUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,18 +26,20 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final DefaultUserRepository userRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final GeneratorUtils generator;
+    private final UserEntityMapper mapper;
 
     @Override
     public TokenResponseDto register(RegisterRequest request) {
         validateUserExists(request.email());
-        User user = userRepository.create(toDomain(request));
+        User user = toDomain(request);
+        UserEntity userEntity = userRepository.save(mapper.toCreateEntity(user));
 
-        return generateTokens(user);
+        return generateTokens(userEntity);
     }
 
     @Override
@@ -51,13 +55,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenResponseDto refreshToken(RefreshTokenRequest refreshToken) {
         UUID userId = jwtService.extractSubject(refreshToken.refreshToken());
-        User user = userRepository.findById(userId)
+        UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User does not exist"));
 
-        if (!jwtService.isTokenValid(refreshToken.refreshToken(), user)) {
+        if (!jwtService.isTokenValid(refreshToken.refreshToken(), userEntity)) {
             throw new JwtTokenExpirationException("Token is invalid for this user");
         }
-        return generateTokens(user);
+        return generateTokens(userEntity);
     }
 
     private User toDomain(RegisterRequest request) {

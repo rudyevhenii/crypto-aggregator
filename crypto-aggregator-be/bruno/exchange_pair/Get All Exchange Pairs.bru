@@ -10,6 +10,16 @@ get {
   auth: inherit
 }
 
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    
+    if (Array.isArray(body) && body.length > 0) {
+      bru.setVar("EXCHANGE_PAIR_ID", body[0].id);
+    }
+  }
+}
+
 settings {
   encodeUrl: true
   timeout: 0

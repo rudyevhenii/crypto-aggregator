@@ -1,8 +1,8 @@
 package dev.rudyevhenii.crypto_aggregator.auth.filter;
 
+import dev.rudyevhenii.crypto_aggregator.auth.repository.UserRepository;
 import dev.rudyevhenii.crypto_aggregator.auth.service.JwtService;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
-import dev.rudyevhenii.crypto_aggregator.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

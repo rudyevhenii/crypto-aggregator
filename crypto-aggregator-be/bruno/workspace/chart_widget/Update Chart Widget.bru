@@ -5,16 +5,23 @@ meta {
 }
 
 patch {
-  url: /api/workspaces/:workspaceId/widgets/:chartWidgetId
-  body: none
+  url: {{BASE_URL}}/api/workspaces/:workspaceId/widgets/:chartWidgetId
+  body: json
   auth: inherit
 }
 
 params:path {
-  workspaceId: 
-  chartWidgetId: 
+  workspaceId: {{WORKSPACE_ID}}
+  chartWidgetId: {{CHART_WIDGET_ID}}
+}
+
+body:json {
+  {
+    "chartInterval": "ONE_HOUR"
+  }
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

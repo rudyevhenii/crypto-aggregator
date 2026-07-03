@@ -1,4 +1,4 @@
-package dev.rudyevhenii.crypto_aggregator.user;
+package dev.rudyevhenii.crypto_aggregator.auth;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +11,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.domain.Persistable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -21,7 +25,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = UserEntity.TABLE_NAME)
-public class UserEntity implements Persistable<UUID> {
+public class UserEntity implements Persistable<UUID>, UserDetails {
     public static final String TABLE_NAME = "users";
 
     @Id
@@ -46,5 +50,15 @@ public class UserEntity implements Persistable<UUID> {
     @Override
     public boolean isNew() {
         return newEntity;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
     }
 }

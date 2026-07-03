@@ -1,7 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.auth.config;
 
+import dev.rudyevhenii.crypto_aggregator.auth.repository.UserRepository;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
-import dev.rudyevhenii.crypto_aggregator.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

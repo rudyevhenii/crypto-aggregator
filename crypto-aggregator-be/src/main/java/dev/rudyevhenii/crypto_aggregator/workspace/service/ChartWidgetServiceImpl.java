@@ -2,10 +2,13 @@ package dev.rudyevhenii.crypto_aggregator.workspace.service;
 
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
-import dev.rudyevhenii.crypto_aggregator.exchange_pair.service.ExchangePairService;
+import dev.rudyevhenii.crypto_aggregator.exchange_pair.repository.ExchangePairRepository;
+import dev.rudyevhenii.crypto_aggregator.workspace.ChartWidgetEntity;
+import dev.rudyevhenii.crypto_aggregator.workspace.WorkspaceEntity;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.ChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetRequest;
+import dev.rudyevhenii.crypto_aggregator.workspace.mapper.ChartWidgetEntityMapper;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.ChartWidgetRepository;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +25,9 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
 
     private final ChartWidgetRepository chartWidgetRepository;
     private final WorkspaceRepository workspaceRepository;
-    private final ExchangePairService exchangePairService;
+    private final ExchangePairRepository exchangePairRepository;
     private final GeneratorUtils generator;
+    private final ChartWidgetEntityMapper mapper;
 
     @Override
     @Transactional
@@ -34,31 +38,39 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
         int position = chartWidgetRepository.findMaxPositionByWorkspaceId(workspaceId) + NEXT_POSITION;
         ChartWidget chartWidget = toDomain(position, request.exchangePairId());
 
-        return chartWidgetRepository.create(workspaceId, chartWidget);
+        ChartWidgetEntity chartWidgetEntity = mapper.toCreateEntity(chartWidget);
+        chartWidgetEntity.setExchangePair(exchangePairRepository.getReferenceById(request.exchangePairId()));
+        WorkspaceEntity workspaceEntity = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId)));
+        workspaceEntity.addChartWidget(chartWidgetEntity);
+
+        return mapper.toDomain(chartWidgetRepository.save(chartWidgetEntity));
     }
 
     @Override
     @Transactional
     public ChartWidget update(UUID userId, UUID workspaceId, UUID chartWidgetId, UpdateChartWidgetRequest request) {
         validateWorkspaceExists(userId, workspaceId);
-        ChartWidget chartWidget = chartWidgetRepository.findById(chartWidgetId)
+        ChartWidgetEntity chartWidgetEntity = chartWidgetRepository.findById(chartWidgetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chart widget not found with id: %s".formatted(chartWidgetId)));
-        if (!chartWidget.getChartInterval().equals(request.chartInterval())) {
-            chartWidget.setChartInterval(request.chartInterval());
-        }
-        chartWidget.setUpdatedAt(generator.now());
-        return chartWidgetRepository.update(workspaceId, chartWidget);
+        updateChartWidget(request, chartWidgetEntity);
+        return mapper.toDomain(chartWidgetRepository.save(chartWidgetEntity));
+    }
+
+    private void updateChartWidget(UpdateChartWidgetRequest request, ChartWidgetEntity chartWidgetEntity) {
+        mapper.toUpdateEntity(request, chartWidgetEntity);
+        chartWidgetEntity.setUpdatedAt(generator.now());
     }
 
     private void validateWorkspaceExists(UUID userId, UUID workspaceId) {
-        if (!workspaceRepository.existsById(userId, workspaceId)) {
+        if (!workspaceRepository.existsByUserIdAndId(userId, workspaceId)) {
             throw new ResourceNotFoundException("Workspace not found with id: %s"
                     .formatted(workspaceId));
         }
     }
 
     private void validateExchangePairExists(UUID exchangePairId) {
-        if (!exchangePairService.existsById(exchangePairId)) {
+        if (!exchangePairRepository.existsById(exchangePairId)) {
             throw new ResourceNotFoundException("Exchange pair not found with exchangePairId: %s"
                     .formatted(exchangePairId));
         }

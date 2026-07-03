@@ -1,6 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.workspace;
 
-import dev.rudyevhenii.crypto_aggregator.user.UserEntity;
+import dev.rudyevhenii.crypto_aggregator.auth.UserEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +30,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @FieldNameConstants
 @Entity
-@Table(name = WorkspaceEntity.TABLE_NAME)
+@Table(name = WorkspaceEntity.TABLE_NAME, uniqueConstraints = @UniqueConstraint(columnNames = {"id", "name"}))
 public class WorkspaceEntity implements Persistable<UUID> {
     public static final String TABLE_NAME = "workspaces";
 
@@ -59,5 +60,10 @@ public class WorkspaceEntity implements Persistable<UUID> {
     @Override
     public boolean isNew() {
         return newEntity;
+    }
+
+    public void addChartWidget(ChartWidgetEntity chartWidgetEntity) {
+        chartWidgets.add(chartWidgetEntity);
+        chartWidgetEntity.setWorkspace(this);
     }
 }

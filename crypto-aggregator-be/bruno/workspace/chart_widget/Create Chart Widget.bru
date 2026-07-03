@@ -20,6 +20,12 @@ body:json {
   }
 }
 
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("CHART_WIDGET_ID", res.getBody().id)
+  }
+}
+
 settings {
   encodeUrl: true
   timeout: 0

@@ -1,27 +1,18 @@
 package dev.rudyevhenii.crypto_aggregator.workspace.repository;
 
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
+import dev.rudyevhenii.crypto_aggregator.workspace.WorkspaceEntity;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface WorkspaceRepository {
+public interface WorkspaceRepository extends JpaRepository<WorkspaceEntity, UUID> {
 
-    Workspace create(UUID userId, Workspace workspace);
+    @EntityGraph(attributePaths = {"chartWidgets", "chartWidgets.exchangePair"})
+    Optional<WorkspaceEntity> findByUserIdAndId(UUID userId, UUID workspaceId);
 
-    Workspace update(UUID userId, Workspace workspace);
+    boolean existsByUserIdAndName(UUID userId, String name);
 
-    Optional<Workspace> findById(UUID userId, UUID workspaceId);
-
-    Optional<WorkspaceDetail> findByIdWithDetail(UUID userId, UUID workspaceId);
-
-    List<Workspace> findAllWorkspaces(UUID userId);
-
-    void deleteById(UUID userId, UUID workspaceId);
-
-    boolean existsByName(UUID userId, String name);
-
-    boolean existsById(UUID userId, UUID workspaceId);
+    boolean existsByUserIdAndId(UUID userId, UUID workspaceId);
 }
