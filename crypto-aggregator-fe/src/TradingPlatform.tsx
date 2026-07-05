@@ -1,27 +1,34 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
-// Імпортуємо всі компоненти
-import LandingPage from './components/LandingPage.tsx';
+import LandingPage from './components/LandingPage';
+import Dashboard from './components/Dashboard';
+import MainLayout from './components/MainLayout';
+import WorkspaceView from './components/WorkspaceView';
 import TopBar from './components/TopBar';
 import Sidebar from './components/Sidebar';
 import ChartArea from './components/ChartArea';
-import Dashboard from './components/Dashboard';
 
 import useMarketData from './hooks/useMarketData';
 import { Exchange, TradingPair } from './api';
 
-// 1. Змінили назву з App на TradingPlatform
 function TradingPlatform() {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'chart'>('dashboard');
 
-  // ❗ Захист роуту: якщо токена немає, викидаємо назад на Landing
+  // ДОДАНО: 3 стани (таблиця, мультиграфік, одиночний графік)
+  const [currentView, setCurrentView] = useState<'market' | 'workspace' | 'chart'>('market');
+
   useEffect(() => {
     if (!localStorage.getItem('accessToken')) {
       navigate('/');
     }
   }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    navigate('/');
+  };
 
   const {
     metadata,
@@ -40,6 +47,7 @@ function TradingPlatform() {
     setSelectedInterval,
   } = useMarketData();
 
+  // ВІДНОВЛЕНО: Стара логіка вибору пари з таблиці
   const handleSelectPair = (exchange: Exchange, pair: TradingPair) => {
     setSelectedExchange(exchange);
     setSelectedPair(pair);
@@ -52,24 +60,38 @@ function TradingPlatform() {
           : exData.supportedIntervals[0]
       );
     }
+    // Переходимо на одиночний графік!
     setCurrentView('chart');
   };
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#0b0e14] font-sans overflow-hidden">
-      {currentView === 'dashboard' ? (
+    <MainLayout
+      // Якщо ми на одиночному графіку, бокова панель має підсвічувати 'market'
+      activeView={currentView === 'chart' ? 'market' : currentView}
+      onViewChange={(view) => setCurrentView(view)}
+      onLogout={handleLogout}
+    >
+
+      {currentView === 'market' && (
         <Dashboard
           metadata={metadata}
           onSelectPair={handleSelectPair}
         />
-      ) : (
-        <div className="flex flex-col h-full">
+      )}
+
+      {currentView === 'workspace' && (
+        <WorkspaceView />
+      )}
+
+      {/* ВІДНОВЛЕНО: Одиночний графік із Sidebar та TopBar */}
+      {currentView === 'chart' && (
+        <div className="flex flex-col h-full w-full">
           <TopBar
             exchange={selectedExchange}
             pair={selectedPair}
             livePrice={livePrice}
             health={exchangeHealth}
-            onBack={() => setCurrentView('dashboard')}
+            onBack={() => setCurrentView('market')} // Кнопка "Назад" повертає в маркет
           />
 
           <div className="flex flex-1 overflow-hidden">
@@ -104,7 +126,6 @@ function TradingPlatform() {
                   const defaultInterval = newExData.supportedIntervals.includes('FIFTEEN_MINUTES')
                     ? 'FIFTEEN_MINUTES'
                     : newExData.supportedIntervals[0];
-
                   setSelectedInterval(defaultInterval);
                 }
               }}
@@ -114,17 +135,15 @@ function TradingPlatform() {
           </div>
         </div>
       )}
-    </div>
+
+    </MainLayout>
   );
 }
 
 function App(): JSX.Element {
   return (
     <Routes>
-      {/* Головна сторінка з реєстрацією та входом */}
       <Route path="/" element={<LandingPage />} />
-
-      {/* Захищений термінал з дашбордом та графіками */}
       <Route path="/app" element={<TradingPlatform />} />
     </Routes>
   );

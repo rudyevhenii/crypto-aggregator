@@ -65,6 +65,33 @@ export interface Ticker24h {
   timestamp: string;
 }
 
+// --- ДОДАНО ДЛЯ WORKSPACE ---
+export interface ExchangePair {
+  id: string;
+  tradingPair: TradingPair;
+  exchange: Exchange;
+}
+
+export interface ChartWidget {
+  id: string;
+  chartInterval: ChartInterval;
+  exchangePairId: string;
+  tradingPair: TradingPair;
+  exchange: Exchange;
+  position: number;
+}
+
+export interface WorkspaceDetail {
+  id: string;
+  name: string;
+  chartWidgets: ChartWidget[];
+}
+
+export interface WidgetPositionUpdate {
+  chartWidgetId: string;
+  position: number;
+}
+
 // --- UTILS ---
 export function intervalToSeconds(interval: ChartInterval): number {
   switch (interval) {
