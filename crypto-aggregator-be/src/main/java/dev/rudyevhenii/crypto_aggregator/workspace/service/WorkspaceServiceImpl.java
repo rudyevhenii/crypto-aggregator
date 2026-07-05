@@ -63,7 +63,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     @Transactional
     public void deleteById(UUID userId, UUID workspaceId) {
-        validateWorkspaceExists(workspaceId);
+        validateWorkspaceExists(userId, workspaceId);
         workspaceRepository.deleteById(workspaceId);
     }
 
@@ -78,8 +78,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         workspaceEntity.setUpdatedAt(generator.now());
     }
 
-    private void validateWorkspaceExists(UUID workspaceId) {
-        if (!workspaceRepository.existsById(workspaceId)) {
+    private void validateWorkspaceExists(UUID userId, UUID workspaceId) {
+        if (!workspaceRepository.existsByUserIdAndId(userId, workspaceId)) {
             throw new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId));
         }
     }
