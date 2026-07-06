@@ -61,7 +61,6 @@ public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
                 return null;
             }
 
-            // TODO: Resolve to return an array of prices for different trading pair.
             String rawTradingPair = response.data().getFirst().tradingPair();
             TradingPair tradingPair = TradingPair.valueOf(rawTradingPair.replace("/", "_"));
 
