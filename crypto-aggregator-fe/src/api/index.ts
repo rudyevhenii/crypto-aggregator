@@ -1,10 +1,15 @@
 import {
-  ChartInterval, ChartWidget,
+  ChartInterval,
+  ChartWidget,
   Exchange,
-  ExchangeMetadata, ExchangePair,
+  ExchangeMetadata,
+  ExchangePair,
   HistoricalPrice,
-  HistoricalPriceRequest, Ticker24h,
-  TradingPair, WidgetPositionUpdate, WorkspaceDetail
+  HistoricalPriceRequest,
+  Ticker24h,
+  TradingPair,
+  WidgetPositionUpdate,
+  WorkspaceDetail
 } from "./types.ts";
 
 export * from './types';
@@ -19,10 +24,10 @@ async function fetchAuth(endpoint: string, options: RequestInit = {}) {
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    ...(token ? {'Authorization': `Bearer ${token}`} : {})
   };
 
-  return fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+  return fetch(`${BASE_URL}${endpoint}`, {...options, headers});
 }
 
 export const api = {
@@ -136,7 +141,7 @@ export const api = {
   createWorkspace: async (name: string) => {
     const res = await fetchAuth(`/api/workspaces`, {
       method: 'POST',
-      body: JSON.stringify({ name }) // fetchAuth вже має 'Content-Type': 'application/json'
+      body: JSON.stringify({name}) // fetchAuth вже має 'Content-Type': 'application/json'
     });
     if (!res.ok) throw new Error('Failed to create workspace');
     return res.json();
@@ -145,21 +150,21 @@ export const api = {
   updateWorkspace: async (id: string, name: string) => {
     const res = await fetchAuth(`/api/workspaces/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ name })
+      body: JSON.stringify({name})
     });
     if (!res.ok) throw new Error('Failed to rename workspace');
     return res.json();
   },
 
   deleteWorkspace: async (id: string) => {
-    const res = await fetchAuth(`/api/workspaces/${id}`, { method: 'DELETE' });
+    const res = await fetchAuth(`/api/workspaces/${id}`, {method: 'DELETE'});
     if (!res.ok) throw new Error('Failed to delete workspace');
   },
 
   addChartWidget: async (workspaceId: string, exchangePairId: string): Promise<ChartWidget> => {
     const res = await fetchAuth(`/api/workspaces/${workspaceId}/widgets`, {
       method: 'POST',
-      body: JSON.stringify({ exchangePairId })
+      body: JSON.stringify({exchangePairId})
     });
     if (!res.ok) throw new Error('Failed to add widget');
     return res.json();
@@ -168,7 +173,7 @@ export const api = {
   updateChartWidget: async (workspaceId: string, widgetId: string, chartInterval: ChartInterval) => {
     const res = await fetchAuth(`/api/workspaces/${workspaceId}/widgets/${widgetId}`, {
       method: 'PATCH',
-      body: JSON.stringify({ chartInterval })
+      body: JSON.stringify({chartInterval})
     });
     if (!res.ok) throw new Error('Failed to update widget');
     return res.json();
@@ -190,4 +195,4 @@ export const api = {
   }
 };
 
-export { intervalToSeconds } from './types';
+export {intervalToSeconds} from './types';

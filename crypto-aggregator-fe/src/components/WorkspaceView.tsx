@@ -1,14 +1,22 @@
-import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, FolderPlus } from 'lucide-react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { SortableContext, arrayMove, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
+import {useEffect, useState} from 'react';
+import {Edit2, FolderPlus, Plus, Trash2} from 'lucide-react';
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core';
+import {arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates} from '@dnd-kit/sortable';
 // ДОДАНО: Імпорт LivePrice
-import { api, ChartWidget, ChartInterval, LivePrice } from '../api';
+import {api, ChartInterval, ChartWidget, LivePrice} from '../api';
 import ChartWidgetCard from './ChartWidgetCard';
 import SearchModal from './SearchModal';
 
 export default function WorkspaceView() {
-  const [workspaces, setWorkspaces] = useState<{id: string, name: string}[]>([]);
+  const [workspaces, setWorkspaces] = useState<{ id: string, name: string }[]>([]);
   const [activeWsId, setActiveWsId] = useState<string | null>(null);
   const [widgets, setWidgets] = useState<ChartWidget[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -53,13 +61,13 @@ export default function WorkspaceView() {
         const updates: LivePrice[] = Array.isArray(data) ? data : [data];
 
         setLivePrices(prev => {
-          const next = { ...prev };
+          const next = {...prev};
           updates.forEach(p => {
             if (p.tradingPair) next[p.tradingPair] = p;
           });
           return next;
         });
-      } catch(e) {
+      } catch (e) {
         console.error("Global SSE Parse Error:", e);
       }
     };
@@ -69,8 +77,8 @@ export default function WorkspaceView() {
   }, [activeWsId]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(PointerSensor, {activationConstraint: {distance: 5}}),
+    useSensor(KeyboardSensor, {coordinateGetter: sortableKeyboardCoordinates})
   );
 
   const handleCreateWorkspace = async () => {
@@ -79,7 +87,9 @@ export default function WorkspaceView() {
       try {
         const newWs = await api.createWorkspace(name.trim());
         await loadWorkspaces(newWs.id);
-      } catch (err) { alert("Failed to create workspace."); }
+      } catch {
+        alert("Failed to create workspace.");
+      }
     }
   };
 
@@ -92,7 +102,9 @@ export default function WorkspaceView() {
       try {
         await api.updateWorkspace(activeWsId, newName.trim());
         await loadWorkspaces(activeWsId);
-      } catch (err) { alert("Failed to rename workspace."); }
+      } catch {
+        alert("Failed to rename workspace.");
+      }
     }
   };
 
@@ -102,7 +114,9 @@ export default function WorkspaceView() {
       try {
         await api.deleteWorkspace(activeWsId);
         await loadWorkspaces();
-      } catch (err) { alert("Failed to delete workspace."); }
+      } catch {
+        alert("Failed to delete workspace.");
+      }
     }
   };
 
@@ -120,23 +134,22 @@ export default function WorkspaceView() {
 
   const handleUpdateInterval = async (widgetId: string, interval: ChartInterval) => {
     if (!activeWsId) return;
-    setWidgets(prev => prev.map(w => w.id === widgetId ? { ...w, chartInterval: interval } : w));
+    setWidgets(prev => prev.map(w => w.id === widgetId ? {...w, chartInterval: interval} : w));
     await api.updateChartWidget(activeWsId, widgetId, interval);
   };
 
-  const handleDragEnd = async (event: any) => {
-    const { active, over } = event;
-    if (active.id !== over.id) {
-      const oldIndex = widgets.findIndex(w => w.id === active.id);
-      const newIndex = widgets.findIndex(w => w.id === over.id);
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const {active, over} = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = widgets.findIndex(w => w.id === active.id);
+    const newIndex = widgets.findIndex(w => w.id === over.id);
 
-      const newOrder = arrayMove(widgets, oldIndex, newIndex);
-      setWidgets(newOrder);
+    const newOrder = arrayMove(widgets, oldIndex, newIndex);
+    setWidgets(newOrder);
 
-      if (activeWsId) {
-        const payload = newOrder.map((w, index) => ({ chartWidgetId: w.id, position: index + 1 }));
-        await api.updateWidgetPositions(activeWsId, payload);
-      }
+    if (activeWsId) {
+      const payload = newOrder.map((w, index) => ({chartWidgetId: w.id, position: index + 1}));
+      await api.updateWidgetPositions(activeWsId, payload);
     }
   };
 
@@ -167,11 +180,15 @@ export default function WorkspaceView() {
 
           {activeWsId && (
             <div className="flex items-center gap-0.5 border-l border-[#2b3139] pl-2 ml-1">
-              <button onClick={handleRenameWorkspace} className="p-1.5 text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139] rounded transition-colors" title="Rename Workspace">
-                <Edit2 size={14} />
+              <button onClick={handleRenameWorkspace}
+                      className="p-1.5 text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139] rounded transition-colors"
+                      title="Rename Workspace">
+                <Edit2 size={14}/>
               </button>
-              <button onClick={handleDeleteWorkspace} className="p-1.5 text-[#848e9c] hover:text-[#f6465d] hover:bg-[#f6465d]/10 rounded transition-colors" title="Delete Workspace">
-                <Trash2 size={14} />
+              <button onClick={handleDeleteWorkspace}
+                      className="p-1.5 text-[#848e9c] hover:text-[#f6465d] hover:bg-[#f6465d]/10 rounded transition-colors"
+                      title="Delete Workspace">
+                <Trash2 size={14}/>
               </button>
             </div>
           )}
@@ -182,14 +199,14 @@ export default function WorkspaceView() {
             onClick={handleCreateWorkspace}
             className="flex items-center gap-1.5 bg-[#2b3139] text-[#eaecef] text-sm px-3 py-1.5 rounded font-medium hover:bg-[#474d57] transition-colors"
           >
-            <FolderPlus size={16} /> New Workspace
+            <FolderPlus size={16}/> New Workspace
           </button>
           <button
             disabled={!activeWsId}
             onClick={() => setIsSearchOpen(true)}
             className="flex items-center gap-1.5 bg-[#fcd535] text-[#0b0e14] text-sm px-3 py-1.5 rounded font-semibold hover:bg-[#e0bc2e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Plus size={16} /> Add Chart
+            <Plus size={16}/> Add Chart
           </button>
         </div>
       </div>
@@ -197,14 +214,16 @@ export default function WorkspaceView() {
       {/* GRID */}
       <div className="flex-1 overflow-hidden">
         {!activeWsId ? (
-          <div className="h-full flex flex-col items-center justify-center text-[#848e9c] border border-dashed border-[#2b3139] rounded-md">
+          <div
+            className="h-full flex flex-col items-center justify-center text-[#848e9c] border border-dashed border-[#2b3139] rounded-md">
             <p className="mb-3 text-sm">You don't have any workspaces yet.</p>
             <button onClick={handleCreateWorkspace} className="text-[#fcd535] text-sm hover:underline">
               Create your first workspace
             </button>
           </div>
         ) : widgets.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-[#848e9c] border border-dashed border-[#2b3139] rounded-md">
+          <div
+            className="h-full flex flex-col items-center justify-center text-[#848e9c] border border-dashed border-[#2b3139] rounded-md">
             <p className="mb-3 text-sm">Your workspace is empty.</p>
             <button onClick={() => setIsSearchOpen(true)} className="text-[#fcd535] text-sm hover:underline">
               Add your first chart
@@ -231,7 +250,7 @@ export default function WorkspaceView() {
         )}
       </div>
 
-      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={handleAddWidget} />
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={handleAddWidget}/>
     </div>
   );
 }

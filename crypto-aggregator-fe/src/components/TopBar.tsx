@@ -1,4 +1,4 @@
-import { LivePrice, TradingPair, Exchange, ExchangeHealthDto } from '../api';
+import {Exchange, ExchangeHealthDto, LivePrice, TradingPair} from '../api';
 
 type Props = {
   exchange: Exchange | null;
@@ -8,7 +8,7 @@ type Props = {
   onBack?: () => void;
 };
 
-export default function TopBar({ exchange, pair, livePrice, health, onBack }: Props) {
+export default function TopBar({exchange, pair, livePrice, health, onBack}: Props) {
   if (!pair) return <div className="h-20 border-b border-[#2b3139] bg-[#181a20]"></div>;
 
   const displayPair = pair.replace('_', '/');
@@ -18,10 +18,15 @@ export default function TopBar({ exchange, pair, livePrice, health, onBack }: Pr
 
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'CONNECTED': return 'bg-[#0ecb81] shadow-[0_0_8px_#0ecb81]';
-      case 'RECONNECTING': return 'bg-[#fcd535] shadow-[0_0_8px_#fcd535] animate-pulse';
-      case 'ERROR': return 'bg-[#f6465d] shadow-[0_0_8px_#f6465d]';
-      case 'DISCONNECTED': default: return 'bg-[#848e9c]';
+      case 'CONNECTED':
+        return 'bg-[#0ecb81] shadow-[0_0_8px_#0ecb81]';
+      case 'RECONNECTING':
+        return 'bg-[#fcd535] shadow-[0_0_8px_#fcd535] animate-pulse';
+      case 'ERROR':
+        return 'bg-[#f6465d] shadow-[0_0_8px_#f6465d]';
+      case 'DISCONNECTED':
+      default:
+        return 'bg-[#848e9c]';
     }
   };
 
@@ -87,7 +92,7 @@ export default function TopBar({ exchange, pair, livePrice, health, onBack }: Pr
           <span className="text-[#848e9c] mb-1">24h Volume</span>
           <span className="text-[#eaecef] font-medium">
             {/* Volume зазвичай велике число, тому залишаємо 2 знаки або без дробів */}
-            {livePrice?.volume24h ? livePrice.volume24h.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—'}
+            {livePrice?.volume24h ? livePrice.volume24h.toLocaleString(undefined, {maximumFractionDigits: 0}) : '—'}
           </span>
         </div>
       </div>
@@ -96,7 +101,7 @@ export default function TopBar({ exchange, pair, livePrice, health, onBack }: Pr
       <div className="flex items-center ml-auto">
         {exchange && (
           <div className="flex items-center gap-2 bg-[#2b3139] px-3 py-1.5 rounded-md">
-            <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(health?.connectionStatus)}`} />
+            <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(health?.connectionStatus)}`}/>
             <span className="text-[#eaecef] text-sm font-medium">{exchange}</span>
           </div>
         )}

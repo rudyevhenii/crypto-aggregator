@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Exchange, TradingPair, ExchangeMetadata, api, Ticker24h, LivePrice, ExchangeHealthDto } from '../api';
+import {useEffect, useState} from 'react';
+import {api, Exchange, ExchangeHealthDto, ExchangeMetadata, LivePrice, Ticker24h, TradingPair} from '../api';
 
 // --- SVG Міні-графік (Sparkline) на основі історичних точок ---
-function Sparkline({ data, isPositive }: { data: number[], isPositive: boolean }) {
-  if (!data || data.length === 0) return <div className="w-24 h-8" />;
+function Sparkline({data, isPositive}: { data: number[], isPositive: boolean }) {
+  if (!data || data.length === 0) return <div className="w-24 h-8"/>;
 
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -13,7 +13,8 @@ function Sparkline({ data, isPositive }: { data: number[], isPositive: boolean }
 
   return (
     <svg viewBox="0 0 100 100" className="w-24 h-10 overflow-visible" preserveAspectRatio="none">
-      <polyline points={points} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={points} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"
+                strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -28,7 +29,7 @@ function DashboardRow({
 
   useEffect(() => {
     // Завантажуємо 24 свічки (по 1 годині) для малювання міні-графіка
-    api.getHistoricalPrices(exchange, { tradingPair: pair, chartInterval: 'ONE_HOUR', limit: 24 })
+    api.getHistoricalPrices(exchange, {tradingPair: pair, chartInterval: 'ONE_HOUR', limit: 24})
       .then(data => setHistory(data.map(d => Number(d.close))))
       .catch(console.error);
   }, [exchange, pair]);
@@ -46,14 +47,14 @@ function DashboardRow({
       <td className="p-4 text-[#848e9c] w-12">{index + 1}</td>
       <td className="p-4 font-bold text-[#eaecef]">{displayPair}</td>
       <td className="p-4 text-right font-medium text-[#eaecef]">
-        {priceData?.lastPrice ? priceData.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
+        {priceData?.lastPrice ? priceData.lastPrice.toLocaleString(undefined, {minimumFractionDigits: 2}) : '—'}
       </td>
       <td className={`p-4 text-right font-medium ${colorClass}`}>
         {priceData?.priceChangePercent24h != null ? `${sign}${priceData.priceChangePercent24h.toFixed(2)}%` : '—'}
       </td>
       <td className="p-4">
         <div className="flex justify-end">
-          <Sparkline data={history} isPositive={isPositive} />
+          <Sparkline data={history} isPositive={isPositive}/>
         </div>
       </td>
     </tr>
@@ -66,7 +67,7 @@ type Props = {
   onSelectPair: (exchange: Exchange, pair: TradingPair) => void;
 };
 
-export default function Dashboard({ metadata, onSelectPair }: Props) {
+export default function Dashboard({metadata, onSelectPair}: Props) {
   const [activeTab, setActiveTab] = useState<Exchange | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice | Ticker24h>>({});
   const [health, setHealth] = useState<ExchangeHealthDto | null>(null);
@@ -89,7 +90,9 @@ export default function Dashboard({ metadata, onSelectPair }: Props) {
     api.get24hTickers(activeTab)
       .then(tickers => {
         const initialMap: Record<string, Ticker24h> = {};
-        tickers.forEach(t => { initialMap[t.tradingPair] = t; });
+        tickers.forEach(t => {
+          initialMap[t.tradingPair] = t;
+        });
         setLivePrices(initialMap);
 
         // 2. Відкриваємо SSE-з'єднання ТІЛЬКИ після успішного завантаження історії,
@@ -101,7 +104,7 @@ export default function Dashboard({ metadata, onSelectPair }: Props) {
             const updates = Array.isArray(data) ? data : [data];
 
             setLivePrices(prev => {
-              const newMap = { ...prev };
+              const newMap = {...prev};
               updates.forEach((p: LivePrice) => {
                 if (p.tradingPair) newMap[p.tradingPair] = p;
               });
@@ -126,7 +129,7 @@ export default function Dashboard({ metadata, onSelectPair }: Props) {
       }
     };
     healthSource.onerror = () => {
-      setHealth(prev => prev ? { ...prev, connectionStatus: 'DISCONNECTED' } : null);
+      setHealth(prev => prev ? {...prev, connectionStatus: 'DISCONNECTED'} : null);
       healthSource?.close();
     };
 
@@ -139,11 +142,15 @@ export default function Dashboard({ metadata, onSelectPair }: Props) {
 
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'CONNECTED': return 'bg-[#0ecb81] shadow-[0_0_8px_#0ecb81]';
-      case 'RECONNECTING': return 'bg-[#fcd535] shadow-[0_0_8px_#fcd535] animate-pulse';
-      case 'ERROR': return 'bg-[#f6465d] shadow-[0_0_8px_#f6465d]';
+      case 'CONNECTED':
+        return 'bg-[#0ecb81] shadow-[0_0_8px_#0ecb81]';
+      case 'RECONNECTING':
+        return 'bg-[#fcd535] shadow-[0_0_8px_#fcd535] animate-pulse';
+      case 'ERROR':
+        return 'bg-[#f6465d] shadow-[0_0_8px_#f6465d]';
       case 'DISCONNECTED':
-      default: return 'bg-[#848e9c]';
+      default:
+        return 'bg-[#848e9c]';
     }
   };
 
@@ -171,15 +178,16 @@ export default function Dashboard({ metadata, onSelectPair }: Props) {
             >
               {m.exchange}
               {activeTab === m.exchange && (
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#fcd535]" />
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#fcd535]"/>
               )}
             </button>
           ))}
 
           {/* Індикатор здоров'я */}
           {activeTab && (
-            <div className="ml-auto flex items-center gap-2 bg-[#181a20] border border-[#2b3139] px-3 py-1.5 rounded-md">
-              <div className={`w-2 h-2 rounded-full ${getStatusColor(health?.connectionStatus)}`} />
+            <div
+              className="ml-auto flex items-center gap-2 bg-[#181a20] border border-[#2b3139] px-3 py-1.5 rounded-md">
+              <div className={`w-2 h-2 rounded-full ${getStatusColor(health?.connectionStatus)}`}/>
               <span className="text-[#eaecef] text-xs font-medium">Market is Open</span>
             </div>
           )}

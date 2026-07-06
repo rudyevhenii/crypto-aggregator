@@ -1,5 +1,5 @@
-import { Exchange, TradingPair, ChartInterval, LivePrice } from '../api';
-import { ChevronDown } from 'lucide-react';
+import {ChartInterval, Exchange, LivePrice, TradingPair} from '../api';
+import {ChevronDown} from 'lucide-react';
 
 type Props = {
   exchanges: Exchange[];
@@ -38,7 +38,7 @@ export default function Sidebar({
             >
               {exchanges.map((ex) => <option key={ex} value={ex}>{ex}</option>)}
             </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none" />
+            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
           </div>
         </div>
 
@@ -52,7 +52,7 @@ export default function Sidebar({
             >
               {pairs.map((p) => <option key={p} value={p}>{p.replace('_', '/')}</option>)}
             </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none" />
+            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
           </div>
         </div>
 
@@ -66,7 +66,7 @@ export default function Sidebar({
             >
               {intervals.map((i) => <option key={i} value={i}>{i.replace(/_/g, ' ')}</option>)}
             </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none" />
+            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
           </div>
         </div>
       </div>

@@ -94,24 +94,42 @@ export interface WidgetPositionUpdate {
 // --- UTILS ---
 export function intervalToSeconds(interval: ChartInterval): number {
   switch (interval) {
-    case 'ONE_SECOND': return 1;
-    case 'ONE_MINUTE': return 60;
-    case 'THREE_MINUTES': return 180;
-    case 'FIVE_MINUTES': return 300;
-    case 'FIFTEEN_MINUTES': return 900;
-    case 'THIRTY_MINUTES': return 1800;
-    case 'ONE_HOUR': return 3600;
-    case 'TWO_HOURS': return 7200;
-    case 'FOUR_HOURS': return 14400;
-    case 'SIX_HOURS': return 21600;
-    case 'EIGHT_HOURS': return 28800;
-    case 'TWELVE_HOURS': return 43200;
-    case 'ONE_DAY': return 86400;
-    case 'THREE_DAYS': return 259200;
-    case 'ONE_WEEK': return 604800;
-    case 'FIFTEEN_DAYS': return 1296000;
-    case 'ONE_MONTH': return 2592000;
-    default: return 60;
+    case 'ONE_SECOND':
+      return 1;
+    case 'ONE_MINUTE':
+      return 60;
+    case 'THREE_MINUTES':
+      return 180;
+    case 'FIVE_MINUTES':
+      return 300;
+    case 'FIFTEEN_MINUTES':
+      return 900;
+    case 'THIRTY_MINUTES':
+      return 1800;
+    case 'ONE_HOUR':
+      return 3600;
+    case 'TWO_HOURS':
+      return 7200;
+    case 'FOUR_HOURS':
+      return 14400;
+    case 'SIX_HOURS':
+      return 21600;
+    case 'EIGHT_HOURS':
+      return 28800;
+    case 'TWELVE_HOURS':
+      return 43200;
+    case 'ONE_DAY':
+      return 86400;
+    case 'THREE_DAYS':
+      return 259200;
+    case 'ONE_WEEK':
+      return 604800;
+    case 'FIFTEEN_DAYS':
+      return 1296000;
+    case 'ONE_MONTH':
+      return 2592000;
+    default:
+      return 60;
   }
 }
 

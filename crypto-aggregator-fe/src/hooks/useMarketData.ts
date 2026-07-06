@@ -1,6 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { api, Exchange, TradingPair, ChartInterval, LivePrice, HistoricalPrice, ExchangeMetadata, ExchangeHealthDto } from '../api';
-import { ChartHandle } from '../components/ChartArea';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {
+  api,
+  ChartInterval,
+  Exchange,
+  ExchangeHealthDto,
+  ExchangeMetadata,
+  HistoricalPrice,
+  LivePrice,
+  TradingPair
+} from '../api';
+import {ChartHandle} from '../components/ChartArea';
 
 export default function useMarketData() {
   const [metadata, setMetadata] = useState<ExchangeMetadata[]>([]);
@@ -83,7 +92,7 @@ export default function useMarketData() {
     };
 
     healthSource.onerror = () => {
-      setExchangeHealth(prev => prev ? { ...prev, connectionStatus: 'DISCONNECTED' } : null);
+      setExchangeHealth(prev => prev ? {...prev, connectionStatus: 'DISCONNECTED'} : null);
       healthSource.close();
     };
 

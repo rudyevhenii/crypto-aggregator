@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { X, Search } from 'lucide-react';
-import { api, ExchangePair } from '../api';
+import {useEffect, useState} from 'react';
+import {Search, X} from 'lucide-react';
+import {api, ExchangePair} from '../api';
 
 type Props = {
   isOpen: boolean;
@@ -8,7 +8,7 @@ type Props = {
   onAdd: (pairId: string) => void;
 };
 
-export default function SearchModal({ isOpen, onClose, onAdd }: Props) {
+export default function SearchModal({isOpen, onClose, onAdd}: Props) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ExchangePair[]>([]);
   const [loading, setLoading] = useState(false);
@@ -23,8 +23,12 @@ export default function SearchModal({ isOpen, onClose, onAdd }: Props) {
     if (!query) {
       setLoading(true);
       api.getAllExchangePairs()
-        .then(data => { if (isMounted) setResults(data); })
-        .finally(() => { if (isMounted) setLoading(false); });
+        .then(data => {
+          if (isMounted) setResults(data);
+        })
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
       return;
     }
 
@@ -32,8 +36,12 @@ export default function SearchModal({ isOpen, onClose, onAdd }: Props) {
     const timeoutId = setTimeout(() => {
       setLoading(true);
       api.searchExchangePairs(query)
-        .then(data => { if (isMounted) setResults(data); })
-        .finally(() => { if (isMounted) setLoading(false); });
+        .then(data => {
+          if (isMounted) setResults(data);
+        })
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
     }, 300);
 
     return () => {
@@ -46,10 +54,11 @@ export default function SearchModal({ isOpen, onClose, onAdd }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#181a20] border border-[#2b3139] rounded-xl w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh]">
+      <div
+        className="bg-[#181a20] border border-[#2b3139] rounded-xl w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh]">
 
         <div className="p-4 border-b border-[#2b3139] flex items-center gap-3">
-          <Search size={20} className="text-[#848e9c]" />
+          <Search size={20} className="text-[#848e9c]"/>
           <input
             autoFocus
             type="text"
@@ -59,7 +68,7 @@ export default function SearchModal({ isOpen, onClose, onAdd }: Props) {
             className="flex-1 bg-transparent text-[#eaecef] focus:outline-none text-lg"
           />
           <button onClick={onClose} className="text-[#848e9c] hover:text-[#eaecef]">
-            <X size={20} />
+            <X size={20}/>
           </button>
         </div>
 
@@ -73,7 +82,11 @@ export default function SearchModal({ isOpen, onClose, onAdd }: Props) {
           {!loading && results.map(pair => (
             <div
               key={pair.id}
-              onClick={() => { onAdd(pair.id); onClose(); setQuery(''); }}
+              onClick={() => {
+                onAdd(pair.id);
+                onClose();
+                setQuery('');
+              }}
               className="flex justify-between items-center p-3 hover:bg-[#2b3139]/50 rounded-lg cursor-pointer transition-colors group"
             >
               <div className="flex flex-col">

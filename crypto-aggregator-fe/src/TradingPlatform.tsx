@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import {useEffect, useState} from 'react';
+import {Route, Routes, useNavigate} from 'react-router-dom';
 
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
@@ -10,7 +10,7 @@ import Sidebar from './components/Sidebar';
 import ChartArea from './components/ChartArea';
 
 import useMarketData from './hooks/useMarketData';
-import { Exchange, TradingPair } from './api';
+import {Exchange, TradingPair} from './api';
 
 function TradingPlatform() {
   const navigate = useNavigate();
@@ -80,7 +80,7 @@ function TradingPlatform() {
       )}
 
       {currentView === 'workspace' && (
-        <WorkspaceView />
+        <WorkspaceView/>
       )}
 
       {/* ВІДНОВЛЕНО: Одиночний графік із Sidebar та TopBar */}
@@ -143,8 +143,8 @@ function TradingPlatform() {
 function App(): JSX.Element {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/app" element={<TradingPlatform />} />
+      <Route path="/" element={<LandingPage/>}/>
+      <Route path="/app" element={<TradingPlatform/>}/>
     </Routes>
   );
 }
