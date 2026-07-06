@@ -18,13 +18,13 @@ import java.time.ZoneOffset;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ChartWidgetMapper {
 
-    ChartWidgetRequest toDto(ChartWidgetRequestRqDto requestRqDto);
+    ChartWidgetRequest map(ChartWidgetRequestRqDto requestRqDto);
 
-    ChartWidgetRqDto toResponse(ChartWidget chartWidget);
+    ChartWidgetRqDto map(ChartWidget chartWidget);
 
-    UpdateChartWidgetRequest toDto(UpdateChartWidgetRequestRqDto requestRqDto);
+    UpdateChartWidgetRequest map(UpdateChartWidgetRequestRqDto requestRqDto);
 
-    UpdateChartWidgetPositionsRequest toDto(UpdateChartWidgetPositionsRequestRqDto requestRqDto);
+    UpdateChartWidgetPositionsRequest map(UpdateChartWidgetPositionsRequestRqDto requestRqDto);
 
     default OffsetDateTime toOffsetDateTime(Instant endTimeCursor) {
         return endTimeCursor.atOffset(ZoneOffset.UTC);

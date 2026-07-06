@@ -29,30 +29,30 @@ public class LiveExchangeController {
     public Flux<List<LivePriceRqDto>> streamAllPrices() {
         return liveExchangeService.streamAllPrices()
                 .map(list -> list.stream()
-                        .map(mapper::toResponse)
+                        .map(mapper::map)
                         .toList());
     }
 
     @GetMapping(value = "/{exchange}/prices", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<LivePriceRqDto> streamPriceByExchange(@PathVariable ExchangeRqDto exchange) {
-        Exchange exchangeDomain = mapper.toDomain(exchange);
+        Exchange exchangeDomain = mapper.map(exchange);
         return liveExchangeService.streamPriceByExchange(exchangeDomain)
-                .map(mapper::toResponse);
+                .map(mapper::map);
     }
 
     @GetMapping(value = "/{exchange}/prices/{pair}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<LivePriceRqDto> streamSinglePair(@PathVariable ExchangeRqDto exchange,
                                                  @PathVariable TradingPairRqDto pair) {
-        Exchange exchangeDomain = mapper.toDomain(exchange);
-        TradingPair tradingPairDomain = mapper.toDomain(pair);
+        Exchange exchangeDomain = mapper.map(exchange);
+        TradingPair tradingPairDomain = mapper.map(pair);
         return liveExchangeService.streamSinglePair(exchangeDomain, tradingPairDomain)
-                .map(mapper::toResponse);
+                .map(mapper::map);
     }
 
     @GetMapping(value = "/{exchange}/health", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ExchangeHealthRqDto> streamExchangeHealth(@PathVariable ExchangeRqDto exchange) {
-        Exchange exchangeDomain = mapper.toDomain(exchange);
+        Exchange exchangeDomain = mapper.map(exchange);
         return liveExchangeService.streamExchangeHealth(exchangeDomain)
-                .map(mapper::toResponse);
+                .map(mapper::map);
     }
 }

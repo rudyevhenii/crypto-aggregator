@@ -8,5 +8,5 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ExchangePairMapper {
 
-    ExchangePairRqDto toDto(ExchangePair exchangePair);
+    ExchangePairRqDto map(ExchangePair exchangePair);
 }

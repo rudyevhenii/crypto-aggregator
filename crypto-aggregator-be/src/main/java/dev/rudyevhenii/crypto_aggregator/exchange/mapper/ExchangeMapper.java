@@ -19,7 +19,6 @@ import dev.rudyevhenii.crypto_aggregator.exchange.live.model.ExchangeHealthDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.metadata.model.ExchangeMetadataDto;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 import java.time.Instant;
@@ -29,30 +28,29 @@ import java.time.ZoneOffset;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ExchangeMapper {
 
-    Exchange toDomain(ExchangeRqDto exchangeRqDto);
+    Exchange map(ExchangeRqDto exchangeRqDto);
 
-    ExchangeRqDto toResponse(Exchange exchange);
+    ExchangeRqDto map(Exchange exchange);
 
-    TradingPair toDomain(TradingPairRqDto tradingPairRqDto);
+    TradingPair map(TradingPairRqDto tradingPairRqDto);
 
-    TradingPairRqDto toResponse(TradingPair tradingPair);
+    TradingPairRqDto map(TradingPair tradingPair);
 
-    ChartInterval toDomain(ChartIntervalRqDto chartIntervalRqDto);
+    ChartInterval map(ChartIntervalRqDto chartIntervalRqDto);
 
-    ChartIntervalRqDto toResponse(ChartInterval chartInterval);
+    ChartIntervalRqDto map(ChartInterval chartInterval);
 
-    ExchangeMetadataRqDto toResponse(ExchangeMetadataDto exchangeMetadataDto);
+    ExchangeMetadataRqDto map(ExchangeMetadataDto exchangeMetadataDto);
 
-    @Mapping(target = "limit", defaultValue = "100")
-    HistoricalPriceRequest toDomain(HistoricalPriceRequestRqDto request);
+    HistoricalPriceRequest map(HistoricalPriceRequestRqDto request);
 
-    HistoricalPriceRqDto toResponse(HistoricalPriceDto historicalPriceDto);
+    HistoricalPriceRqDto map(HistoricalPriceDto historicalPriceDto);
 
-    Ticker24hRqDto toResponse(Ticker24hDto ticker24hDto);
+    Ticker24hRqDto map(Ticker24hDto ticker24hDto);
 
-    LivePriceRqDto toResponse(LivePriceDto livePriceDto);
+    LivePriceRqDto map(LivePriceDto livePriceDto);
 
-    ExchangeHealthRqDto toResponse(ExchangeHealthDto exchangeHealthDto);
+    ExchangeHealthRqDto map(ExchangeHealthDto exchangeHealthDto);
 
     default Instant toInstant(OffsetDateTime endTimeCursor) {
         return endTimeCursor == null ? null : endTimeCursor.toInstant();

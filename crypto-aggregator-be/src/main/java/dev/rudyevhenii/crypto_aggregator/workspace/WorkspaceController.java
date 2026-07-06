@@ -27,23 +27,23 @@ public class WorkspaceController implements WorkspaceApi {
     @Override
     public ResponseEntity<WorkspaceRqDto> createWorkspace(WorkspaceRequestRqDto request) {
         UUID userId = SecurityUtils.getCurrentUserId();
-        Workspace response = workspaceService.create(userId, workspaceMapper.toDto(request));
+        Workspace response = workspaceService.create(userId, workspaceMapper.map(request));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(workspaceMapper.toResponse(response));
+                .body(workspaceMapper.map(response));
     }
 
     @Override
     public ResponseEntity<WorkspaceRqDto> updateWorkspace(UUID workspaceId, WorkspaceRequestRqDto request) {
         UUID userId = SecurityUtils.getCurrentUserId();
-        Workspace response = workspaceService.update(userId, workspaceId, workspaceMapper.toDto(request));
-        return ResponseEntity.ok(workspaceMapper.toResponse(response));
+        Workspace response = workspaceService.update(userId, workspaceId, workspaceMapper.map(request));
+        return ResponseEntity.ok(workspaceMapper.map(response));
     }
 
     @Override
     public ResponseEntity<WorkspaceDetailRqDto> getWorkspaceById(UUID workspaceId) {
         UUID userId = SecurityUtils.getCurrentUserId();
         WorkspaceDetail response = workspaceService.getWorkspaceById(userId, workspaceId);
-        return ResponseEntity.ok(workspaceMapper.toResponse(response));
+        return ResponseEntity.ok(workspaceMapper.map(response));
     }
 
     @Override
@@ -51,7 +51,7 @@ public class WorkspaceController implements WorkspaceApi {
         UUID userId = SecurityUtils.getCurrentUserId();
         List<Workspace> response = workspaceService.getAllWorkspaces(userId);
         return ResponseEntity.ok(response.stream()
-                .map(workspaceMapper::toResponse)
+                .map(workspaceMapper::map)
                 .toList());
     }
 

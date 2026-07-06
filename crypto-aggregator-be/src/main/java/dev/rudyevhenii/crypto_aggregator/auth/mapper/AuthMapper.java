@@ -14,11 +14,11 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AuthMapper {
 
-    RegisterRequest toDto(RegisterRequestRqDto requestDto);
+    RegisterRequest map(RegisterRequestRqDto requestDto);
 
-    TokenResponseRqDto toResponse(TokenResponseDto responseDto);
+    TokenResponseRqDto map(TokenResponseDto responseDto);
 
-    LoginRequest toDto(LoginRequestRqDto requestDto);
+    LoginRequest map(LoginRequestRqDto requestDto);
 
-    RefreshTokenRequest toDto(RefreshTokenRequestRqDto requestDto);
+    RefreshTokenRequest map(RefreshTokenRequestRqDto requestDto);
 }

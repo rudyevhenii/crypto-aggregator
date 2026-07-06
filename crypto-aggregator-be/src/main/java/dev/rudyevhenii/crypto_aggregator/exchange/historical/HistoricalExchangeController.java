@@ -29,29 +29,29 @@ public class HistoricalExchangeController {
     @GetMapping("/{exchange}/klines")
     public Mono<List<HistoricalPriceRqDto>> getHistoricalPrices(@PathVariable ExchangeRqDto exchange,
                                                                 HistoricalPriceRequestRqDto request) {
-        Exchange exchangeDomain = mapper.toDomain(exchange);
-        HistoricalPriceRequest historicalPriceDomain = mapper.toDomain(request);
+        Exchange exchangeDomain = mapper.map(exchange);
+        HistoricalPriceRequest historicalPriceDomain = mapper.map(request);
         return historicalExchangeService.getHistoricalPrices(exchangeDomain, historicalPriceDomain)
                 .map(res -> res.stream()
-                        .map(mapper::toResponse)
+                        .map(mapper::map)
                         .toList());
     }
 
     @GetMapping("/{exchange}/tickers/24h")
     public Mono<List<Ticker24hRqDto>> get24hTickersByExchange(@PathVariable ExchangeRqDto exchange) {
-        Exchange exchangeDomain = mapper.toDomain(exchange);
+        Exchange exchangeDomain = mapper.map(exchange);
         return historicalExchangeService.get24hTickersByExchange(exchangeDomain)
                 .map(res -> res.stream()
-                        .map(mapper::toResponse)
+                        .map(mapper::map)
                         .toList());
     }
 
     @GetMapping("/{exchange}/tickers/24h/{pair}")
     public Mono<Ticker24hRqDto> get24hTickerForPair(@PathVariable ExchangeRqDto exchange,
                                                     @PathVariable TradingPairRqDto pair) {
-        Exchange exchangeDomain = mapper.toDomain(exchange);
-        TradingPair tradingPairDomain = mapper.toDomain(pair);
+        Exchange exchangeDomain = mapper.map(exchange);
+        TradingPair tradingPairDomain = mapper.map(pair);
         return historicalExchangeService.get24hTickerForPair(exchangeDomain, tradingPairDomain)
-                .map(mapper::toResponse);
+                .map(mapper::map);
     }
 }

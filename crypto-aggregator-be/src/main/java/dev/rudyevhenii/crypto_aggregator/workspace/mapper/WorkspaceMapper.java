@@ -16,11 +16,11 @@ import java.time.ZoneOffset;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface WorkspaceMapper {
 
-    WorkspaceRequest toDto(WorkspaceRequestRqDto rqDto);
+    WorkspaceRequest map(WorkspaceRequestRqDto rqDto);
 
-    WorkspaceRqDto toResponse(Workspace workspace);
+    WorkspaceRqDto map(Workspace workspace);
 
-    WorkspaceDetailRqDto toResponse(WorkspaceDetail workspaceDetail);
+    WorkspaceDetailRqDto map(WorkspaceDetail workspaceDetail);
 
     default OffsetDateTime toOffsetDateTime(Instant endTimeCursor) {
         return endTimeCursor.atOffset(ZoneOffset.UTC);

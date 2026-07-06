@@ -22,7 +22,7 @@ public class ExchangePairController implements ExchangePairApi {
     public ResponseEntity<List<ExchangePairRqDto>> findAllExchangePairs() {
         List<ExchangePair> response = exchangePairService.findAllTradingPairs();
         return ResponseEntity.ok(response.stream()
-                .map(mapper::toDto)
+                .map(mapper::map)
                 .toList());
     }
 
@@ -30,7 +30,7 @@ public class ExchangePairController implements ExchangePairApi {
     public ResponseEntity<List<ExchangePairRqDto>> searchExchangePairs(String pattern) {
         List<ExchangePair> response = exchangePairService.searchByPattern(pattern);
         return ResponseEntity.ok(response.stream()
-                .map(mapper::toDto)
+                .map(mapper::map)
                 .toList());
     }
 }

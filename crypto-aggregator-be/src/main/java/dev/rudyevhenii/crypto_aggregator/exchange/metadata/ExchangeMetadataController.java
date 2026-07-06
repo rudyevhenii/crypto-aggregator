@@ -23,30 +23,30 @@ public class ExchangeMetadataController implements ExchangeMetadataApi {
     @Override
     public ResponseEntity<List<ExchangeRqDto>> getSupportedExchanges() {
         return ResponseEntity.ok(metadataService.getSupportedExchanges().stream()
-                .map(metadataMapper::toResponse)
+                .map(metadataMapper::map)
                 .toList());
     }
 
     @Override
     public ResponseEntity<List<TradingPairRqDto>> getSupportedPairs(ExchangeRqDto exchange) {
-        Exchange domain = metadataMapper.toDomain(exchange);
+        Exchange domain = metadataMapper.map(exchange);
         return ResponseEntity.ok(metadataService.getSupportedPairs(domain).stream()
-                .map(metadataMapper::toResponse)
+                .map(metadataMapper::map)
                 .toList());
     }
 
     @Override
     public ResponseEntity<List<ChartIntervalRqDto>> getSupportedIntervals(ExchangeRqDto exchange) {
-        Exchange domain = metadataMapper.toDomain(exchange);
+        Exchange domain = metadataMapper.map(exchange);
         return ResponseEntity.ok(metadataService.getSupportedIntervals(domain).stream()
-                .map(metadataMapper::toResponse)
+                .map(metadataMapper::map)
                 .toList());
     }
 
     @Override
     public ResponseEntity<List<ExchangeMetadataRqDto>> getAllMetadata() {
         return ResponseEntity.ok(metadataService.getAllMetadata().stream()
-                .map(metadataMapper::toResponse)
+                .map(metadataMapper::map)
                 .toList());
     }
 }

@@ -28,17 +28,17 @@ public class ChartWidgetController implements ChartWidgetApi {
     @Override
     public ResponseEntity<ChartWidgetRqDto> createChartWidget(UUID workspaceId, ChartWidgetRequestRqDto request) {
         UUID userId = SecurityUtils.getCurrentUserId();
-        ChartWidget response = chartWidgetService.create(userId, workspaceId, mapper.toDto(request));
+        ChartWidget response = chartWidgetService.create(userId, workspaceId, mapper.map(request));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(mapper.toResponse(response));
+                .body(mapper.map(response));
     }
 
     @Override
     public ResponseEntity<ChartWidgetRqDto> updateChartWidget(UUID workspaceId, UUID chartWidgetId,
                                                               UpdateChartWidgetRequestRqDto request) {
         UUID userId = SecurityUtils.getCurrentUserId();
-        ChartWidget response = chartWidgetService.update(userId, workspaceId, chartWidgetId, mapper.toDto(request));
-        return ResponseEntity.ok(mapper.toResponse(response));
+        ChartWidget response = chartWidgetService.update(userId, workspaceId, chartWidgetId, mapper.map(request));
+        return ResponseEntity.ok(mapper.map(response));
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ChartWidgetController implements ChartWidgetApi {
                                                            List<UpdateChartWidgetPositionsRequestRqDto> request) {
         UUID userId = SecurityUtils.getCurrentUserId();
         List<UpdateChartWidgetPositionsRequest> requestList = request.stream()
-                .map(mapper::toDto)
+                .map(mapper::map)
                 .toList();
         chartWidgetService.updatePositions(userId, workspaceId, requestList);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
