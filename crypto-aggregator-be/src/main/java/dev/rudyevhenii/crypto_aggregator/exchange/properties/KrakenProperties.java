@@ -9,6 +9,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "crypto.exchanges.kraken")
 public record KrakenProperties(
         Map<TradingPair, String> tradingPair,
-        Map<ChartInterval, String> chartInterval
+        Map<ChartInterval, String> chartInterval,
+        String baseUrl
 ) {
 }

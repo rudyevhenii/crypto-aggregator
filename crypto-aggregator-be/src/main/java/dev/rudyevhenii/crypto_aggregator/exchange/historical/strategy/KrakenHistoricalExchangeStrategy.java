@@ -12,9 +12,7 @@ import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPri
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.properties.KrakenProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
@@ -37,9 +35,8 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
     private final KrakenProperties properties;
     private final HistoricalKrakenMapper mapper;
 
-    public KrakenHistoricalExchangeStrategy(@Qualifier("krakenWebClient") WebClient webClient,
-                                            KrakenProperties properties, HistoricalKrakenMapper mapper) {
-        super(EXCHANGE_TYPE, webClient);
+    public KrakenHistoricalExchangeStrategy(KrakenProperties properties, HistoricalKrakenMapper mapper) {
+        super(EXCHANGE_TYPE);
         this.properties = properties;
         this.mapper = mapper;
     }
@@ -58,7 +55,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
 
     @Override
     protected URI resolveKlinesUri(KlinesRequestContext context) {
-        return UriComponentsBuilder.fromUri(URI.create("https://api.kraken.com").resolve(context.uri()))
+        return UriComponentsBuilder.fromUri(URI.create(properties.baseUrl()).resolve(context.uri()))
                 .queryParam("pair", context.tradingPair())
                 .queryParam("interval", context.intervalCode())
                 .queryParam("since", context.startTimeCursor().getEpochSecond())
@@ -74,7 +71,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
 
     @Override
     protected URI resolveTickerUri(String tradingPair) {
-        return UriComponentsBuilder.fromUri(URI.create("https://api.kraken.com").resolve(TICKER_24H_URI))
+        return UriComponentsBuilder.fromUri(URI.create(properties.baseUrl()).resolve(TICKER_24H_URI))
                 .queryParam("pair", tradingPair)
                 .build()
                 .toUri();

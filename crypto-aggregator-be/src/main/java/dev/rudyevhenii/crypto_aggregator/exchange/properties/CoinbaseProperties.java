@@ -9,6 +9,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "crypto.exchanges.coinbase")
 public record CoinbaseProperties(
         Map<TradingPair, String> tradingPair,
-        Map<ChartInterval, String> chartInterval
+        Map<ChartInterval, String> chartInterval,
+        String baseUrl
 ) {
 }

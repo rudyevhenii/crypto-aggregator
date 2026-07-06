@@ -11,10 +11,8 @@ import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPri
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.properties.BinanceProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
@@ -28,10 +26,10 @@ import java.util.stream.Collectors;
 public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
     private static final Exchange EXCHANGE_TYPE = Exchange.BINANCE;
-    private static final ParameterizedTypeReference<List<List<Number>>> KLINES_RESPONSE_REFERENCE
+    private static final ParameterizedTypeReference<List<List<Number>>> KLINES_REF
             = new ParameterizedTypeReference<>() {
     };
-    private static final ParameterizedTypeReference<List<BinanceTicker24hResponse>> TICKER_RESPONSE_REFERENCE
+    private static final ParameterizedTypeReference<List<BinanceTicker24hResponse>> TICKER_REF
             = new ParameterizedTypeReference<>() {
     };
 
@@ -41,9 +39,8 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
     private final BinanceProperties properties;
     private final HistoricalBinanceMapper mapper;
 
-    public BinanceHistoricalExchangeStrategy(@Qualifier("binanceWebClient") WebClient webClient,
-                                             BinanceProperties properties, HistoricalBinanceMapper mapper) {
-        super(EXCHANGE_TYPE, webClient);
+    public BinanceHistoricalExchangeStrategy(BinanceProperties properties, HistoricalBinanceMapper mapper) {
+        super(EXCHANGE_TYPE);
         this.properties = properties;
         this.mapper = mapper;
     }
@@ -60,7 +57,7 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
 
     @Override
     protected URI resolveKlinesUri(KlinesRequestContext context) {
-        return UriComponentsBuilder.fromUri(URI.create("https://api.binance.com").resolve(context.uri()))
+        return UriComponentsBuilder.fromUri(URI.create(properties.baseUrl()).resolve(context.uri()))
                 .queryParam("symbol", context.tradingPair())
                 .queryParam("interval", context.intervalCode())
                 .queryParam("endTime", context.endTimeCursor().toEpochMilli())
@@ -71,12 +68,12 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
 
     @Override
     protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
-        return executeFetch(uri, KLINES_RESPONSE_REFERENCE, mapper::toHistoricalPriceDto);
+        return executeFetch(uri, KLINES_REF, mapper::toHistoricalPriceDto);
     }
 
     @Override
     protected URI resolveTickerUri(String tradingPair) {
-        return UriComponentsBuilder.fromUri(URI.create("https://api.binance.com").resolve(TICKER_24H_URI))
+        return UriComponentsBuilder.fromUri(URI.create(properties.baseUrl()).resolve(TICKER_24H_URI))
                 .queryParam("symbol", tradingPair)
                 .build()
                 .toUri();
@@ -105,11 +102,11 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
         String pairsParam = formatQueryParams(tradingPairs);
         URI uri = resolveTickerUriWithMultipleParameters(pairsParam);
 
-        return executeFetch(uri, TICKER_RESPONSE_REFERENCE, this::toTicker24h);
+        return executeFetch(uri, TICKER_REF, this::toTicker24h);
     }
 
     private URI resolveTickerUriWithMultipleParameters(String tradingPair) {
-        return UriComponentsBuilder.fromUri(URI.create("https://api.binance.com").resolve(TICKER_24H_URI))
+        return UriComponentsBuilder.fromUri(URI.create(properties.baseUrl()).resolve(TICKER_24H_URI))
                 .queryParam("symbols", tradingPair)
                 .build()
                 .toUri();

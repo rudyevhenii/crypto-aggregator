@@ -11,10 +11,8 @@ import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPri
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.properties.CoinbaseProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,7 +27,7 @@ import java.util.List;
 public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchangeStrategy {
 
     private static final Exchange EXCHANGE_TYPE = Exchange.COINBASE;
-    private static final ParameterizedTypeReference<List<List<Number>>> KLINES_RESPONSE_REFERENCE
+    private static final ParameterizedTypeReference<List<List<Number>>> KLINES_REF
             = new ParameterizedTypeReference<>() {
     };
 
@@ -39,9 +37,8 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
     private final CoinbaseProperties properties;
     private final HistoricalCoinbaseMapper mapper;
 
-    public CoinbaseHistoricalExchangeStrategy(@Qualifier("coinbaseWebClient") WebClient webClient,
-                                              CoinbaseProperties properties, HistoricalCoinbaseMapper mapper) {
-        super(EXCHANGE_TYPE, webClient);
+    public CoinbaseHistoricalExchangeStrategy(CoinbaseProperties properties, HistoricalCoinbaseMapper mapper) {
+        super(EXCHANGE_TYPE);
         this.properties = properties;
         this.mapper = mapper;
     }
@@ -55,7 +52,7 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected URI getKlinesUri(String resolvedTradingPair) {
-        return UriComponentsBuilder.fromUriString("https://api.exchange.coinbase.com" + KLINES_URI)
+        return UriComponentsBuilder.fromUriString(properties.baseUrl() + KLINES_URI)
                 .buildAndExpand(resolvedTradingPair)
                 .toUri();
     }
@@ -72,13 +69,12 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
 
     @Override
     protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
-        return executeFetch(uri, KLINES_RESPONSE_REFERENCE, mapper::toHistoricalPriceDto);
+        return executeFetch(uri, KLINES_REF, mapper::toHistoricalPriceDto);
     }
 
     @Override
     protected URI resolveTickerUri(String tradingPair) {
-        // TODO: extract this url somewhere else. Do the same in other strategies
-        return UriComponentsBuilder.fromUriString("https://api.exchange.coinbase.com" + TICKER_24H_URI)
+        return UriComponentsBuilder.fromUriString(properties.baseUrl() + TICKER_24H_URI)
                 .buildAndExpand(tradingPair)
                 .toUri();
     }

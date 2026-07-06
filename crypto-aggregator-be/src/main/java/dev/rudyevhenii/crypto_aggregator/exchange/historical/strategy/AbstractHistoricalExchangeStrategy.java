@@ -24,9 +24,9 @@ public abstract class AbstractHistoricalExchangeStrategy implements HistoricalEx
     private final Exchange exchange;
     private final WebClient webClient;
 
-    protected AbstractHistoricalExchangeStrategy(Exchange exchange, WebClient webClient) {
+    protected AbstractHistoricalExchangeStrategy(Exchange exchange) {
         this.exchange = exchange;
-        this.webClient = webClient;
+        this.webClient = WebClient.builder().build();
     }
 
     protected abstract Instant calculateStartTimeCursor(HistoricalPriceRequest request, Instant endTimeCursor);

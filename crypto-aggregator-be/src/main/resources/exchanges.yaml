@@ -29,6 +29,7 @@ crypto:
         THREE_DAYS: "3d"
         ONE_WEEK: "1w"
         ONE_MONTH: "1M"
+      base-url: "https://api.binance.com"
     coinbase:
       trading-pair:
         BTC_USD: "BTC-USD"
@@ -48,6 +49,7 @@ crypto:
         ONE_HOUR: "3600"
         SIX_HOURS: "21600"
         ONE_DAY: "86400"
+      base-url: "https://api.exchange.coinbase.com"
     kraken:
       trading-pair:
         BTC_USD: "XXBTZUSD"
@@ -70,3 +72,4 @@ crypto:
         ONE_DAY: "1440"
         ONE_WEEK: "10080"
         FIFTEEN_DAYS: "21600"
+      base-url: "https://api.kraken.com"
