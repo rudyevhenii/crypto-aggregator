@@ -725,9 +725,6 @@ components:
           type: number
         volume24h:
           type: number
-        timestamp:
-          type: string
-          format: date-time
 
     # ── Live schemas ──────────────────────────────────────────────
     LivePrice:

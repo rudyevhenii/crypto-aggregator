@@ -32,7 +32,6 @@ public class HistoricalBinanceMapper {
                 .high24h(res.highPrice24h())
                 .low24h(res.lowPrice24h())
                 .volume24h(res.volume24h())
-                .timestamp(Instant.now())
                 .build();
     }
 

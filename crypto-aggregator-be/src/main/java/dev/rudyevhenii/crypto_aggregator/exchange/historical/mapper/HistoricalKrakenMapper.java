@@ -45,7 +45,6 @@ public class HistoricalKrakenMapper {
                 .high24h(new BigDecimal(tickerData.highPrice24h().get(1)))
                 .low24h(new BigDecimal(tickerData.lowPrice24h().get(1)))
                 .volume24h(new BigDecimal(tickerData.volume24h().get(1)))
-                .timestamp(Instant.now())
                 .build();
     }
 
@@ -70,7 +69,6 @@ public class HistoricalKrakenMapper {
                             .high24h(new BigDecimal(tickerData.highPrice24h().get(1)))
                             .low24h(new BigDecimal(tickerData.lowPrice24h().get(1)))
                             .volume24h(new BigDecimal(tickerData.volume24h().get(1)))
-                            .timestamp(Instant.now())
                             .build();
                 })
                 .toList();

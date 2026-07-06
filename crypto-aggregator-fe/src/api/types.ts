@@ -62,7 +62,6 @@ export interface Ticker24h {
   high24h: number;
   low24h: number;
   volume24h: number;
-  timestamp: string;
 }
 
 // --- ДОДАНО ДЛЯ WORKSPACE ---
