@@ -49,12 +49,20 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
       const bucket = Math.floor(ts / intervalToSeconds(interval)) * intervalToSeconds(interval);
       const price = Number(p.lastPrice);
 
+      // ❗ ДОДАНО: Якщо по SSE прилетів "запізнілий" тік, час якого старіший за
+      // останню намальовану свічку - ігноруємо його, щоб не зламати графік
+      if (lastBucketRef.current !== null && bucket < lastBucketRef.current) {
+        return;
+      }
+
       if (lastBucketRef.current === bucket && currentCandleRef.current) {
+        // Оновлюємо поточну свічку
         currentCandleRef.current.close = price;
         currentCandleRef.current.high = Math.max(currentCandleRef.current.high, price);
         currentCandleRef.current.low = Math.min(currentCandleRef.current.low, price);
         seriesRef.current.update(currentCandleRef.current);
       } else {
+        // Створюємо нову свічку
         const newCandle: CandlestickData = {
           time: bucket as UTCTimestamp,
           open: price,

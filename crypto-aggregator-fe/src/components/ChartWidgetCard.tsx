@@ -7,18 +7,18 @@ import ChartArea, {ChartHandle} from './ChartArea';
 
 type Props = {
   widget: ChartWidget;
-  livePrice?: LivePrice; // 👈 ДОДАНО: Отримуємо ціну від батька
+  livePrice?: LivePrice;
   onDelete: (id: string) => void;
   onUpdateInterval: (id: string, interval: ChartInterval) => void;
 };
 
-const ALL_INTERVALS: ChartInterval[] = [
-  'ONE_MINUTE', 'FIVE_MINUTES', 'FIFTEEN_MINUTES', 'ONE_HOUR', 'FOUR_HOURS', 'ONE_DAY'
-];
-
 export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateInterval}: Props) {
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
+
+  // 👈 ДОДАНО: Стан для зберігання підтримуваних інтервалів
+  const [intervals, setIntervals] = useState<ChartInterval[]>([]);
+
   const chartRef = useRef<ChartHandle>(null);
 
   const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id: widget.id});
@@ -28,6 +28,20 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
     zIndex: isDragging ? 10 : 1,
     opacity: isDragging ? 0.8 : 1,
   };
+
+  // 👈 ДОДАНО: Завантажуємо доступні інтервали для конкретної біржі
+  useEffect(() => {
+    let isMounted = true;
+    api.getIntervals(widget.exchange)
+      .then(data => {
+        if (isMounted) setIntervals(data);
+      })
+      .catch(console.error);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [widget.exchange]);
 
   // 1. Завантаження тільки історії (БЕЗ SSE)
   useEffect(() => {
@@ -46,7 +60,7 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
     };
   }, [widget.exchange, widget.tradingPair, widget.chartInterval]);
 
-  // 2. 👈 ДОДАНО: Реакція на нову ціну з пропсів
+  // 2. Реакція на нову ціну з пропсів
   useEffect(() => {
     if (livePrice && chartRef.current) {
       chartRef.current.applyLivePrice(livePrice);
@@ -83,15 +97,18 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
             <span className="text-[#848e9c] text-[9px] uppercase">{widget.exchange}</span>
           </div>
           <div className="h-3 w-px bg-[#2b3139]"/>
+
           <select
             value={widget.chartInterval}
             onChange={(e) => onUpdateInterval(widget.id, e.target.value as ChartInterval)}
             className="bg-transparent text-[#848e9c] hover:text-[#eaecef] text-xs focus:outline-none cursor-pointer transition-colors"
           >
-            {ALL_INTERVALS.map(int => (
+            {/* 👈 ВИПРАВЛЕНО: Мапимо завантажені інтервали замість хардкоду */}
+            {intervals.map(int => (
               <option key={int} value={int} className="bg-[#0b0e11]">{int.replace(/_/g, ' ')}</option>
             ))}
           </select>
+
         </div>
         <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
           <button {...attributes} {...listeners}
