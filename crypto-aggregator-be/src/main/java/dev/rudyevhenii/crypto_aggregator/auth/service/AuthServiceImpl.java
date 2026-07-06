@@ -13,6 +13,7 @@ import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceAlreadyExistsExc
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -39,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
         User user = toDomain(request);
         UserEntity userEntity = userRepository.save(mapper.toCreateEntity(user));
 
+        log.info("User with email '{}' has been created", userEntity.getUsername());
         return generateTokens(userEntity);
     }
 
@@ -61,6 +64,7 @@ public class AuthServiceImpl implements AuthService {
         if (!jwtService.isTokenValid(refreshToken.refreshToken(), userEntity)) {
             throw new JwtTokenExpirationException("Token is invalid for this user");
         }
+        log.info("Generating refresh token for user {}", userId);
         return generateTokens(userEntity);
     }
 

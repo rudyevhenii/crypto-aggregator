@@ -13,6 +13,7 @@ import dev.rudyevhenii.crypto_aggregator.workspace.mapper.ChartWidgetEntityMappe
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.ChartWidgetRepository;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChartWidgetServiceImpl implements ChartWidgetService {
@@ -46,9 +48,10 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
         ChartWidgetEntity chartWidgetEntity = mapper.toCreateEntity(chartWidget);
         chartWidgetEntity.setExchangePair(exchangePairRepository.getReferenceById(request.exchangePairId()));
         WorkspaceEntity workspaceEntity = workspaceRepository.findById(workspaceId)
-                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId)));
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: '%s'".formatted(workspaceId)));
         workspaceEntity.addChartWidget(chartWidgetEntity);
 
+        log.info("User [{}] created chart widget for workspace [{}]", userId, workspaceId);
         return mapper.toDomain(chartWidgetRepository.save(chartWidgetEntity));
     }
 
@@ -57,8 +60,10 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     public ChartWidget update(UUID userId, UUID workspaceId, UUID chartWidgetId, UpdateChartWidgetRequest request) {
         validateWorkspaceExists(userId, workspaceId);
         ChartWidgetEntity chartWidgetEntity = chartWidgetRepository.findById(chartWidgetId)
-                .orElseThrow(() -> new ResourceNotFoundException("Chart widget not found with id: %s".formatted(chartWidgetId)));
+                .orElseThrow(() -> new ResourceNotFoundException("Chart widget not found with id: '%s'".formatted(chartWidgetId)));
         updateChartWidget(request, chartWidgetEntity);
+
+        log.info("User [{}] updated chart widget [{}] for workspace [{}]", userId, chartWidgetId, workspaceId);
         return mapper.toDomain(chartWidgetEntity);
     }
 
@@ -82,11 +87,14 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     @Transactional
     public void delete(UUID userId, UUID workspaceId, UUID chartWidgetId) {
         validateWorkspaceExists(userId, workspaceId);
+        log.info("User [{}] deleted chart widget [{}] from workspace [{}]", userId, chartWidgetId, workspaceId);
         chartWidgetRepository.deleteById(chartWidgetId);
     }
 
     private void updateChartWidgetPositions(UpdateChartWidgetPositionsRequest request,
                                             ChartWidgetEntity chartWidgetEntity) {
+        log.info("Updating chart widget [{}] positions: [{}] => [{}]", chartWidgetEntity.getId(),
+                chartWidgetEntity.getPosition(), request.position());
         chartWidgetEntity.setPosition(request.position());
         chartWidgetEntity.setUpdatedAt(generator.now());
     }
@@ -98,14 +106,14 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
 
     private void validateWorkspaceExists(UUID userId, UUID workspaceId) {
         if (!workspaceRepository.existsByUserIdAndId(userId, workspaceId)) {
-            throw new ResourceNotFoundException("Workspace not found with id: %s"
+            throw new ResourceNotFoundException("Workspace not found with id: '%s'"
                     .formatted(workspaceId));
         }
     }
 
     private void validateExchangePairExists(UUID exchangePairId) {
         if (!exchangePairRepository.existsById(exchangePairId)) {
-            throw new ResourceNotFoundException("Exchange pair not found with exchangePairId: %s"
+            throw new ResourceNotFoundException("Exchange pair not found with Exchange Pair ID: '%s'"
                     .formatted(exchangePairId));
         }
     }

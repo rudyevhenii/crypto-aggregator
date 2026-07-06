@@ -17,17 +17,101 @@ export * from './types';
 // --- API CLIENT ---
 const BASE_URL = 'http://localhost:8080';
 
-// ДОДАНО: Універсальна обгортка для авторизованих запитів
-async function fetchAuth(endpoint: string, options: RequestInit = {}) {
+// Змінні для керування чергою запитів під час оновлення токена
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+// Додає запит у чергу очікування
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+// Викликається, коли токен успішно оновлено, щоб виконати всі запити з черги
+const onTokenRefreshed = (token: string) => {
+  refreshSubscribers.forEach(cb => cb(token));
+  refreshSubscribers = [];
+};
+
+// ДОДАНО: Розумна обгортка, яка автоматично оновлює токен при 401 помилці
+async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
   const token = localStorage.getItem('accessToken');
 
-  const headers = {
+  // Допоміжна функція для генерації хедерів
+  const getHeaders = (accessToken: string | null) => ({
     'Content-Type': 'application/json',
     ...options.headers,
-    ...(token ? {'Authorization': `Bearer ${token}`} : {})
-  };
+    ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+  });
 
-  return fetch(`${BASE_URL}${endpoint}`, {...options, headers});
+  // Робимо оригінальний запит
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    ...options,
+    headers: getHeaders(token)
+  });
+
+  // Якщо токен протух
+  if (response.status === 401) {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (!refreshToken) {
+      // Якщо рефреш-токена немає, розлогінюємо
+      localStorage.removeItem('accessToken');
+      window.location.href = '/';
+      return response;
+    }
+
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        // Робимо запит на оновлення токена
+        const refreshRes = await fetch(`${BASE_URL}/api/auth/refresh-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken })
+        });
+
+        if (refreshRes.ok) {
+          const tokens = await refreshRes.json();
+          // Зберігаємо нові токени
+          localStorage.setItem('accessToken', tokens.accessToken);
+          localStorage.setItem('refreshToken', tokens.refreshToken);
+
+          isRefreshing = false;
+          onTokenRefreshed(tokens.accessToken);
+
+          // Повторюємо запит, який впав з 401, вже з новим токеном
+          return fetch(`${BASE_URL}${endpoint}`, {
+            ...options,
+            headers: getHeaders(tokens.accessToken)
+          });
+        } else {
+          // Якщо refresh-токен теж протух (наприклад, пройшов тиждень)
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/'; // Викидаємо на сторінку логіну
+        }
+      } catch {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/';
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // Якщо інший запит (від іншого графіка) вже запустив оновлення токена,
+    // ми просто ставимо цей запит у чергу (Promise) і чекаємо на новий токен
+    return new Promise(resolve => {
+      subscribeTokenRefresh((newToken: string) => {
+        resolve(fetch(`${BASE_URL}${endpoint}`, {
+          ...options,
+          headers: getHeaders(newToken)
+        }));
+      });
+    });
+  }
+
+  return response;
 }
 
 export const api = {

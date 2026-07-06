@@ -11,12 +11,14 @@ import dev.rudyevhenii.crypto_aggregator.workspace.dto.WorkspaceRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.mapper.WorkspaceEntityMapper;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WorkspaceServiceImpl implements WorkspaceService {
@@ -33,6 +35,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         Workspace workspace = toDomain(request);
         WorkspaceEntity createEntity = mapper.toCreateEntity(workspace);
         createEntity.setUser(userRepository.getReferenceById(userId));
+        log.info("User [{}] created a new workspace", userId);
         return mapper.toDomain(workspaceRepository.save(createEntity));
     }
 
@@ -42,6 +45,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         validateUniqueWorkspaceName(userId, request.name());
         WorkspaceEntity workspaceEntity = findById(userId, workspaceId);
         updateWorkspace(request, workspaceEntity);
+        log.info("User [{}] updated workspace [{}]", userId, workspaceId);
         return mapper.toDomain(workspaceEntity);
     }
 
@@ -49,12 +53,14 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Transactional(readOnly = true)
     public WorkspaceDetail getWorkspaceById(UUID userId, UUID workspaceId) {
         WorkspaceEntity workspaceEntity = findById(userId, workspaceId);
+        log.info("User [{}] retrieved workspace [{}] with chart widgets", userId, workspaceId);
         return mapper.toDomainDetail(workspaceEntity);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Workspace> getAllWorkspaces(UUID userId) {
+        log.info("User [{}] getting all workspaces", userId);
         return workspaceRepository.findAllByUserId(userId).stream()
                 .map(mapper::toDomain)
                 .toList();
@@ -64,12 +70,13 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Transactional
     public void deleteById(UUID userId, UUID workspaceId) {
         validateWorkspaceExists(userId, workspaceId);
+        log.info("User [{}] deleting workspace [{}]", userId, workspaceId);
         workspaceRepository.deleteById(workspaceId);
     }
 
     private WorkspaceEntity findById(UUID userId, UUID workspaceId) {
         return workspaceRepository.findByUserIdAndId(userId, workspaceId)
-                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: %s"
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: '%s'"
                         .formatted(workspaceId)));
     }
 
@@ -80,7 +87,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     private void validateWorkspaceExists(UUID userId, UUID workspaceId) {
         if (!workspaceRepository.existsByUserIdAndId(userId, workspaceId)) {
-            throw new ResourceNotFoundException("Workspace not found with id: %s".formatted(workspaceId));
+            throw new ResourceNotFoundException("Workspace not found with id: '%s'".formatted(workspaceId));
         }
     }
 
