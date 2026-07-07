@@ -7,6 +7,7 @@ import dev.rudyevhenii.crypto_aggregator.exchange.live.model.ExchangeHealthDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -104,6 +105,13 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
                     log.warn("[{}] WebSocket Closed. Signal: {}", exchange.name(), signalType);
                     emitHealth(ConnectionStatus.DISCONNECTED);
                 });
+    }
+
+    @EventListener(ContextClosedEvent.class)
+    public void shutdown() {
+        log.info("[{}] Completing price stream for all clients...", exchange.name());
+        priceSink.tryEmitComplete();
+        healthSink.tryEmitComplete();
     }
 
     private void emitHealth(ConnectionStatus connectionStatus) {
