@@ -54,6 +54,15 @@ public class ChartWidgetController implements ChartWidgetApi {
     }
 
     @Override
+    public ResponseEntity<List<ChartWidgetRqDto>> getAllByWorkspaceId(UUID workspaceId) {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        List<ChartWidget> response = chartWidgetService.getAllByWorkspaceId(userId, workspaceId);
+        return ResponseEntity.ok(response.stream()
+                .map(mapper::map)
+                .toList());
+    }
+
+    @Override
     public ResponseEntity<Void> deleteChartWidget(UUID workspaceId, UUID chartWidgetId) {
         UUID userId = SecurityUtils.getCurrentUserId();
         chartWidgetService.delete(userId, workspaceId, chartWidgetId);

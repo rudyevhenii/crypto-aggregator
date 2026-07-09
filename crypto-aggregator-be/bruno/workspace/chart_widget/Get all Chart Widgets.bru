@@ -1,0 +1,24 @@
+meta {
+  name: Get all Chart Widgets
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/workspaces/:workspaceId/widgets
+  body: none
+  auth: inherit
+}
+
+params:query {
+  : 
+}
+
+params:path {
+  workspaceId: {{WORKSPACE_ID}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

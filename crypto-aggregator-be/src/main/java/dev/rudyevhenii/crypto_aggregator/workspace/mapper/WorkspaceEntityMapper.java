@@ -2,7 +2,6 @@ package dev.rudyevhenii.crypto_aggregator.workspace.mapper;
 
 import dev.rudyevhenii.crypto_aggregator.workspace.WorkspaceEntity;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.WorkspaceRequest;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -22,6 +21,4 @@ public interface WorkspaceEntityMapper {
     void toUpdateEntity(WorkspaceRequest request, @MappingTarget WorkspaceEntity entity);
 
     Workspace toDomain(WorkspaceEntity entity);
-
-    WorkspaceDetail toDomainDetail(WorkspaceEntity entity);
 }

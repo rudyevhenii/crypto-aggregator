@@ -1,7 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.workspace.service;
 
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.WorkspaceRequest;
 
 import java.util.List;
@@ -13,10 +12,9 @@ public interface WorkspaceService {
 
     Workspace update(UUID userId, UUID workspaceId, WorkspaceRequest request);
 
-    WorkspaceDetail getWorkspaceById(UUID userId, UUID workspaceId);
+    Workspace getWorkspaceById(UUID userId, UUID workspaceId);
 
     List<Workspace> getAllWorkspaces(UUID userId);
 
     void deleteById(UUID userId, UUID workspaceId);
-
 }

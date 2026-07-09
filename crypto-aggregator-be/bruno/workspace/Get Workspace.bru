@@ -15,17 +15,8 @@ params:path {
 }
 
 script:post-response {
-  const data = res.getBody();
-  
-  if (data) {
-    if (data.id) {
-      bru.setEnvVar("WORKSPACE_ID", data.id);
-    }
-  
-    if (data.chartWidgets && data.chartWidgets.length > 0) {
-      const firstWidgetId = data.chartWidgets[0].id;
-      bru.setEnvVar("CHART_WIDGET_ID", firstWidgetId);
-    }
+  if (res.getStatus() === 200) {
+    bru.setVar("WORKSPACE_ID", res.getBody().id)
   }
 }
 

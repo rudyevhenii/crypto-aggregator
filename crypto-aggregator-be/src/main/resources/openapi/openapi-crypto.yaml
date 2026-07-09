@@ -440,7 +440,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkspaceDetail'
+                $ref: '#/components/schemas/Workspace'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
         "500":
@@ -490,6 +492,30 @@ paths:
           $ref: 'common-components.yaml#/components/responses/NotFoundError'
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      summary: "Get all chart widgets for a workspace"
+      operationId: "getAllByWorkspaceId"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+      responses:
+        "200":
+          description: "Ok"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChartWidget'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
 
   /api/workspaces/{workspaceId}/widgets/{chartWidgetId}:
     patch:
@@ -812,25 +838,6 @@ components:
           format: uuid
         name:
           type: string
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-
-    WorkspaceDetail:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        chartWidgets:
-          type: array
-          items:
-            $ref: '#/components/schemas/ChartWidget'
         createdAt:
           type: string
           format: date-time

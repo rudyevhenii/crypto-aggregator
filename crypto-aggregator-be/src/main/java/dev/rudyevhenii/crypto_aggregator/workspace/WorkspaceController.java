@@ -1,12 +1,10 @@
 package dev.rudyevhenii.crypto_aggregator.workspace;
 
-import dev.rudyevhenii.crypto_aggregator.api.dto.WorkspaceDetailRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.WorkspaceRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.WorkspaceRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.interfaces.WorkspaceApi;
 import dev.rudyevhenii.crypto_aggregator.core.util.SecurityUtils;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
 import dev.rudyevhenii.crypto_aggregator.workspace.mapper.WorkspaceMapper;
 import dev.rudyevhenii.crypto_aggregator.workspace.service.WorkspaceService;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +38,9 @@ public class WorkspaceController implements WorkspaceApi {
     }
 
     @Override
-    public ResponseEntity<WorkspaceDetailRqDto> getWorkspaceById(UUID workspaceId) {
+    public ResponseEntity<WorkspaceRqDto> getWorkspaceById(UUID workspaceId) {
         UUID userId = SecurityUtils.getCurrentUserId();
-        WorkspaceDetail response = workspaceService.getWorkspaceById(userId, workspaceId);
+        Workspace response = workspaceService.getWorkspaceById(userId, workspaceId);
         return ResponseEntity.ok(workspaceMapper.map(response));
     }
 

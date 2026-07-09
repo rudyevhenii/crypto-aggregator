@@ -16,4 +16,6 @@ public interface ChartWidgetRepository extends JpaRepository<ChartWidgetEntity, 
             FROM ChartWidgetEntity c
             WHERE c.workspace.id = :workspaceId""")
     int findMaxPositionByWorkspaceId(UUID workspaceId);
+
+    void deleteByWorkspaceIdAndId(UUID workspaceId, UUID chartWidgetId);
 }

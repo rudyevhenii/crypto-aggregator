@@ -16,5 +16,7 @@ public interface ChartWidgetService {
 
     void updatePositions(UUID userId, UUID workspaceId, List<UpdateChartWidgetPositionsRequest> request);
 
+    List<ChartWidget> getAllByWorkspaceId(UUID userId, UUID workspaceId);
+
     void delete(UUID userId, UUID workspaceId, UUID chartWidgetId);
 }

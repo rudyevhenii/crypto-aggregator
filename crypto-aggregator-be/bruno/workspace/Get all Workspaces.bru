@@ -10,6 +10,15 @@ get {
   auth: inherit
 }
 
+script:post-response {
+  const responseData = res.getBody();
+  
+  if (Array.isArray(responseData) && responseData.length > 0) {
+      const firstWorkspaceId = responseData[0].id;
+      bru.setVar("WORKSPACE_ID", firstWorkspaceId);
+  }
+}
+
 settings {
   encodeUrl: true
   timeout: 0

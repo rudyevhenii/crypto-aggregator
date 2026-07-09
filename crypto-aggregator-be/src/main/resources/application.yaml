@@ -16,6 +16,12 @@ spring:
     locations:
       - 'classpath:/db/migration/schema'
       - 'classpath:/db/migration/data'
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 security:
   jwt:

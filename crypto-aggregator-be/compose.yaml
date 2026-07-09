@@ -1,5 +1,5 @@
 services:
-  db:
+  postgres:
     image: postgres:16-alpine
     container_name: crypto-db
     ports:
@@ -11,5 +11,15 @@ services:
     volumes:
       - postgres_data:/var/lib/postgres/data
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: crypto-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  redis_data:

@@ -14,6 +14,8 @@ import dev.rudyevhenii.crypto_aggregator.workspace.repository.ChartWidgetReposit
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.CHART_WIDGET_CACHE;
 
 @Slf4j
 @Service
@@ -37,6 +41,7 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     private final ChartWidgetEntityMapper mapper;
 
     @Override
+    @CacheEvict(value = CHART_WIDGET_CACHE, key = "{#userId, #workspaceId}")
     @Transactional
     public ChartWidget create(UUID userId, UUID workspaceId, ChartWidgetRequest request) {
         validateWorkspaceExists(userId, workspaceId);
@@ -56,6 +61,7 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     }
 
     @Override
+    @CacheEvict(value = CHART_WIDGET_CACHE, key = "{#userId, #workspaceId}")
     @Transactional
     public ChartWidget update(UUID userId, UUID workspaceId, UUID chartWidgetId, UpdateChartWidgetRequest request) {
         validateWorkspaceExists(userId, workspaceId);
@@ -68,6 +74,7 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     }
 
     @Override
+    @CacheEvict(value = CHART_WIDGET_CACHE, key = "{#userId, #workspaceId}")
     @Transactional
     public void updatePositions(UUID userId, UUID workspaceId,
                                 List<UpdateChartWidgetPositionsRequest> requestList) {
@@ -84,11 +91,22 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     }
 
     @Override
+    @Cacheable(value = CHART_WIDGET_CACHE, key = "{#userId, #workspaceId}")
+    @Transactional(readOnly = true)
+    public List<ChartWidget> getAllByWorkspaceId(UUID userId, UUID workspaceId) {
+        validateWorkspaceExists(userId, workspaceId);
+        return chartWidgetRepository.findAllByWorkspaceId(workspaceId).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @CacheEvict(value = CHART_WIDGET_CACHE, key = "{#userId, #workspaceId}")
     @Transactional
     public void delete(UUID userId, UUID workspaceId, UUID chartWidgetId) {
         validateWorkspaceExists(userId, workspaceId);
         log.info("User [{}] deleted chart widget [{}] from workspace [{}]", userId, chartWidgetId, workspaceId);
-        chartWidgetRepository.deleteById(chartWidgetId);
+        chartWidgetRepository.deleteByWorkspaceIdAndId(workspaceId, chartWidgetId);
     }
 
     private void updateChartWidgetPositions(UpdateChartWidgetPositionsRequest request,

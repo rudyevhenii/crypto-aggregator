@@ -6,17 +6,22 @@ import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundExceptio
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import dev.rudyevhenii.crypto_aggregator.workspace.WorkspaceEntity;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.WorkspaceDetail;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.WorkspaceRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.mapper.WorkspaceEntityMapper;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.WORKSPACE_CACHE;
 
 @Slf4j
 @Service
@@ -29,6 +34,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     private final GeneratorUtils generator;
 
     @Override
+    @CacheEvict(value = WORKSPACE_CACHE, key = "#userId")
     @Transactional
     public Workspace create(UUID userId, WorkspaceRequest request) {
         validateUniqueWorkspaceName(userId, request.name());
@@ -40,6 +46,10 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = WORKSPACE_CACHE, key = "#userId"),
+            @CacheEvict(value = WORKSPACE_CACHE, key = "{#userId, #workspaceId}"),
+    })
     @Transactional
     public Workspace update(UUID userId, UUID workspaceId, WorkspaceRequest request) {
         validateUniqueWorkspaceName(userId, request.name());
@@ -50,23 +60,29 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @Cacheable(value = WORKSPACE_CACHE, key = "{#userId, #workspaceId}")
     @Transactional(readOnly = true)
-    public WorkspaceDetail getWorkspaceById(UUID userId, UUID workspaceId) {
+    public Workspace getWorkspaceById(UUID userId, UUID workspaceId) {
         WorkspaceEntity workspaceEntity = findById(userId, workspaceId);
         log.info("User [{}] retrieved workspace [{}] with chart widgets", userId, workspaceId);
-        return mapper.toDomainDetail(workspaceEntity);
+        return mapper.toDomain(workspaceEntity);
     }
 
     @Override
+    @Cacheable(value = WORKSPACE_CACHE, key = "#userId")
     @Transactional(readOnly = true)
     public List<Workspace> getAllWorkspaces(UUID userId) {
         log.info("User [{}] getting all workspaces", userId);
         return workspaceRepository.findAllByUserId(userId).stream()
                 .map(mapper::toDomain)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = WORKSPACE_CACHE, key = "#userId"),
+            @CacheEvict(value = WORKSPACE_CACHE, key = "{#userId, #workspaceId}"),
+    })
     @Transactional
     public void deleteById(UUID userId, UUID workspaceId) {
         validateWorkspaceExists(userId, workspaceId);
