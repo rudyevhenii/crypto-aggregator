@@ -1,6 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.auth.service;
 
-import dev.rudyevhenii.crypto_aggregator.auth.UserEntity;
+import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 import dev.rudyevhenii.crypto_aggregator.core.exception.InvalidJwtTokenException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.JwtTokenExpirationException;
 import io.jsonwebtoken.Claims;
@@ -9,7 +9,6 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -17,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -33,31 +31,28 @@ public class JwtServiceImpl implements JwtService {
     private String secretToken;
 
     @Override
-    public String generateAccessToken(UserDetails userDetails) {
-        return generateToken(userDetails, accessTokenExpiration);
+    public String generateAccessToken(User user) {
+        return generateToken(user, accessTokenExpiration);
     }
 
     @Override
-    public String generateRefreshToken(UserDetails userDetails) {
-        return generateToken(userDetails, refreshTokenExpiration);
+    public String generateRefreshToken(User user) {
+        return generateToken(user, refreshTokenExpiration);
     }
 
     @Override
-    public UUID extractSubject(String token) {
-        return UUID.fromString(extractClaims(Claims::getSubject, token));
+    public String extractSubject(String token) {
+        return extractClaims(Claims::getSubject, token);
     }
 
     @Override
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        UserEntity userEntity = (UserEntity) userDetails;
-        return !isTokenExpired(token) && userEntity.getId().equals(extractSubject(token));
+    public boolean isTokenValid(String token, User user) {
+        return !isTokenExpired(token) && user.getEmail().equals(extractSubject(token));
     }
 
-    private String generateToken(UserDetails userDetails, long expiration) {
-        UserEntity userEntity = (UserEntity) userDetails;
-
+    private String generateToken(User user, long expiration) {
         return Jwts.builder()
-                .subject(userEntity.getId().toString())
+                .subject(user.getEmail())
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plus(expiration, ChronoUnit.MILLIS)))
                 .signWith(signWithSecretKey())

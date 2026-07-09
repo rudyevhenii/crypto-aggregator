@@ -11,11 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.domain.Persistable;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -25,7 +21,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = UserEntity.TABLE_NAME)
-public class UserEntity implements Persistable<UUID>, UserDetails {
+public class UserEntity implements Persistable<UUID> {
     public static final String TABLE_NAME = "users";
 
     @Id
@@ -50,15 +46,5 @@ public class UserEntity implements Persistable<UUID>, UserDetails {
     @Override
     public boolean isNew() {
         return newEntity;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    @Override
-    public String getUsername() {
-        return this.email;
     }
 }

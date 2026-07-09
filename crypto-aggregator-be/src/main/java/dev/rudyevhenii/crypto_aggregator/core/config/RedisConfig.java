@@ -22,9 +22,10 @@ import java.time.Duration;
 @EnableCaching
 public class RedisConfig {
 
-    public static final String EXCHANGE_PAIR_CACHE = "exchangePair";
-    public static final String CHART_WIDGET_CACHE = "chartWidget";
-    public static final String WORKSPACE_CACHE = "workspace";
+    public static final String USER_CACHE = "users";
+    public static final String EXCHANGE_PAIR_CACHE = "exchangePairs";
+    public static final String CHART_WIDGET_CACHE = "chartWidgets";
+    public static final String WORKSPACE_CACHE = "workspaces";
 
     private static final int DEFAULT_TTL_MINUTES = 60;
 

@@ -1,13 +1,12 @@
 package dev.rudyevhenii.crypto_aggregator.auth.service;
 
-import dev.rudyevhenii.crypto_aggregator.auth.UserEntity;
 import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LoginRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.RefreshTokenRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.RegisterRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.TokenResponseDto;
-import dev.rudyevhenii.crypto_aggregator.auth.mapper.UserEntityMapper;
 import dev.rudyevhenii.crypto_aggregator.auth.repository.UserRepository;
+import dev.rudyevhenii.crypto_aggregator.auth.security.SecurityUserDetails;
 import dev.rudyevhenii.crypto_aggregator.core.exception.JwtTokenExpirationException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceAlreadyExistsException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
@@ -17,11 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -33,16 +29,13 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final GeneratorUtils generator;
-    private final UserEntityMapper mapper;
 
     @Override
     public TokenResponseDto register(RegisterRequest request) {
         validateUserExists(request.email());
-        User user = toDomain(request);
-        UserEntity userEntity = userRepository.save(mapper.toCreateEntity(user));
+        User user = userRepository.create(toDomain(request));
 
-        log.info("User with email '{}' has been created", userEntity.getUsername());
-        return generateTokens(userEntity);
+        return generateTokens(user);
     }
 
     @Override
@@ -50,22 +43,22 @@ public class AuthServiceImpl implements AuthService {
         Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.email(), request.password()));
 
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        SecurityUserDetails userDetails = (SecurityUserDetails) auth.getPrincipal();
 
-        return generateTokens(userDetails);
+        return generateTokens(userDetails.getUser());
     }
 
     @Override
     public TokenResponseDto refreshToken(RefreshTokenRequest refreshToken) {
-        UUID userId = jwtService.extractSubject(refreshToken.refreshToken());
-        UserEntity userEntity = userRepository.findById(userId)
+        String email = jwtService.extractSubject(refreshToken.refreshToken());
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User does not exist"));
 
-        if (!jwtService.isTokenValid(refreshToken.refreshToken(), userEntity)) {
+        if (!jwtService.isTokenValid(refreshToken.refreshToken(), user)) {
             throw new JwtTokenExpirationException("Token is invalid for this user");
         }
-        log.info("Generating refresh token for user {}", userId);
-        return generateTokens(userEntity);
+        log.info("Generating refresh token for user {}", user.getId());
+        return generateTokens(user);
     }
 
     private User toDomain(RegisterRequest request) {
@@ -78,16 +71,16 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    private TokenResponseDto generateTokens(UserDetails userDetails) {
+    private TokenResponseDto generateTokens(User user) {
         return TokenResponseDto.builder()
-                .accessToken(jwtService.generateAccessToken(userDetails))
-                .refreshToken(jwtService.generateRefreshToken(userDetails))
+                .accessToken(jwtService.generateAccessToken(user))
+                .refreshToken(jwtService.generateRefreshToken(user))
                 .build();
     }
 
     private void validateUserExists(String email) {
         if (userRepository.existsByEmail(email)) {
-            throw new ResourceAlreadyExistsException("User already exists with email: %s".formatted(email));
+            throw new ResourceAlreadyExistsException("User with email '%s' already exists".formatted(email));
         }
     }
 }

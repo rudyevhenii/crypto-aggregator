@@ -1,16 +1,14 @@
 package dev.rudyevhenii.crypto_aggregator.auth.service;
 
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.UUID;
+import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 
 public interface JwtService {
 
-    String generateAccessToken(UserDetails userDetails);
+    String generateAccessToken(User user);
 
-    String generateRefreshToken(UserDetails userDetails);
+    String generateRefreshToken(User user);
 
-    UUID extractSubject(String token);
+    String extractSubject(String token);
 
-    boolean isTokenValid(String token, UserDetails userDetails);
+    boolean isTokenValid(String token, User user);
 }

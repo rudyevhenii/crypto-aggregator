@@ -1,6 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.workspace.service;
 
-import dev.rudyevhenii.crypto_aggregator.auth.repository.UserRepository;
+import dev.rudyevhenii.crypto_aggregator.auth.repository.SpringDataUserRepository;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceAlreadyExistsException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
@@ -29,7 +29,7 @@ import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.WORKSPAC
 public class WorkspaceServiceImpl implements WorkspaceService {
 
     private final WorkspaceRepository workspaceRepository;
-    private final UserRepository userRepository;
+    private final SpringDataUserRepository userRepository;
     private final WorkspaceEntityMapper mapper;
     private final GeneratorUtils generator;
 
