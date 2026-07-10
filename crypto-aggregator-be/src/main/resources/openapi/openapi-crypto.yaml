@@ -111,13 +111,17 @@ paths:
             $ref: '#/components/schemas/HistoricalPriceRequest'
       responses:
         "200":
-          description: "Successfully retrieves array of historical chars"
+          description: "Successfully retrieves array of historical charts"
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/HistoricalPrice'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
   /api/historical/exchanges/{exchange}/tickers/24h:
     get:
@@ -136,6 +140,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Ticker24h'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
   /api/historical/exchanges/{exchange}/tickers/24h/{pair}:
     get:
@@ -153,6 +161,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Ticker24h'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
   # ════════════════════════════════════════════════════════════════
   #  Live / SSE

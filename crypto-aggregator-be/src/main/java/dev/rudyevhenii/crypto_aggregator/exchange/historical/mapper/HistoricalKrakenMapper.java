@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -50,7 +51,7 @@ public class HistoricalKrakenMapper {
 
     public List<Ticker24hDto> toTickerDtoList(KrakenTicker24hResponse res) {
         if (res == null || res.result() == null || res.result().isEmpty()) {
-            return List.of();
+            return new ArrayList<>();
         }
 
         return res.result().entrySet().stream()
@@ -71,7 +72,7 @@ public class HistoricalKrakenMapper {
                             .volume24h(new BigDecimal(tickerData.volume24h().get(1)))
                             .build();
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public List<HistoricalPriceDto> toHistoricalPriceDto(KrakenOhlcResponse response, Instant endTimeCursor) {

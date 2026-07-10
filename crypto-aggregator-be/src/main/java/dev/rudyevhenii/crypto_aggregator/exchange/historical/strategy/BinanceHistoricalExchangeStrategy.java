@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.Instant;
@@ -67,7 +66,7 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
     }
 
     @Override
-    protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
+    protected List<HistoricalPriceDto> executeFetch(URI uri, KlinesRequestContext context) {
         return executeFetch(uri, KLINES_REF, mapper::toHistoricalPriceDto);
     }
 
@@ -80,7 +79,7 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
     }
 
     @Override
-    protected Mono<Ticker24hDto> executeWebClientTickerRequest(URI uri, TradingPair pair) {
+    protected Ticker24hDto executeWebClientTickerRequest(URI uri, TradingPair pair) {
         return executeFetch(uri, BinanceTicker24hResponse.class, mapper::toTickerDto);
     }
 
@@ -97,7 +96,7 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
     }
 
     @Override
-    public Mono<List<Ticker24hDto>> fetch24hTickers() {
+    public List<Ticker24hDto> fetch24hTickers() {
         List<TradingPair> tradingPairs = properties.tradingPair().keySet().stream().toList();
         String pairsParam = formatQueryParams(tradingPairs);
         URI uri = resolveTickerUriWithMultipleParameters(pairsParam);
@@ -120,7 +119,7 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
     private List<Ticker24hDto> toTicker24h(List<BinanceTicker24hResponse> res) {
         return res.stream()
                 .map(mapper::toTickerDto)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private String formatQueryParams(List<TradingPair> pairs) {

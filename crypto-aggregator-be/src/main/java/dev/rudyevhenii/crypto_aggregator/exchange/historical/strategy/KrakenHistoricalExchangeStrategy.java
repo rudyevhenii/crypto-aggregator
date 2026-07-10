@@ -14,7 +14,6 @@ import dev.rudyevhenii.crypto_aggregator.exchange.properties.KrakenProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.Duration;
@@ -64,7 +63,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
     }
 
     @Override
-    protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
+    protected List<HistoricalPriceDto> executeFetch(URI uri, KlinesRequestContext context) {
         return executeFetch(uri, KrakenOhlcResponse.class,
                 res -> mapper.toHistoricalPriceDto(res, context.endTimeCursor()));
     }
@@ -78,7 +77,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
     }
 
     @Override
-    protected Mono<Ticker24hDto> executeWebClientTickerRequest(URI uri, TradingPair pair) {
+    protected Ticker24hDto executeWebClientTickerRequest(URI uri, TradingPair pair) {
         return executeFetch(uri, KrakenTicker24hResponse.class, mapper::toTickerDto);
     }
 
@@ -95,7 +94,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
     }
 
     @Override
-    public Mono<List<Ticker24hDto>> fetch24hTickers() {
+    public List<Ticker24hDto> fetch24hTickers() {
         List<TradingPair> tradingPairs = properties.tradingPair().keySet().stream().toList();
 
         String pairsParam = formatQueryParams(tradingPairs);

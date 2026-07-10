@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class HistoricalCoinbaseMapper {
@@ -54,6 +55,6 @@ public class HistoricalCoinbaseMapper {
                             .build();
                 })
                 .sorted(Comparator.comparing(HistoricalPriceDto::openTime))
-                .toList();
+                .collect(Collectors.toList());
     }
 }

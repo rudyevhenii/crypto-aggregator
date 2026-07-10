@@ -17,6 +17,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
+import java.util.Map;
 
 @Configuration
 @EnableCaching
@@ -26,8 +27,10 @@ public class RedisConfig {
     public static final String EXCHANGE_PAIR_CACHE = "exchangePairs";
     public static final String CHART_WIDGET_CACHE = "chartWidgets";
     public static final String WORKSPACE_CACHE = "workspaces";
+    public static final String HISTORICAL_PRICES_CACHE = "historicalPrices";
 
     private static final int DEFAULT_TTL_MINUTES = 60;
+    private static final int HISTORICAL_PRICES_TTL_MINUTES = 5;
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
@@ -41,8 +44,11 @@ public class RedisConfig {
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer))
                 .entryTtl(Duration.ofMinutes(DEFAULT_TTL_MINUTES));
 
+        Map<String, RedisCacheConfiguration> initialCacheConfigs = cacheConfigurations(defaultConfig);
+
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(defaultConfig)
+                .withInitialCacheConfigurations(initialCacheConfigs)
                 .build();
     }
 
@@ -58,5 +64,11 @@ public class RedisConfig {
                 JsonTypeInfo.As.PROPERTY
         );
         return objectMapper;
+    }
+
+    private Map<String, RedisCacheConfiguration> cacheConfigurations(RedisCacheConfiguration defaultConfig) {
+        return Map.of(
+                HISTORICAL_PRICES_CACHE, defaultConfig.entryTtl(Duration.ofMinutes(HISTORICAL_PRICES_TTL_MINUTES))
+        );
     }
 }

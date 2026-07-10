@@ -14,13 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -68,7 +68,7 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
     }
 
     @Override
-    protected Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context) {
+    protected List<HistoricalPriceDto> executeFetch(URI uri, KlinesRequestContext context) {
         return executeFetch(uri, KLINES_REF, mapper::toHistoricalPriceDto);
     }
 
@@ -80,7 +80,7 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
     }
 
     @Override
-    protected Mono<Ticker24hDto> executeWebClientTickerRequest(URI uri, TradingPair pair) {
+    protected Ticker24hDto executeWebClientTickerRequest(URI uri, TradingPair pair) {
         return executeFetch(uri, CoinbaseTicker24hResponse.class,
                 res -> mapper.toTickerDto(res, pair));
     }
@@ -98,11 +98,16 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
     }
 
     @Override
-    public Mono<List<Ticker24hDto>> fetch24hTickers() {
+    public List<Ticker24hDto> fetch24hTickers() {
         List<TradingPair> tradingPairs = properties.tradingPair().keySet().stream().toList();
-        return Flux.fromIterable(tradingPairs)
-                .flatMap(this::fetch24hTicker)
-                .collectList();
+
+        List<CompletableFuture<Ticker24hDto>> futures = tradingPairs.stream()
+                .map(pair -> CompletableFuture.supplyAsync(() -> fetch24hTicker(pair)))
+                .toList();
+
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
     }
 
     @Override

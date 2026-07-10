@@ -7,12 +7,16 @@ import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPri
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.strategy.HistoricalExchangeStrategy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
 
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.HISTORICAL_PRICES_CACHE;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HistoricalExchangeServiceImpl implements HistoricalExchangeService {
@@ -20,19 +24,24 @@ public class HistoricalExchangeServiceImpl implements HistoricalExchangeService 
     private final Map<Exchange, HistoricalExchangeStrategy> liveExchangeStrategies;
 
     @Override
-    public Mono<List<HistoricalPriceDto>> getHistoricalPrices(Exchange exchange, HistoricalPriceRequest request) {
+    public List<HistoricalPriceDto> getHistoricalPrices(Exchange exchange, HistoricalPriceRequest request) {
+        log.debug("Requesting historical prices for exchange [{}] with request: {}", exchange, request);
         return liveExchangeStrategies.get(exchange)
                 .fetchHistoricalData(request);
     }
 
     @Override
-    public Mono<List<Ticker24hDto>> get24hTickersByExchange(Exchange exchange) {
+    @Cacheable(value = HISTORICAL_PRICES_CACHE, key = "#exchange.name()")
+    public List<Ticker24hDto> get24hTickersByExchange(Exchange exchange) {
+        log.info("Requesting 24h tickers for exchange: [{}]", exchange);
         return liveExchangeStrategies.get(exchange)
                 .fetch24hTickers();
     }
 
     @Override
-    public Mono<Ticker24hDto> get24hTickerForPair(Exchange exchange, TradingPair pair) {
+    @Cacheable(value = HISTORICAL_PRICES_CACHE, key = "{#exchange.name(), #pair.name()}")
+    public Ticker24hDto get24hTickerForPair(Exchange exchange, TradingPair pair) {
+        log.info("Requesting 24h ticker for pair [{}] on exchange [{}]", pair, exchange);
         return liveExchangeStrategies.get(exchange)
                 .fetch24hTicker(pair);
     }

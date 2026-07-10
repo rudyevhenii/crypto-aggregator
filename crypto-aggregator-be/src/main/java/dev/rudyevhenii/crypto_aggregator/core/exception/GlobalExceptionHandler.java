@@ -138,7 +138,7 @@ public class GlobalExceptionHandler {
     }
 
     private void logErrorMessage(HttpStatus status, Exception ex) {
-        log.warn("Status: {}, message: {}", status, ex.getMessage());
+        log.warn("Status: {}, message: {}", status, ex.getMessage(), ex);
     }
 
     private ErrorResponseDto buildErrorResponse(HttpStatus status, String message) {

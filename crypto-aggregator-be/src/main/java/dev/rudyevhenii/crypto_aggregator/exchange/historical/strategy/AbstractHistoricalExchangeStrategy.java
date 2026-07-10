@@ -10,8 +10,8 @@ import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPri
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 import java.net.URI;
 import java.time.Instant;
@@ -22,11 +22,11 @@ import java.util.function.Function;
 public abstract class AbstractHistoricalExchangeStrategy implements HistoricalExchangeStrategy {
 
     private final Exchange exchange;
-    private final WebClient webClient;
+    private final RestClient restClient;
 
     protected AbstractHistoricalExchangeStrategy(Exchange exchange) {
         this.exchange = exchange;
-        this.webClient = WebClient.builder().build();
+        this.restClient = RestClient.builder().build();
     }
 
     protected abstract Instant calculateStartTimeCursor(HistoricalPriceRequest request, Instant endTimeCursor);
@@ -35,64 +35,72 @@ public abstract class AbstractHistoricalExchangeStrategy implements HistoricalEx
 
     protected abstract URI resolveKlinesUri(KlinesRequestContext context);
 
-    protected abstract Mono<List<HistoricalPriceDto>> executeFetch(URI uri, KlinesRequestContext context);
+    protected abstract List<HistoricalPriceDto> executeFetch(URI uri, KlinesRequestContext context);
 
     protected abstract URI resolveTickerUri(String tradingPair);
 
-    protected abstract Mono<Ticker24hDto> executeWebClientTickerRequest(URI uri, TradingPair pair);
+    protected abstract Ticker24hDto executeWebClientTickerRequest(URI uri, TradingPair pair);
 
     protected abstract String getExchangeInterval(ChartInterval chartInterval);
 
     protected abstract String getTradingPairValue(TradingPair tradingPair);
 
     @Override
-    public Mono<List<HistoricalPriceDto>> fetchHistoricalData(HistoricalPriceRequest request) {
-        return Mono.defer(() -> {
-            String resolvedTradingPair = getTradingPairValue(request.getTradingPair());
-            String intervalCode = getExchangeInterval(request.getChartInterval());
-            Instant endTimeCursor = request.resolveEndTimeCursor();
-            Instant startTimeCursor = calculateStartTimeCursor(request, endTimeCursor);
+    public List<HistoricalPriceDto> fetchHistoricalData(HistoricalPriceRequest request) {
+        String resolvedTradingPair = getTradingPairValue(request.getTradingPair());
+        String intervalCode = getExchangeInterval(request.getChartInterval());
+        Instant endTimeCursor = request.resolveEndTimeCursor();
+        Instant startTimeCursor = calculateStartTimeCursor(request, endTimeCursor);
 
-            KlinesRequestContext requestContext = KlinesRequestContext.builder()
-                    .uri(getKlinesUri(resolvedTradingPair))
-                    .tradingPair(resolvedTradingPair)
-                    .intervalCode(intervalCode)
-                    .endTimeCursor(endTimeCursor)
-                    .startTimeCursor(startTimeCursor)
-                    .originalRequest(request)
-                    .build();
+        KlinesRequestContext requestContext = KlinesRequestContext.builder()
+                .uri(getKlinesUri(resolvedTradingPair))
+                .tradingPair(resolvedTradingPair)
+                .intervalCode(intervalCode)
+                .endTimeCursor(endTimeCursor)
+                .startTimeCursor(startTimeCursor)
+                .originalRequest(request)
+                .build();
 
-            URI uri = resolveKlinesUri(requestContext);
-            return executeFetch(uri, requestContext);
-        });
+        URI uri = resolveKlinesUri(requestContext);
+        return executeFetch(uri, requestContext);
     }
 
     @Override
-    public Mono<Ticker24hDto> fetch24hTicker(TradingPair pair) {
+    public Ticker24hDto fetch24hTicker(TradingPair pair) {
         String resolvedTradingPair = getTradingPairValue(pair);
         URI uri = resolveTickerUri(resolvedTradingPair);
 
         return executeWebClientTickerRequest(uri, pair);
     }
 
-    protected <T, R> Mono<R> executeFetch(URI uri, ParameterizedTypeReference<T> reference, Function<T, R> mapper) {
-        return webClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(reference)
-                .map(mapper)
-                .doOnError(error -> log.warn("[{}] Failed to fetch or parse ticker from {}. Error: {}",
-                        exchange.name(), uri, error.getMessage()));
+    protected <T, R> R executeFetch(URI uri, ParameterizedTypeReference<T> reference, Function<T, R> mapper) {
+        try {
+            T responseBody = restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(reference);
+
+            return mapper.apply(responseBody);
+        } catch (RestClientException error) {
+            log.warn("[{}] Failed to fetch or parse ticker from {}. Error: {}",
+                    exchange.name(), uri, error.getMessage());
+            return null;
+        }
     }
 
-    protected <T, R> Mono<R> executeFetch(URI uri, Class<T> clazz, Function<T, R> mapper) {
-        return webClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(clazz)
-                .map(mapper)
-                .doOnError(error -> log.warn("[{}] Failed to fetch or parse ticker from {}. Error: {}",
-                        exchange.name(), uri, error.getMessage()));
+    protected <T, R> R executeFetch(URI uri, Class<T> clazz, Function<T, R> mapper) {
+        try {
+            T responseBody = restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(clazz);
+
+            return mapper.apply(responseBody);
+        } catch (RestClientException error) {
+            log.warn("[{}] Failed to fetch or parse ticker from {}. Error: {}",
+                    exchange.name(), uri, error.getMessage());
+            return null;
+        }
     }
 
     protected void validateExchangeInterval(ChartInterval chartInterval, String intervalCode) {
