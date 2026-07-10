@@ -9,7 +9,6 @@ import {
   Ticker24h,
   TradingPair,
   WidgetPositionUpdate,
-  WorkspaceDetail
 } from "./types.ts";
 
 export * from './types';
@@ -115,16 +114,6 @@ async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<R
 }
 
 export const api = {
-  getExchanges: async (): Promise<Exchange[]> => {
-    const res = await fetch(`${BASE_URL}/api/exchanges`);
-    return res.json();
-  },
-
-  getPairs: async (exchange: Exchange): Promise<TradingPair[]> => {
-    const res = await fetch(`${BASE_URL}/api/exchanges/${exchange}/pairs`);
-    return res.json();
-  },
-
   getIntervals: async (exchange: Exchange): Promise<ChartInterval[]> => {
     const res = await fetch(`${BASE_URL}/api/exchanges/${exchange}/intervals`);
     return res.json();
@@ -216,9 +205,9 @@ export const api = {
     return res.json();
   },
 
-  getWorkspaceById: async (id: string): Promise<WorkspaceDetail> => {
-    const res = await fetchAuth(`/api/workspaces/${id}`);
-    if (!res.ok) throw new Error('Failed to fetch workspace details');
+  getWorkspaceWidgets: async (workspaceId: string): Promise<ChartWidget[]> => {
+    const res = await fetchAuth(`/api/workspaces/${workspaceId}/widgets`);
+    if (!res.ok) throw new Error('Failed to fetch workspace widgets');
     return res.json();
   },
 

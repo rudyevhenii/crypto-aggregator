@@ -78,12 +78,15 @@ export interface ChartWidget {
   tradingPair: TradingPair;
   exchange: Exchange;
   position: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface WorkspaceDetail {
+export interface Workspace {
   id: string;
   name: string;
-  chartWidgets: ChartWidget[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface WidgetPositionUpdate {

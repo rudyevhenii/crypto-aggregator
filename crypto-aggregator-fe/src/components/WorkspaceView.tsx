@@ -19,6 +19,7 @@ export default function WorkspaceView() {
   const [workspaces, setWorkspaces] = useState<{ id: string, name: string }[]>([]);
   const [activeWsId, setActiveWsId] = useState<string | null>(null);
   const [widgets, setWidgets] = useState<ChartWidget[]>([]);
+  const [widgetsLoading, setWidgetsLoading] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // ДОДАНО: Стан для зберігання актуальних цін для всіх графіків
@@ -42,10 +43,16 @@ export default function WorkspaceView() {
   }, []);
 
   useEffect(() => {
-    if (!activeWsId) return;
-    api.getWorkspaceById(activeWsId).then(detail => {
-      setWidgets(detail.chartWidgets.sort((a, b) => a.position - b.position));
-    }).catch(console.error);
+    if (!activeWsId) {
+      setWidgets([]);
+      return;
+    }
+    setWidgets([]);
+    setWidgetsLoading(true);
+    api.getWorkspaceWidgets(activeWsId).then(widgetList => {
+      setWidgets(widgetList.sort((a, b) => a.position - b.position));
+    }).catch(console.error)
+    .finally(() => setWidgetsLoading(false));
   }, [activeWsId]);
 
   // ДОДАНО: Єдине SSE з'єднання для всього дашборду
@@ -220,6 +227,11 @@ export default function WorkspaceView() {
             <button onClick={handleCreateWorkspace} className="text-[#fcd535] text-sm hover:underline">
               Create your first workspace
             </button>
+          </div>
+        ) : widgetsLoading ? (
+          <div
+            className="h-full flex items-center justify-center text-[#848e9c] border border-dashed border-[#2b3139] rounded-md">
+            <p className="text-sm">Loading charts...</p>
           </div>
         ) : widgets.length === 0 ? (
           <div
