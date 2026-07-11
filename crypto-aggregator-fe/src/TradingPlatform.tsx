@@ -53,7 +53,7 @@ function TradingPlatform() {
     setSelectedPair(pair);
 
     const exData = metadata.find(m => m.exchange === exchange);
-    if (exData && !selectedInterval) {
+    if (exData) {
       setSelectedInterval(
         exData.supportedIntervals.includes('FIFTEEN_MINUTES')
           ? 'FIFTEEN_MINUTES'
@@ -102,6 +102,8 @@ function TradingPlatform() {
                   interval={selectedInterval}
                   historical={historical}
                   onLoadMore={handleLoadMoreHistory}
+                  exchange={selectedExchange}
+                  tradingPair={selectedPair}
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center text-[#848e9c]">

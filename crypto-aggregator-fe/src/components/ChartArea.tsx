@@ -11,6 +11,8 @@ type Props = {
   historical: HistoricalPrice[] | null;
   onLoadMore?: (oldestTime: string) => void;
   isWidget?: boolean;
+  exchange: string;
+  tradingPair: string;
 };
 
 const getPrecisionParams = (price: number) => {
@@ -21,7 +23,7 @@ const getPrecisionParams = (price: number) => {
   return {precision: 6, minMove: 0.000001};
 };
 
-const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadMore, isWidget = false}, ref) => {
+const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadMore, isWidget = false, exchange, tradingPair}, ref) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -31,43 +33,61 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
   const isFetchingRef = useRef<boolean>(false);
 
   const dataLengthRef = useRef<number>(0);
-  const oldestTimeRef = useRef<string | null>(null); // 👈 ДОДАНО: Реф для зберігання найстарішого часу
+  const oldestTimeRef = useRef<string | null>(null);
   const onLoadMoreRef = useRef(onLoadMore);
 
   useEffect(() => {
     onLoadMoreRef.current = onLoadMore;
   }, [onLoadMore]);
 
+  // ❗ ОЧИЩЕННЯ: Скидаємо стан графіка при перемиканні таймфрейму, щоб уникнути конфліктів
   useEffect(() => {
     dataLengthRef.current = 0;
-  }, [interval]);
+    lastBucketRef.current = null;
+    currentCandleRef.current = null;
+    oldestTimeRef.current = null;
+    isFetchingRef.current = false;
+
+    if (seriesRef.current) {
+      seriesRef.current.setData([]);
+    }
+  }, [interval, exchange, tradingPair]);
 
   useImperativeHandle(ref, () => ({
     applyLivePrice: (p: LivePrice) => {
       if (!seriesRef.current || !p.timestamp || p.lastPrice == null) return;
+
+      // ❗ ЗАХИСТ ВІД ЗМІШУВАННЯ ДАНИХ: Ігноруємо ціни з інших бірж/пар
+      if (p.exchange !== exchange || p.tradingPair !== tradingPair) return;
+
+      // ❗ ЗАХИСТ: Не малюємо живі ціни, поки не завантажилась історія для поточного інтервалу
+      // Це запобігає появі "літаючих" свічок на порожньому графіку
+      if (lastBucketRef.current === null || !currentCandleRef.current) return;
+
       const ts = Math.floor(new Date(p.timestamp).getTime() / 1000);
       const bucket = Math.floor(ts / intervalToSeconds(interval)) * intervalToSeconds(interval);
       const price = Number(p.lastPrice);
 
-      // ❗ ДОДАНО: Якщо по SSE прилетів "запізнілий" тік, час якого старіший за
-      // останню намальовану свічку - ігноруємо його, щоб не зламати графік
-      if (lastBucketRef.current !== null && bucket < lastBucketRef.current) {
+      // Ігноруємо "запізнілі" тики, які старші за поточну свічку
+      if (bucket < lastBucketRef.current) {
         return;
       }
 
-      if (lastBucketRef.current === bucket && currentCandleRef.current) {
-        // Оновлюємо поточну свічку
+      if (lastBucketRef.current === bucket) {
+        // Оновлюємо поточну свічку (агрегація)
         currentCandleRef.current.close = price;
         currentCandleRef.current.high = Math.max(currentCandleRef.current.high, price);
         currentCandleRef.current.low = Math.min(currentCandleRef.current.low, price);
         seriesRef.current.update(currentCandleRef.current);
       } else {
-        // Створюємо нову свічку
+        // Почався новий часовий інтервал, формуємо нову свічку
+        // Всі поля дорівнюють поточній ціні — не використовуємо закриття попередньої свічки,
+        // щоб уникнути "розтягнутих" свічок при проміжках у часі
         const newCandle: CandlestickData = {
           time: bucket as UTCTimestamp,
-          open: price,
-          high: price,
-          low: price,
+          open: price, // ✅ Відкриття на реальній ціні нового тіку
+          high: price, // ✅ Жодних старих даних
+          low: price,  // ✅
           close: price
         };
         currentCandleRef.current = newCandle;
@@ -75,7 +95,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
         seriesRef.current.update(newCandle);
       }
     },
-  }), [interval]);
+  }), [interval, exchange, tradingPair]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -106,7 +126,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
     chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
       if (logicalRange !== null && logicalRange.from < 20 && !isFetchingRef.current) {
         const currentOnLoadMore = onLoadMoreRef.current;
-        const oldestTime = oldestTimeRef.current; // 👈 ВИПРАВЛЕНО: Беремо гарантовано найстаріший час
+        const oldestTime = oldestTimeRef.current;
 
         if (oldestTime && currentOnLoadMore) {
           isFetchingRef.current = true;
@@ -144,10 +164,9 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
       .forEach((h) => {
         const timeMs = new Date(h.openTime as string).getTime();
 
-        // 👈 ДОДАНО: Динамічний пошук найстарішого запису
         if (timeMs < minTime) {
           minTime = timeMs;
-          oldestTimeStr = h.openTime;
+          oldestTimeStr = h.openTime as string;
         }
 
         const time = Math.floor(timeMs / 1000) as UTCTimestamp;
@@ -160,7 +179,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
         });
       });
 
-    oldestTimeRef.current = oldestTimeStr; // 👈 Зберігаємо для курсора
+    oldestTimeRef.current = oldestTimeStr;
 
     const data: CandlestickData[] = Array.from(uniqueCandles.values())
       .sort((a, b) => (a.time as number) - (b.time as number));
@@ -194,6 +213,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
 
       isFetchingRef.current = false;
     } else {
+      // Якщо історія прийшла порожньою
       lastBucketRef.current = null;
       currentCandleRef.current = null;
       seriesRef.current.setData([]);

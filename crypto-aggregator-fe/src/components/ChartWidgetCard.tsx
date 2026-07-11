@@ -124,7 +124,7 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
       <div className="flex-1 relative">
         {historical ? (
           <ChartArea ref={chartRef} interval={widget.chartInterval} historical={historical} onLoadMore={handleLoadMore}
-                     isWidget={true}/>
+                     isWidget={true} exchange={widget.exchange} tradingPair={widget.tradingPair}/>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[#848e9c] text-xs">Loading...</div>
         )}
