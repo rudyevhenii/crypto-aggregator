@@ -15,7 +15,12 @@ import {api, ChartInterval, ChartWidget, LivePrice} from '../api';
 import ChartWidgetCard from './ChartWidgetCard';
 import SearchModal from './SearchModal';
 
-export default function WorkspaceView() {
+type Props = {
+  initialWorkspaceId?: string | null;
+  onWorkspaceChange?: (id: string | null) => void;
+};
+
+export default function WorkspaceView({initialWorkspaceId, onWorkspaceChange}: Props) {
   const [workspaces, setWorkspaces] = useState<{ id: string, name: string }[]>([]);
   const [activeWsId, setActiveWsId] = useState<string | null>(null);
   const [widgets, setWidgets] = useState<ChartWidget[]>([]);
@@ -39,8 +44,14 @@ export default function WorkspaceView() {
   };
 
   useEffect(() => {
-    loadWorkspaces();
-  }, []);
+    loadWorkspaces(initialWorkspaceId || undefined);
+  }, [initialWorkspaceId]);
+
+  useEffect(() => {
+    if (onWorkspaceChange) {
+      onWorkspaceChange(activeWsId);
+    }
+  }, [activeWsId, onWorkspaceChange]);
 
   useEffect(() => {
     if (!activeWsId) {

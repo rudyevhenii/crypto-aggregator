@@ -16,13 +16,30 @@ function TradingPlatform() {
   const navigate = useNavigate();
 
   // ДОДАНО: 3 стани (таблиця, мультиграфік, одиночний графік)
-  const [currentView, setCurrentView] = useState<'market' | 'workspace' | 'chart'>('market');
+  const [currentView, setCurrentView] = useState<'market' | 'workspace' | 'chart'>(() => {
+    const saved = localStorage.getItem('appView');
+    return (saved === 'workspace' || saved === 'chart') ? saved : 'market';
+  });
+
+  const [savedWsId, setSavedWsId] = useState<string | null>(() => localStorage.getItem('activeWsId'));
 
   useEffect(() => {
     if (!localStorage.getItem('accessToken')) {
       navigate('/');
     }
   }, [navigate]);
+
+  useEffect(() => {
+    localStorage.setItem('appView', currentView);
+  }, [currentView]);
+
+  useEffect(() => {
+    if (savedWsId) {
+      localStorage.setItem('activeWsId', savedWsId);
+    } else {
+      localStorage.removeItem('activeWsId');
+    }
+  }, [savedWsId]);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -80,7 +97,10 @@ function TradingPlatform() {
       )}
 
       {currentView === 'workspace' && (
-        <WorkspaceView/>
+        <WorkspaceView
+          initialWorkspaceId={savedWsId}
+          onWorkspaceChange={setSavedWsId}
+        />
       )}
 
       {/* ВІДНОВЛЕНО: Одиночний графік із Sidebar та TopBar */}
