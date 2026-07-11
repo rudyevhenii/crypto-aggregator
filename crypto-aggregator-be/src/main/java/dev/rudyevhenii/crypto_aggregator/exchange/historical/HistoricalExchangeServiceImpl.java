@@ -24,6 +24,11 @@ public class HistoricalExchangeServiceImpl implements HistoricalExchangeService 
     private final Map<Exchange, HistoricalExchangeStrategy> liveExchangeStrategies;
 
     @Override
+    @Cacheable(
+            value = HISTORICAL_PRICES_CACHE,
+            key = "{#exchange.name(), #request.tradingPair.name(), #request.chartInterval.name()}",
+            condition = "#request.chartInterval.name() == 'FIFTEEN_MINUTES'"
+    )
     public List<HistoricalPriceDto> getHistoricalPrices(Exchange exchange, HistoricalPriceRequest request) {
         log.debug("Requesting historical prices for exchange [{}] with request: {}", exchange, request);
         return liveExchangeStrategies.get(exchange)

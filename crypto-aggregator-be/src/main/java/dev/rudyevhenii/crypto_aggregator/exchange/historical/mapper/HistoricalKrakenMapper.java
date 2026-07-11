@@ -78,7 +78,7 @@ public class HistoricalKrakenMapper {
     public List<HistoricalPriceDto> toHistoricalPriceDto(KrakenOhlcResponse response, Instant endTimeCursor) {
         if (response == null || response.result() == null || response.result().isNull()) {
             log.warn("Kraken API returned empty result or error. Response: {}", response);
-            return List.of();
+            return new ArrayList<>();
         }
 
         JsonNode resultNode = response.result();
@@ -91,7 +91,7 @@ public class HistoricalKrakenMapper {
         }
 
         if (klinesArray == null || !klinesArray.isArray()) {
-            return List.of();
+            return new ArrayList<>();
         }
 
         List<HistoricalPriceDto> klines = new ArrayList<>();

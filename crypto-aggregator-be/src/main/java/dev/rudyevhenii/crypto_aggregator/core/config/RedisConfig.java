@@ -30,7 +30,7 @@ public class RedisConfig {
     public static final String HISTORICAL_PRICES_CACHE = "historicalPrices";
 
     private static final int DEFAULT_TTL_MINUTES = 60;
-    private static final int HISTORICAL_PRICES_TTL_MINUTES = 5;
+    private static final int HISTORICAL_PRICES_TTL_MINUTES = 3;
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {

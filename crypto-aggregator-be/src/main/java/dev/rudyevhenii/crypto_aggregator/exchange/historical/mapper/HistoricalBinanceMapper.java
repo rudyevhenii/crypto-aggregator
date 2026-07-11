@@ -11,9 +11,10 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -37,7 +38,7 @@ public class HistoricalBinanceMapper {
 
     public List<HistoricalPriceDto> toHistoricalPriceDto(List<List<Number>> klines) {
         if (klines == null || klines.isEmpty()) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
         return klines.stream()
@@ -54,7 +55,7 @@ public class HistoricalBinanceMapper {
                             .volume(new BigDecimal(kline.get(5).toString()))
                             .build();
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private TradingPair resolveTradingPair(String rawTradingPair) {

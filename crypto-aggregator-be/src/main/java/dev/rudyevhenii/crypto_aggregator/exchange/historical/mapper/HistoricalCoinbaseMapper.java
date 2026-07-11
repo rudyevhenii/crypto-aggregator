@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ public class HistoricalCoinbaseMapper {
 
     public List<HistoricalPriceDto> toHistoricalPriceDto(List<List<Number>> klines) {
         if (klines == null || klines.isEmpty()) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
         return klines.stream()
