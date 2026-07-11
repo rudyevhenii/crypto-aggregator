@@ -91,6 +91,20 @@ paths:
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
+  /api/auth/logout:
+    post:
+      summary: "Logout user by blacklisting the current access token"
+      operationId: "logout"
+      tags:
+        - "Auth"
+      responses:
+        "204":
+          description: "Successfully logged out"
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
   # ════════════════════════════════════════════════════════════════
   #  Historical
   # ════════════════════════════════════════════════════════════════

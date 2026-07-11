@@ -2,7 +2,9 @@ package dev.rudyevhenii.crypto_aggregator.auth.filter;
 
 import dev.rudyevhenii.crypto_aggregator.auth.security.SecurityUserDetails;
 import dev.rudyevhenii.crypto_aggregator.auth.service.JwtService;
+import dev.rudyevhenii.crypto_aggregator.auth.service.TokenBlacklistServiceImpl;
 import dev.rudyevhenii.crypto_aggregator.auth.service.UserService;
+import dev.rudyevhenii.crypto_aggregator.core.exception.UnauthorizedException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,14 +25,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserService userService;
+    private final TokenBlacklistServiceImpl tokenBlacklistService;
     private final HandlerExceptionResolver exceptionResolver;
 
     public JwtAuthFilter(
             JwtService jwtService,
             UserService userService,
+            TokenBlacklistServiceImpl tokenBlacklistService,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
         this.jwtService = jwtService;
         this.userService = userService;
+        this.tokenBlacklistService = tokenBlacklistService;
         this.exceptionResolver = exceptionResolver;
     }
 
@@ -43,6 +48,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
         String jwtToken = authHeader.substring(7);
+
+        if (tokenBlacklistService.isBlacklisted(jwtToken)) {
+            SecurityContextHolder.clearContext();
+            exceptionResolver.resolveException(request, response, null,
+                    new UnauthorizedException("Token is blacklisted"));
+            return;
+        }
+
         try {
             String email = jwtService.extractSubject(jwtToken);
 

@@ -46,6 +46,11 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    public Date extractExpiration(String token) {
+        return extractClaims(Claims::getExpiration, token);
+    }
+
+    @Override
     public boolean isTokenValid(String token, User user) {
         return !isTokenExpired(token) && user.getEmail().equals(extractSubject(token));
     }

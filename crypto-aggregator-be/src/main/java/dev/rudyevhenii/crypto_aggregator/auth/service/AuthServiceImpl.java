@@ -19,6 +19,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final GeneratorUtils generator;
+    private final TokenBlacklistServiceImpl tokenBlacklistService;
 
     @Override
     public TokenResponseDto register(RegisterRequest request) {
@@ -59,6 +64,14 @@ public class AuthServiceImpl implements AuthService {
         }
         log.info("Generating refresh token for user {}", user.getId());
         return generateTokens(user);
+    }
+
+    @Override
+    public void logout(String token) {
+        log.info("Invalidating refresh token for user {}", token);
+        Date expiration = jwtService.extractExpiration(token);
+        Duration ttl = Duration.between(Instant.now(), expiration.toInstant());
+        tokenBlacklistService.blacklist(token, ttl);
     }
 
     private User toDomain(RegisterRequest request) {
