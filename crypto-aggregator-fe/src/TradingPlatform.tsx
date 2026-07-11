@@ -21,8 +21,6 @@ function TradingPlatform() {
     return (saved === 'workspace' || saved === 'chart') ? saved : 'market';
   });
 
-  const [savedWsId, setSavedWsId] = useState<string | null>(() => localStorage.getItem('activeWsId'));
-
   useEffect(() => {
     if (!localStorage.getItem('accessToken')) {
       navigate('/');
@@ -32,14 +30,6 @@ function TradingPlatform() {
   useEffect(() => {
     localStorage.setItem('appView', currentView);
   }, [currentView]);
-
-  useEffect(() => {
-    if (savedWsId) {
-      localStorage.setItem('activeWsId', savedWsId);
-    } else {
-      localStorage.removeItem('activeWsId');
-    }
-  }, [savedWsId]);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -97,10 +87,7 @@ function TradingPlatform() {
       )}
 
       {currentView === 'workspace' && (
-        <WorkspaceView
-          initialWorkspaceId={savedWsId}
-          onWorkspaceChange={setSavedWsId}
-        />
+        <WorkspaceView/>
       )}
 
       {/* ВІДНОВЛЕНО: Одиночний графік із Sidebar та TopBar */}

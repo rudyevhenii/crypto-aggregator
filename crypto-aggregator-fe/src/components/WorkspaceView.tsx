@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Edit2, FolderPlus, Plus, Trash2} from 'lucide-react';
 import {
   closestCenter,
@@ -15,12 +15,7 @@ import {api, ChartInterval, ChartWidget, LivePrice} from '../api';
 import ChartWidgetCard from './ChartWidgetCard';
 import SearchModal from './SearchModal';
 
-type Props = {
-  initialWorkspaceId?: string | null;
-  onWorkspaceChange?: (id: string | null) => void;
-};
-
-export default function WorkspaceView({initialWorkspaceId, onWorkspaceChange}: Props) {
+export default function WorkspaceView() {
   const [workspaces, setWorkspaces] = useState<{ id: string, name: string }[]>([]);
   const [activeWsId, setActiveWsId] = useState<string | null>(null);
   const [widgets, setWidgets] = useState<ChartWidget[]>([]);
@@ -29,6 +24,8 @@ export default function WorkspaceView({initialWorkspaceId, onWorkspaceChange}: P
 
   // ДОДАНО: Стан для зберігання актуальних цін для всіх графіків
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>({});
+
+  const initializedRef = useRef(false);
 
   const loadWorkspaces = async (wsIdToSelect?: string) => {
     const list = await api.getWorkspaces();
@@ -44,14 +41,28 @@ export default function WorkspaceView({initialWorkspaceId, onWorkspaceChange}: P
   };
 
   useEffect(() => {
-    loadWorkspaces(initialWorkspaceId || undefined);
-  }, [initialWorkspaceId]);
+    let isMounted = true;
+    api.getWorkspaces().then(list => {
+      if (!isMounted) return;
+      setWorkspaces(list);
+
+      if (!initializedRef.current) {
+        initializedRef.current = true;
+        const savedId = localStorage.getItem('activeWsId');
+        const validSavedId = savedId && list.some((w: { id: string }) => w.id === savedId) ? savedId : undefined;
+        const targetId = validSavedId || (list.length > 0 ? list[0].id : null);
+        setActiveWsId(targetId);
+      }
+    }).catch(console.error);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (onWorkspaceChange) {
-      onWorkspaceChange(activeWsId);
-    }
-  }, [activeWsId, onWorkspaceChange]);
+    localStorage.setItem('activeWsId', activeWsId || '');
+  }, [activeWsId]);
 
   useEffect(() => {
     if (!activeWsId) {
