@@ -26,7 +26,7 @@ public class HistoricalExchangeServiceImpl implements HistoricalExchangeService 
     @Override
     @Cacheable(
             value = HISTORICAL_PRICES_CACHE,
-            key = "{#exchange.name(), #request.tradingPair.name(), #request.chartInterval.name()}",
+            key = "{#exchange.name(), #request.tradingPair.name(), #request.chartInterval.name(), #request.limit, #request.endTimeCursor}",
             condition = "#request.chartInterval.name() == 'FIFTEEN_MINUTES'"
     )
     public List<HistoricalPriceDto> getHistoricalPrices(Exchange exchange, HistoricalPriceRequest request) {
