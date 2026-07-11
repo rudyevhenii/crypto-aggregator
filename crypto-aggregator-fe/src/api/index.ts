@@ -119,6 +119,13 @@ export const api = {
     return res.json();
   },
 
+  logout: async (): Promise<void> => {
+    const res = await fetchAuth('/api/auth/logout', {method: 'POST'});
+    if (!res.ok && res.status !== 204) {
+      throw new Error('Logout failed');
+    }
+  },
+
   getMetadata: async (): Promise<ExchangeMetadata[]> => {
     const res = await fetch(`${BASE_URL}/api/exchanges/metadata`);
     return res.json();

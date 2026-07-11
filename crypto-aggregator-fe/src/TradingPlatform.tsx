@@ -10,7 +10,7 @@ import Sidebar from './components/Sidebar';
 import ChartArea from './components/ChartArea';
 
 import useMarketData from './hooks/useMarketData';
-import {Exchange, TradingPair} from './api';
+import {api, Exchange, TradingPair} from './api';
 
 function TradingPlatform() {
   const navigate = useNavigate();
@@ -31,10 +31,18 @@ function TradingPlatform() {
     localStorage.setItem('appView', currentView);
   }, [currentView]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      // Even if backend logout fails, clear local session
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('appView');
+      localStorage.removeItem('activeWsId');
+      navigate('/');
+    }
   };
 
   const {
