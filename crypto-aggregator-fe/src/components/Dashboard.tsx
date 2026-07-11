@@ -28,8 +28,7 @@ function DashboardRow({
   const [history, setHistory] = useState<number[]>([]);
 
   useEffect(() => {
-    // Завантажуємо 24 свічки (по 1 годині) для малювання міні-графіка
-    api.getHistoricalPrices(exchange, {tradingPair: pair, chartInterval: 'ONE_HOUR', limit: 24})
+    api.getHistoricalPrices(exchange, {tradingPair: pair, chartInterval: 'FIFTEEN_MINUTES', limit: 96})
       .then(data => setHistory(data.map(d => Number(d.close))))
       .catch(console.error);
   }, [exchange, pair]);
