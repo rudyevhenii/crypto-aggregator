@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponseDto register(RegisterRequest request) {
-        validateUserExists(request.email());
+        validateUniqueUserEmail(request.email());
         User user = userRepository.create(toDomain(request));
 
         return generateTokens(user);
@@ -45,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponseDto login(LoginRequest request) {
+        validateUserExists(request.email());
         Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.email(), request.password()));
 
@@ -91,9 +92,15 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    private void validateUserExists(String email) {
+    private void validateUniqueUserEmail(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new ResourceAlreadyExistsException("User with email '%s' already exists".formatted(email));
+        }
+    }
+
+    private void validateUserExists(String email) {
+        if (!userRepository.existsByEmail(email)) {
+            throw new ResourceNotFoundException("User with email '%s' not found".formatted(email));
         }
     }
 }
