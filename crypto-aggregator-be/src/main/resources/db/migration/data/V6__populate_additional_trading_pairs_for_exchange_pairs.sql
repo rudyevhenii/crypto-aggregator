@@ -5,9 +5,10 @@ SELECT
     exch
 FROM (
     SELECT unnest(ARRAY[
-        'MATIC_USD', 'SHIB_USD', 'UNI_USD', 'ATOM_USD', 'TRX_USD', 'NEAR_USD',
-        'ICP_USD', 'APT_USD', 'ARB_USD', 'OP_USD', 'XLM_USD', 'BCH_USD', 'ETC_USD',
-        'FIL_USD', 'INJ_USD', 'LDO_USD', 'ALGO_USD', 'GRT_USD', 'SAND_USD', 'MANA_USD'
+        'SHIB_USD', 'GRT_USD', 'UNI_USD', 'ATOM_USD', 'BCH_USD',
+        'ETC_USD', 'XLM_USD', 'ALGO_USD', 'FIL_USD', 'ICP_USD',
+        'OP_USD', 'ARB_USD', 'AAVE_USD', 'CRV_USD', 'SNX_USD',
+        'COMP_USD', 'BAT_USD', 'ZRX_USD', 'YFI_USD', 'SUSHI_USD'
     ]) AS pair
 ) AS pairs
 CROSS JOIN (
