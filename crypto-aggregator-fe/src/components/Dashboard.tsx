@@ -70,6 +70,7 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
   const [activeTab, setActiveTab] = useState<Exchange | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice | Ticker24h>>({});
   const [health, setHealth] = useState<ExchangeHealthDto | null>(null);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   // Встановлюємо першу біржу як активну при завантаженні
   useEffect(() => {
@@ -77,6 +78,11 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
       setActiveTab(metadata[0].exchange);
     }
   }, [metadata, activeTab]);
+
+  // Скидаємо лічильник видимих пар при зміні біржі
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [activeTab]);
 
   // Завантаження історичних цін (REST), а ПОТІМ підключення SSE
   useEffect(() => {
@@ -205,7 +211,7 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
             </tr>
             </thead>
             <tbody className="text-sm">
-            {pairsToList.map((pair, index) => (
+            {pairsToList.slice(0, visibleCount).map((pair, index) => (
               <DashboardRow
                 key={`${activeTab}-${pair}`}
                 index={index}
@@ -221,6 +227,17 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
           {pairsToList.length === 0 && (
             <div className="p-8 text-center text-[#848e9c]">
               No trading pairs available for this exchange.
+            </div>
+          )}
+
+          {visibleCount < pairsToList.length && (
+            <div className="p-4 flex justify-center border-t border-[#2b3139]">
+              <button
+                onClick={() => setVisibleCount(prev => prev + 10)}
+                className="px-6 py-2 rounded-md bg-[#2b3139] text-[#eaecef] text-sm font-semibold hover:bg-[#3a4150] transition-colors"
+              >
+                Load More
+              </button>
             </div>
           )}
         </div>
