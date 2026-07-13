@@ -1,1 +1,70 @@
 @import "tailwindcss";
+
+@theme {
+  --color-background: #0b0e14;
+  --color-surface: #181a20;
+  --color-surface-elevated: #1e2028;
+  --color-border: #2b3139;
+  --color-border-hover: #474d57;
+  --color-text-primary: #eaecef;
+  --color-text-secondary: #848e9c;
+  --color-accent: #fcd535;
+  --color-accent-hover: #e0bc2e;
+  --color-success: #0ecb81;
+  --color-danger: #f6465d;
+  --color-info: #3b82f6;
+  --color-purple: #a855f7;
+}
+
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  body {
+    @apply bg-background text-text-primary;
+  }
+
+  ::selection {
+    @apply bg-accent text-background;
+  }
+}
+
+@layer utilities {
+  .animate-gradient {
+    animation: gradient 3s linear infinite;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .glass {
+    @apply bg-surface/80 backdrop-blur-xl border border-border/60;
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 30px rgba(252, 213, 53, 0.15);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 8px rgba(14, 203, 129, 0.4);
+  }
+
+  .glow-danger {
+    box-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  }
+}

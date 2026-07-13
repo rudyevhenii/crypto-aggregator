@@ -3,6 +3,7 @@ import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import {GripHorizontal, Trash2} from 'lucide-react';
 import {api, ChartInterval, ChartWidget, HistoricalPrice, LivePrice} from '../api';
+import {Select} from './ui';
 import ChartArea, {ChartHandle} from './ChartArea';
 
 type Props = {
@@ -15,8 +16,6 @@ type Props = {
 export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateInterval}: Props) {
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
-
-  // 👈 ДОДАНО: Стан для зберігання підтримуваних інтервалів
   const [intervals, setIntervals] = useState<ChartInterval[]>([]);
 
   const chartRef = useRef<ChartHandle>(null);
@@ -29,7 +28,6 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
     opacity: isDragging ? 0.8 : 1,
   };
 
-  // 👈 ДОДАНО: Завантажуємо доступні інтервали для конкретної біржі
   useEffect(() => {
     let isMounted = true;
     api.getIntervals(widget.exchange)
@@ -43,7 +41,6 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
     };
   }, [widget.exchange]);
 
-  // 1. Завантаження тільки історії (БЕЗ SSE)
   useEffect(() => {
     let isMounted = true;
     setHasMoreHistory(true);
@@ -60,7 +57,6 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
     };
   }, [widget.exchange, widget.tradingPair, widget.chartInterval]);
 
-  // 2. Реакція на нову ціну з пропсів
   useEffect(() => {
     if (livePrice && chartRef.current) {
       chartRef.current.applyLivePrice(livePrice);
@@ -89,7 +85,7 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
 
   return (
     <div ref={setNodeRef} style={style}
-         className="flex flex-col bg-[#181a20] rounded-md border border-[#2b3139] overflow-hidden h-full relative group">
+         className="flex flex-col bg-[#181a20] rounded-lg border border-[#2b3139] overflow-hidden h-full relative group">
       <div className="h-9 bg-[#181a20] border-b border-[#2b3139] flex items-center px-3 justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-baseline gap-1.5">
@@ -98,25 +94,20 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
           </div>
           <div className="h-3 w-px bg-[#2b3139]"/>
 
-          <select
+          <Select
             value={widget.chartInterval}
-            onChange={(e) => onUpdateInterval(widget.id, e.target.value as ChartInterval)}
-            className="bg-transparent text-[#848e9c] hover:text-[#eaecef] text-xs focus:outline-none cursor-pointer transition-colors"
-          >
-            {/* 👈 ВИПРАВЛЕНО: Мапимо завантажені інтервали замість хардкоду */}
-            {intervals.map(int => (
-              <option key={int} value={int} className="bg-[#0b0e11]">{int.replace(/_/g, ' ')}</option>
-            ))}
-          </select>
-
+            onChange={(value) => onUpdateInterval(widget.id, value as ChartInterval)}
+            options={intervals.map(int => ({value: int, label: int.replace(/_/g, ' ')}))}
+            className="!w-auto !bg-transparent !border-none !p-0 !text-xs"
+          />
         </div>
         <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
           <button {...attributes} {...listeners}
-                  className="text-[#848e9c] hover:text-[#eaecef] cursor-grab active:cursor-grabbing p-1">
+                  className="text-[#848e9c] hover:text-[#eaecef] cursor-grab active:cursor-grabbing p-1 rounded hover:bg-[#2b3139]/50 transition-colors">
             <GripHorizontal size={14}/>
           </button>
           <button onClick={() => onDelete(widget.id)}
-                  className="text-[#848e9c] hover:text-[#f6465d] transition-colors p-1">
+                  className="text-[#848e9c] hover:text-[#f6465d] transition-colors p-1 rounded hover:bg-[#f6465d]/10">
             <Trash2 size={14}/>
           </button>
         </div>

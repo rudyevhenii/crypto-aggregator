@@ -1,5 +1,5 @@
-import {ChartInterval, Exchange, LivePrice, TradingPair} from '../api';
-import {ChevronDown} from 'lucide-react';
+import {LivePrice, TradingPair, Exchange, ChartInterval} from '../api';
+import {Select} from './ui';
 
 type Props = {
   exchanges: Exchange[];
@@ -28,52 +28,34 @@ export default function Sidebar({
 
       {/* Selector Block */}
       <div className="p-4 border-b border-[#2b3139] space-y-4">
-        <div>
-          <label className="block text-xs text-[#848e9c] mb-1.5">Exchange</label>
-          <div className="relative">
-            <select
-              value={selectedExchange ?? ''}
-              onChange={(e) => onExchangeChange(e.target.value as Exchange)}
-              className="w-full appearance-none bg-[#0b0e11] border border-[#2b3139] text-[#eaecef] px-3 py-2 rounded text-sm hover:border-[#474d57] transition-colors focus:outline-none focus:border-[#fcd535]"
-            >
-              {exchanges.map((ex) => <option key={ex} value={ex}>{ex}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
-          </div>
-        </div>
+        <Select
+          label="Exchange"
+          value={selectedExchange ?? ''}
+          onChange={(value) => onExchangeChange(value as Exchange)}
+          options={exchanges.map(ex => ({value: ex, label: ex}))}
+          placeholder="Select exchange"
+        />
 
-        <div>
-          <label className="block text-xs text-[#848e9c] mb-1.5">Trading Pair</label>
-          <div className="relative">
-            <select
-              value={selectedPair ?? ''}
-              onChange={(e) => onPairChange(e.target.value as TradingPair)}
-              className="w-full appearance-none bg-[#0b0e11] border border-[#2b3139] text-[#eaecef] px-3 py-2 rounded text-sm hover:border-[#474d57] transition-colors focus:outline-none focus:border-[#fcd535]"
-            >
-              {pairs.map((p) => <option key={p} value={p}>{p.replace('_', '/')}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
-          </div>
-        </div>
+        <Select
+          label="Trading Pair"
+          value={selectedPair ?? ''}
+          onChange={(value) => onPairChange(value as TradingPair)}
+          options={pairs.map(p => ({value: p, label: p.replace('_', '/')}))}
+          placeholder="Select pair"
+        />
 
-        <div>
-          <label className="block text-xs text-[#848e9c] mb-1.5">Time Interval</label>
-          <div className="relative">
-            <select
-              value={selectedInterval ?? ''}
-              onChange={(e) => onIntervalChange(e.target.value as ChartInterval)}
-              className="w-full appearance-none bg-[#0b0e11] border border-[#2b3139] text-[#eaecef] px-3 py-2 rounded text-sm hover:border-[#474d57] transition-colors focus:outline-none focus:border-[#fcd535]"
-            >
-              {intervals.map((i) => <option key={i} value={i}>{i.replace(/_/g, ' ')}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
-          </div>
-        </div>
+        <Select
+          label="Time Interval"
+          value={selectedInterval ?? ''}
+          onChange={(value) => onIntervalChange(value as ChartInterval)}
+          options={intervals.map(i => ({value: i, label: i.replace(/_/g, ' ')}))}
+          placeholder="Select interval"
+        />
       </div>
 
-      {/* Price Overview Block (From mockup) */}
+      {/* Price Overview Block */}
       <div className="p-4 border-b border-[#2b3139]">
-        <h3 className="text-[#eaecef] font-semibold mb-4 text-sm">Price Overview</h3>
+        <h3 className="text-[#eaecef] font-semibold mb-4 text-sm tracking-wide">Price Overview</h3>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-[#848e9c]">Last Price</span>

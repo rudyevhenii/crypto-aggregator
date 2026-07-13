@@ -1,4 +1,5 @@
 import {Exchange, ExchangeHealthDto, LivePrice, TradingPair} from '../api';
+import {Badge} from './ui';
 
 type Props = {
   exchange: Exchange | null;
@@ -30,7 +31,6 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
     }
   };
 
-  // ❗ ДОДАНО: Функція для динамічного форматування ціни
   const formatPrice = (price?: number) => {
     if (price == null) return '—';
     let precision = 2;
@@ -49,11 +49,11 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
   return (
     <div className="flex items-center px-6 h-20 border-b border-[#2b3139] bg-[#181a20] shrink-0">
 
-      {/* Кнопка "Назад" */}
+      {/* Back Button */}
       {onBack && (
         <button
           onClick={onBack}
-          className="mr-6 text-[#848e9c] hover:text-[#eaecef] transition-colors flex items-center gap-2 text-sm font-medium focus:outline-none"
+          className="mr-6 text-[#848e9c] hover:text-[#eaecef] transition-colors flex items-center gap-2 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50 rounded-lg px-2 py-1"
         >
           <span className="text-lg">←</span>
           <span>Dashboard</span>
@@ -62,15 +62,15 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
 
       {/* Pair Info */}
       <div className="flex flex-col mr-8">
-        <h1 className="text-2xl font-bold text-[#eaecef]">{displayPair}</h1>
-        <span className="text-xs text-[#848e9c] underline decoration-dashed underline-offset-4 cursor-pointer">
+        <h1 className="text-2xl font-bold text-[#eaecef] tracking-tight">{displayPair}</h1>
+        <span className="text-xs text-[#848e9c] underline decoration-dashed underline-offset-4 cursor-pointer hover:text-[#eaecef] transition-colors">
           Bitcoin
         </span>
       </div>
 
-      {/* ❗ ВИПРАВЛЕНО: Live Price */}
+      {/* Live Price */}
       <div className="flex flex-col mr-10">
-        <div className={`text-2xl font-bold ${colorClass}`}>
+        <div className={`text-2xl font-bold ${colorClass} tracking-tight`}>
           {formatPrice(livePrice?.lastPrice)}
         </div>
         <div className={`text-xs ${colorClass}`}>
@@ -78,7 +78,7 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
         </div>
       </div>
 
-      {/* ❗ ВИПРАВЛЕНО: 24h Stats (High, Low) */}
+      {/* 24h Stats */}
       <div className="flex space-x-8 text-xs">
         <div className="flex flex-col">
           <span className="text-[#848e9c] mb-1">24h High</span>
@@ -91,7 +91,6 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
         <div className="flex flex-col">
           <span className="text-[#848e9c] mb-1">24h Volume</span>
           <span className="text-[#eaecef] font-medium">
-            {/* Volume зазвичай велике число, тому залишаємо 2 знаки або без дробів */}
             {livePrice?.volume24h ? livePrice.volume24h.toLocaleString(undefined, {maximumFractionDigits: 0}) : '—'}
           </span>
         </div>
@@ -100,10 +99,10 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
       {/* Exchange Status */}
       <div className="flex items-center ml-auto">
         {exchange && (
-          <div className="flex items-center gap-2 bg-[#2b3139] px-3 py-1.5 rounded-md">
-            <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(health?.connectionStatus)}`}/>
+          <Badge variant="neutral" className="gap-2">
+            <div className={`w-2 h-2 rounded-full ${getStatusColor(health?.connectionStatus)}`}/>
             <span className="text-[#eaecef] text-sm font-medium">{exchange}</span>
-          </div>
+          </Badge>
         )}
       </div>
     </div>

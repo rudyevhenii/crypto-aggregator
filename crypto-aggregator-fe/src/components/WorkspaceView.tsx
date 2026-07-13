@@ -10,8 +10,8 @@ import {
   useSensors
 } from '@dnd-kit/core';
 import {arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates} from '@dnd-kit/sortable';
-// ДОДАНО: Імпорт LivePrice
 import {api, ChartInterval, ChartWidget, LivePrice} from '../api';
+import {Button, Card, Select} from './ui';
 import ChartWidgetCard from './ChartWidgetCard';
 import SearchModal from './SearchModal';
 
@@ -22,7 +22,6 @@ export default function WorkspaceView() {
   const [widgetsLoading, setWidgetsLoading] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // ДОДАНО: Стан для зберігання актуальних цін для всіх графіків
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>({});
 
   const initializedRef = useRef(false);
@@ -74,10 +73,9 @@ export default function WorkspaceView() {
     api.getWorkspaceWidgets(activeWsId).then(widgetList => {
       setWidgets(widgetList.sort((a, b) => a.position - b.position));
     }).catch(console.error)
-    .finally(() => setWidgetsLoading(false));
+      .finally(() => setWidgetsLoading(false));
   }, [activeWsId]);
 
-  // ДОДАНО: Єдине SSE з'єднання для всього дашборду
   useEffect(() => {
     if (!activeWsId) return;
 
@@ -86,7 +84,6 @@ export default function WorkspaceView() {
     source.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        // За специфікацією OpenAPI це може бути масив LivePrice[] або один об'єкт
         const updates: LivePrice[] = Array.isArray(data) ? data : [data];
 
         setLivePrices(prev => {
@@ -101,7 +98,6 @@ export default function WorkspaceView() {
       }
     };
 
-    // Закриваємо з'єднання при демонтажі або зміні воркспейсу
     return () => source.close();
   }, [activeWsId]);
 
@@ -193,29 +189,26 @@ export default function WorkspaceView() {
 
   return (
     <div className="flex flex-col h-full bg-[#0b0e14] p-3">
-      {/* КОМПАКТНА ПАНЕЛЬ УПРАВЛІННЯ */}
-      <div className="flex items-center justify-between mb-3 bg-[#181a20] px-3 py-2 rounded-md border border-[#2b3139]">
-
+      {/* Compact Control Panel */}
+      <Card className="mb-3 p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <select
+          <Select
             value={activeWsId || ''}
-            onChange={(e) => setActiveWsId(e.target.value)}
-            className="bg-[#0b0e11] border border-[#2b3139] text-[#eaecef] text-sm font-semibold px-2 py-1.5 rounded focus:outline-none focus:border-[#fcd535] cursor-pointer min-w-[150px]"
-          >
-            {workspaces.map(ws => (
-              <option key={ws.id} value={ws.id}>{ws.name}</option>
-            ))}
-          </select>
+            onChange={(value) => setActiveWsId(value)}
+            options={workspaces.map(ws => ({value: ws.id, label: ws.name}))}
+            placeholder="Select workspace"
+            className="min-w-[150px]"
+          />
 
           {activeWsId && (
             <div className="flex items-center gap-0.5 border-l border-[#2b3139] pl-2 ml-1">
               <button onClick={handleRenameWorkspace}
-                      className="p-1.5 text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139] rounded transition-colors"
+                      className="p-1.5 text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139] rounded-lg transition-colors"
                       title="Rename Workspace">
                 <Edit2 size={14}/>
               </button>
               <button onClick={handleDeleteWorkspace}
-                      className="p-1.5 text-[#848e9c] hover:text-[#f6465d] hover:bg-[#f6465d]/10 rounded transition-colors"
+                      className="p-1.5 text-[#848e9c] hover:text-[#f6465d] hover:bg-[#f6465d]/10 rounded-lg transition-colors"
                       title="Delete Workspace">
                 <Trash2 size={14}/>
               </button>
@@ -224,55 +217,43 @@ export default function WorkspaceView() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleCreateWorkspace}
-            className="flex items-center gap-1.5 bg-[#2b3139] text-[#eaecef] text-sm px-3 py-1.5 rounded font-medium hover:bg-[#474d57] transition-colors"
-          >
-            <FolderPlus size={16}/> New Workspace
-          </button>
-          <button
-            disabled={!activeWsId}
-            onClick={() => setIsSearchOpen(true)}
-            className="flex items-center gap-1.5 bg-[#fcd535] text-[#0b0e14] text-sm px-3 py-1.5 rounded font-semibold hover:bg-[#e0bc2e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Plus size={16}/> Add Chart
-          </button>
+          <Button variant="secondary" size="sm" onClick={handleCreateWorkspace} leftIcon={<FolderPlus size={16}/>}>
+            New Workspace
+          </Button>
+          <Button size="sm" onClick={() => setIsSearchOpen(true)} leftIcon={<Plus size={16}/>} disabled={!activeWsId}>
+            Add Chart
+          </Button>
         </div>
-      </div>
+      </Card>
 
-      {/* GRID */}
+      {/* Grid */}
       <div className="flex-1 overflow-hidden">
         {!activeWsId ? (
-          <div
-            className="h-full flex flex-col items-center justify-center text-[#848e9c] border border-dashed border-[#2b3139] rounded-md">
-            <p className="mb-3 text-sm">You don't have any workspaces yet.</p>
-            <button onClick={handleCreateWorkspace} className="text-[#fcd535] text-sm hover:underline">
+          <Card className="h-full flex flex-col items-center justify-center border-dashed">
+            <p className="mb-3 text-sm text-[#848e9c]">You don't have any workspaces yet.</p>
+            <Button variant="ghost" size="sm" onClick={handleCreateWorkspace}>
               Create your first workspace
-            </button>
-          </div>
+            </Button>
+          </Card>
         ) : widgetsLoading ? (
-          <div
-            className="h-full flex items-center justify-center text-[#848e9c] border border-dashed border-[#2b3139] rounded-md">
-            <p className="text-sm">Loading charts...</p>
-          </div>
+          <Card className="h-full flex items-center justify-center border-dashed">
+            <p className="text-sm text-[#848e9c]">Loading charts...</p>
+          </Card>
         ) : widgets.length === 0 ? (
-          <div
-            className="h-full flex flex-col items-center justify-center text-[#848e9c] border border-dashed border-[#2b3139] rounded-md">
-            <p className="mb-3 text-sm">Your workspace is empty.</p>
-            <button onClick={() => setIsSearchOpen(true)} className="text-[#fcd535] text-sm hover:underline">
+          <Card className="h-full flex flex-col items-center justify-center border-dashed">
+            <p className="mb-3 text-sm text-[#848e9c]">Your workspace is empty.</p>
+            <Button variant="ghost" size="sm" onClick={() => setIsSearchOpen(true)}>
               Add your first chart
-            </button>
-          </div>
+            </Button>
+          </Card>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-              {/* ЗМЕНШЕНО ВІДСТУПИ МІЖ ГРАФІКАМИ ДО gap-2 */}
               <div className={`grid gap-2 h-full ${getGridClass()}`}>
                 {widgets.map(widget => (
                   <ChartWidgetCard
                     key={widget.id}
                     widget={widget}
-                    // ДОДАНО: Передаємо актуальну ціну для конкретної торгової пари у віджет
                     livePrice={livePrices[widget.tradingPair]}
                     onDelete={handleDeleteWidget}
                     onUpdateInterval={handleUpdateInterval}

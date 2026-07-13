@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {Search, X} from 'lucide-react';
 import {api, Exchange, ExchangePair} from '../api';
+import {Input, Badge, Card} from './ui';
 
 type Props = {
   isOpen: boolean;
@@ -61,24 +62,29 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
     setSelectedExchange(prev => (prev === exchange ? null : exchange));
   };
 
+  const handleAdd = (pairId: string) => {
+    onAdd(pairId);
+    onClose();
+    setQuery('');
+    setSelectedExchange(null);
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div
-        className="bg-[#181a20] border border-[#2b3139] rounded-xl w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh]">
+      <Card className="w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh]">
 
         <div className="p-4 border-b border-[#2b3139] flex items-center gap-3">
           <Search size={20} className="text-[#848e9c]"/>
-          <input
+          <Input
             autoFocus
-            type="text"
-            placeholder="Search markets (e.g., BTC, ETH)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-[#eaecef] focus:outline-none text-lg"
+            placeholder="Search markets (e.g., BTC, ETH)"
+            className="flex-1 bg-transparent border-none focus:shadow-none p-0 text-lg"
           />
-          <button onClick={onClose} className="text-[#848e9c] hover:text-[#eaecef]">
+          <button onClick={onClose} className="text-[#848e9c] hover:text-[#eaecef] p-1 rounded-lg hover:bg-[#2b3139]/50 transition-colors">
             <X size={20}/>
           </button>
         </div>
@@ -91,9 +97,9 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
                 key={exchange}
                 onClick={() => handleExchangeClick(exchange)}
                 className={`
-                  px-3 py-1 rounded-full text-xs font-semibold border transition-colors
+                  px-3 py-1 rounded-full text-xs font-semibold border transition-all
                   ${isActive
-                    ? 'border-[#fcd535] text-[#fcd535]'
+                    ? 'border-[#fcd535] text-[#fcd535] bg-[#fcd535]/10'
                     : 'border-[#2b3139] text-[#848e9c] hover:text-[#eaecef] hover:border-[#848e9c]'
                   }
                 `}
@@ -114,12 +120,7 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
           {!loading && results.map(pair => (
             <div
               key={pair.id}
-              onClick={() => {
-                onAdd(pair.id);
-                onClose();
-                setQuery('');
-                setSelectedExchange(null);
-              }}
+              onClick={() => handleAdd(pair.id)}
               className="flex justify-between items-center p-3 hover:bg-[#2b3139]/50 rounded-lg cursor-pointer transition-colors group"
             >
               <div className="flex flex-col">
@@ -128,14 +129,14 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
                 </span>
                 <span className="text-[#848e9c] text-xs mt-0.5">{pair.exchange}</span>
               </div>
-              <span className="text-xs font-semibold bg-[#2b3139] text-[#eaecef] px-2 py-1 rounded">
+              <Badge variant="neutral" className="group-hover:border-[#fcd535]/30">
                 Add Chart
-              </span>
+              </Badge>
             </div>
           ))}
         </div>
 
-      </div>
+      </Card>
     </div>
   );
 }
