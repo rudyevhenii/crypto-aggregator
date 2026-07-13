@@ -1,6 +1,6 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Search, X} from 'lucide-react';
-import {api, ExchangePair} from '../api';
+import {api, Exchange, ExchangePair} from '../api';
 
 type Props = {
   isOpen: boolean;
@@ -8,47 +8,58 @@ type Props = {
   onAdd: (pairId: string) => void;
 };
 
+const EXCHANGES: Exchange[] = ['BINANCE', 'COINBASE', 'KRAKEN'];
+
 export default function SearchModal({isOpen, onClose, onAdd}: Props) {
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedExchange, setSelectedExchange] = useState<Exchange | null>(null);
   const [results, setResults] = useState<ExchangePair[]>([]);
   const [loading, setLoading] = useState(false);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Якщо вікно закрите, нічого не робимо
+    if (!isOpen) return;
+
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [query, isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
     let isMounted = true;
 
-    // Якщо поле пошуку порожнє — вантажимо ВСІ пари
-    if (!query) {
+    const fetchData = async () => {
       setLoading(true);
-      api.getAllExchangePairs()
-        .then(data => {
-          if (isMounted) setResults(data);
-        })
-        .finally(() => {
-          if (isMounted) setLoading(false);
+      try {
+        const data = await api.searchExchangePairs({
+          exchange: selectedExchange ?? undefined,
+          tradingPair: debouncedQuery || undefined,
         });
-      return;
-    }
+        if (isMounted) setResults(data);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
 
-    // Якщо користувач ввів текст — робимо пошук із затримкою (debounce)
-    const timeoutId = setTimeout(() => {
-      setLoading(true);
-      api.searchExchangePairs(query)
-        .then(data => {
-          if (isMounted) setResults(data);
-        })
-        .finally(() => {
-          if (isMounted) setLoading(false);
-        });
-    }, 300);
+    fetchData();
 
     return () => {
       isMounted = false;
-      clearTimeout(timeoutId);
     };
-  }, [query, isOpen]);
+  }, [debouncedQuery, selectedExchange, isOpen]);
+
+  const handleExchangeClick = (exchange: Exchange) => {
+    setSelectedExchange(prev => (prev === exchange ? null : exchange));
+  };
 
   if (!isOpen) return null;
 
@@ -62,7 +73,7 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
           <input
             autoFocus
             type="text"
-            placeholder="Search markets (e.g., BTC, Binance)"
+            placeholder="Search markets (e.g., BTC, ETH)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="flex-1 bg-transparent text-[#eaecef] focus:outline-none text-lg"
@@ -70,6 +81,27 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
           <button onClick={onClose} className="text-[#848e9c] hover:text-[#eaecef]">
             <X size={20}/>
           </button>
+        </div>
+
+        <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+          {EXCHANGES.map(exchange => {
+            const isActive = selectedExchange === exchange;
+            return (
+              <button
+                key={exchange}
+                onClick={() => handleExchangeClick(exchange)}
+                className={`
+                  px-3 py-1 rounded-full text-xs font-semibold border transition-colors
+                  ${isActive
+                    ? 'border-[#fcd535] text-[#fcd535]'
+                    : 'border-[#2b3139] text-[#848e9c] hover:text-[#eaecef] hover:border-[#848e9c]'
+                  }
+                `}
+              >
+                {exchange}
+              </button>
+            );
+          })}
         </div>
 
         <div className="overflow-y-auto p-2 flex-1">
@@ -86,6 +118,7 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
                 onAdd(pair.id);
                 onClose();
                 setQuery('');
+                setSelectedExchange(null);
               }}
               className="flex justify-between items-center p-3 hover:bg-[#2b3139]/50 rounded-lg cursor-pointer transition-colors group"
             >

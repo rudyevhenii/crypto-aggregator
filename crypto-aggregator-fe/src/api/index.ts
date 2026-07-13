@@ -185,8 +185,26 @@ export const api = {
 
   // --- WORKSPACE & WIDGETS ---
   // Оновлено на fetchAuth
-  searchExchangePairs: async (pattern: string): Promise<ExchangePair[]> => {
-    const res = await fetchAuth(`/api/exchange-pairs/search?pattern=${encodeURIComponent(pattern)}`);
+  searchExchangePairs: async (options: {
+    exchange?: Exchange;
+    tradingPair?: string;
+  }): Promise<ExchangePair[]> => {
+    const params = new URLSearchParams();
+
+    if (options.exchange) {
+      params.append('exchange', options.exchange);
+    }
+
+    if (options.tradingPair) {
+      params.append('tradingPair', options.tradingPair);
+    }
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `/api/exchange-pairs/search?${queryString}`
+      : '/api/exchange-pairs/search';
+
+    const res = await fetchAuth(url);
     if (!res.ok) {
       console.error('Search failed:', res.status);
       return [];
