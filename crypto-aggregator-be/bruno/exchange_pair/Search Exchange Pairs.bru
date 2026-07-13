@@ -5,13 +5,14 @@ meta {
 }
 
 get {
-  url: {{BASE_URL}}/api/exchange-pairs/search?pattern=BTC
+  url: {{BASE_URL}}/api/exchange-pairs/search?exchange=BINANCE&tradingPair=A
   body: none
   auth: inherit
 }
 
 params:query {
-  pattern: BTC
+  exchange: BINANCE
+  tradingPair: A
 }
 
 script:post-response {

@@ -1,7 +1,9 @@
 package dev.rudyevhenii.crypto_aggregator.exchange_pair;
 
 import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangePairRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.interfaces.ExchangePairApi;
+import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.domain.ExchangePair;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.mapper.ExchangePairMapper;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.service.ExchangePairService;
@@ -27,8 +29,9 @@ public class ExchangePairController implements ExchangePairApi {
     }
 
     @Override
-    public ResponseEntity<List<ExchangePairRqDto>> searchExchangePairs(String pattern) {
-        List<ExchangePair> response = exchangePairService.searchByPattern(pattern);
+    public ResponseEntity<List<ExchangePairRqDto>> searchExchangePairs(ExchangeRqDto exchangeRqDto, String tradingPairId) {
+        Exchange exchange = mapper.map(exchangeRqDto);
+        List<ExchangePair> response = exchangePairService.searchByPattern(exchange, tradingPairId);
         return ResponseEntity.ok(response.stream()
                 .map(mapper::map)
                 .toList());

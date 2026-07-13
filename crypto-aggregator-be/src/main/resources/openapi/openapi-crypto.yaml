@@ -353,9 +353,14 @@ paths:
       tags:
         - "ExchangePair"
       parameters:
-        - name: pattern
+        - name: exchange
           in: query
-          required: true
+          required: false
+          schema:
+            $ref: '#/components/schemas/Exchange'
+        - name: tradingPair
+          in: query
+          required: false
           schema:
             type: string
       responses:
