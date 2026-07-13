@@ -73,10 +73,10 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh]">
+      <Card className="w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh] gradient-border">
 
-        <div className="p-4 border-b border-[#2b3139] flex items-center gap-3">
-          <Search size={20} className="text-[#848e9c]"/>
+        <div className="p-4 border-b border-white/5 flex items-center gap-3">
+          <Search size={20} className="text-zinc-400"/>
           <Input
             autoFocus
             value={query}
@@ -84,7 +84,7 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
             placeholder="Search markets (e.g., BTC, ETH)"
             className="flex-1 bg-transparent border-none focus:shadow-none p-0 text-lg"
           />
-          <button onClick={onClose} className="text-[#848e9c] hover:text-[#eaecef] p-1 rounded-lg hover:bg-[#2b3139]/50 transition-colors">
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-50 p-1 rounded-lg hover:bg-white/5 transition-colors">
             <X size={20}/>
           </button>
         </div>
@@ -99,8 +99,8 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
                 className={`
                   px-3 py-1 rounded-full text-xs font-semibold border transition-all
                   ${isActive
-                    ? 'border-[#fcd535] text-[#fcd535] bg-[#fcd535]/10'
-                    : 'border-[#2b3139] text-[#848e9c] hover:text-[#eaecef] hover:border-[#848e9c]'
+                    ? 'border-[#fcd535] text-[#fcd535] bg-[#fcd535]/10 shadow-[0_0_10px_rgba(252,213,53,0.2)]'
+                    : 'border-white/10 text-zinc-400 hover:text-zinc-50 hover:border-white/20'
                   }
                 `}
               >
@@ -111,23 +111,23 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
         </div>
 
         <div className="overflow-y-auto p-2 flex-1">
-          {loading && <div className="p-4 text-center text-[#848e9c]">Loading markets...</div>}
+          {loading && <div className="p-4 text-center text-zinc-400">Loading markets...</div>}
 
           {!loading && results.length === 0 && (
-            <div className="p-4 text-center text-[#848e9c]">No markets found.</div>
+            <div className="p-4 text-center text-zinc-400">No markets found.</div>
           )}
 
           {!loading && results.map(pair => (
             <div
               key={pair.id}
               onClick={() => handleAdd(pair.id)}
-              className="flex justify-between items-center p-3 hover:bg-[#2b3139]/50 rounded-lg cursor-pointer transition-colors group"
+              className="flex justify-between items-center p-3 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group"
             >
               <div className="flex flex-col">
-                <span className="text-[#eaecef] font-bold group-hover:text-[#fcd535] transition-colors">
+                <span className="text-zinc-50 font-bold group-hover:text-[#fcd535] transition-colors">
                   {pair.tradingPair.replace('_', '/')}
                 </span>
-                <span className="text-[#848e9c] text-xs mt-0.5">{pair.exchange}</span>
+                <span className="text-zinc-400 text-xs mt-0.5">{pair.exchange}</span>
               </div>
               <Badge variant="neutral" className="group-hover:border-[#fcd535]/30">
                 Add Chart

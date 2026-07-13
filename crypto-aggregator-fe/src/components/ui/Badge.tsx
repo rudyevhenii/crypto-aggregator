@@ -14,7 +14,7 @@ const variantClasses: Record<BadgeVariant, string> = {
   warning: 'bg-[#fcd535]/10 text-[#fcd535] border-[#fcd535]/20',
   error: 'bg-[#f6465d]/10 text-[#f6465d] border-[#f6465d]/20',
   info: 'bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20',
-  neutral: 'bg-[#2b3139] text-[#848e9c] border-[#2b3139]',
+  neutral: 'bg-white/5 text-zinc-400 border-white/10',
 };
 
 const dotColors: Record<BadgeVariant, string> = {
@@ -22,7 +22,7 @@ const dotColors: Record<BadgeVariant, string> = {
   warning: 'bg-[#fcd535]',
   error: 'bg-[#f6465d]',
   info: 'bg-[#3b82f6]',
-  neutral: 'bg-[#848e9c]',
+  neutral: 'bg-zinc-400',
 };
 
 export const Badge = ({variant = 'neutral', children, className = '', dot = false}: BadgeProps) => {

@@ -188,27 +188,31 @@ export default function WorkspaceView() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0b0e14] p-3">
+    <div className="flex flex-col h-full bg-[#09090b] p-3 relative">
+      {/* Ambient background glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#fcd535]/[0.02] rounded-full blur-3xl"/>
+      </div>
+
       {/* Compact Control Panel */}
-      <Card className="mb-3 p-3 flex items-center justify-between">
+      <Card className="mb-3 p-3 flex items-center justify-between gradient-border relative z-10">
         <div className="flex items-center gap-2">
           <Select
             value={activeWsId || ''}
             onChange={(value) => setActiveWsId(value)}
             options={workspaces.map(ws => ({value: ws.id, label: ws.name}))}
-            placeholder="Select workspace"
             className="min-w-[150px]"
           />
 
           {activeWsId && (
-            <div className="flex items-center gap-0.5 border-l border-[#2b3139] pl-2 ml-1">
+            <div className="flex items-center gap-0.5 border-l border-white/5 pl-2 ml-1">
               <button onClick={handleRenameWorkspace}
-                      className="p-1.5 text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139] rounded-lg transition-colors"
+                      className="p-1.5 text-zinc-400 hover:text-zinc-50 hover:bg-white/5 rounded-lg transition-colors"
                       title="Rename Workspace">
                 <Edit2 size={14}/>
               </button>
               <button onClick={handleDeleteWorkspace}
-                      className="p-1.5 text-[#848e9c] hover:text-[#f6465d] hover:bg-[#f6465d]/10 rounded-lg transition-colors"
+                      className="p-1.5 text-zinc-400 hover:text-[#f6465d] hover:bg-[#f6465d]/10 rounded-lg transition-colors"
                       title="Delete Workspace">
                 <Trash2 size={14}/>
               </button>
@@ -220,28 +224,28 @@ export default function WorkspaceView() {
           <Button variant="secondary" size="sm" onClick={handleCreateWorkspace} leftIcon={<FolderPlus size={16}/>}>
             New Workspace
           </Button>
-          <Button size="sm" onClick={() => setIsSearchOpen(true)} leftIcon={<Plus size={16}/>} disabled={!activeWsId}>
+          <Button size="sm" onClick={() => setIsSearchOpen(true)} leftIcon={<Plus size={16}/>} disabled={!activeWsId} className="shadow-[0_0_20px_rgba(252,213,53,0.3)]">
             Add Chart
           </Button>
         </div>
       </Card>
 
       {/* Grid */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden relative z-10">
         {!activeWsId ? (
-          <Card className="h-full flex flex-col items-center justify-center border-dashed">
-            <p className="mb-3 text-sm text-[#848e9c]">You don't have any workspaces yet.</p>
+          <Card className="h-full flex flex-col items-center justify-center border-dashed border-white/10">
+            <p className="mb-3 text-sm text-zinc-400">You don't have any workspaces yet.</p>
             <Button variant="ghost" size="sm" onClick={handleCreateWorkspace}>
               Create your first workspace
             </Button>
           </Card>
         ) : widgetsLoading ? (
-          <Card className="h-full flex items-center justify-center border-dashed">
-            <p className="text-sm text-[#848e9c]">Loading charts...</p>
+          <Card className="h-full flex items-center justify-center border-dashed border-white/10">
+            <p className="text-sm text-zinc-400">Loading charts...</p>
           </Card>
         ) : widgets.length === 0 ? (
-          <Card className="h-full flex flex-col items-center justify-center border-dashed">
-            <p className="mb-3 text-sm text-[#848e9c]">Your workspace is empty.</p>
+          <Card className="h-full flex flex-col items-center justify-center border-dashed border-white/10">
+            <p className="mb-3 text-sm text-zinc-400">Your workspace is empty.</p>
             <Button variant="ghost" size="sm" onClick={() => setIsSearchOpen(true)}>
               Add your first chart
             </Button>

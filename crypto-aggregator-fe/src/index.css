@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0b0e14;
+  --color-background: #09090b;
   --color-surface: #181a20;
   --color-surface-elevated: #1e2028;
   --color-border: #2b3139;
@@ -53,11 +53,19 @@
   }
 
   .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-surface {
     @apply bg-surface/80 backdrop-blur-xl border border-border/60;
   }
 
   .glow-accent {
     box-shadow: 0 0 30px rgba(252, 213, 53, 0.15);
+  }
+
+  .glow-accent-strong {
+    box-shadow: 0 0 20px rgba(252, 213, 53, 0.3);
   }
 
   .glow-success {
@@ -66,5 +74,18 @@
 
   .glow-danger {
     box-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  }
+
+  .gradient-border {
+    @apply relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    @apply absolute inset-0 rounded-[inherit] p-px bg-gradient-to-br from-white/20 to-transparent;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 }

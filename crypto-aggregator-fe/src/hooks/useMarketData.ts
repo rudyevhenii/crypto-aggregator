@@ -14,9 +14,9 @@ import {ChartHandle} from '../components/ChartArea';
 export default function useMarketData() {
   const [metadata, setMetadata] = useState<ExchangeMetadata[]>([]);
 
-  const [selectedExchange, setSelectedExchange] = useState<Exchange | null>(null);
-  const [selectedPair, setSelectedPair] = useState<TradingPair | null>(null);
-  const [selectedInterval, setSelectedInterval] = useState<ChartInterval | null>(null);
+  const [selectedExchange, setSelectedExchange] = useState<Exchange>('BINANCE');
+  const [selectedPair, setSelectedPair] = useState<TradingPair>('BTC_USD');
+  const [selectedInterval, setSelectedInterval] = useState<ChartInterval>('FIFTEEN_MINUTES');
 
   const [livePrice, setLivePrice] = useState<LivePrice | null>(null);
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
@@ -52,8 +52,6 @@ export default function useMarketData() {
 
   // 3. Завантаження історії та SSE (Ціни + Статус Біржі)
   useEffect(() => {
-    if (!selectedExchange || !selectedPair || !selectedInterval) return;
-
     // Скидаємо прапорець пагінації при зміні торгової пари або інтервалу
     setHasMoreHistory(true);
 
@@ -106,7 +104,7 @@ export default function useMarketData() {
 
   // 4. Функція для завантаження старіших даних (Пагінація)
   const handleLoadMoreHistory = useCallback(async (oldestTimestamp: string) => {
-    if (!hasMoreHistory || !selectedExchange || !selectedPair || !selectedInterval) return;
+    if (!hasMoreHistory) return;
 
     try {
       const olderData = await api.getHistoricalPrices(selectedExchange, {

@@ -103,13 +103,13 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
     const chart = createChart(containerRef.current, {
       width: containerRef.current.clientWidth,
       height: containerRef.current.clientHeight,
-      layout: {background: {color: isWidget ? 'transparent' : '#181a20'}, textColor: '#848e9c'},
-      grid: {vertLines: {color: '#2b3139', style: 1}, horzLines: {color: '#2b3139', style: 1}},
-      rightPriceScale: {borderColor: '#2b3139'},
-      timeScale: {borderColor: '#2b3139', timeVisible: true},
+      layout: {background: {color: isWidget ? 'transparent' : '#181a20'}, textColor: '#a1a1aa'},
+      grid: {vertLines: {color: '#27272a', style: 1}, horzLines: {color: '#27272a', style: 1}},
+      rightPriceScale: {borderColor: '#27272a'},
+      timeScale: {borderColor: '#27272a', timeVisible: true},
       crosshair: {
-        vertLine: {color: '#848e9c', labelBackgroundColor: '#2b3139'},
-        horzLine: {color: '#848e9c', labelBackgroundColor: '#2b3139'}
+        vertLine: {color: '#52525b', labelBackgroundColor: '#181a20'},
+        horzLine: {color: '#52525b', labelBackgroundColor: '#181a20'}
       }
     });
 

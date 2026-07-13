@@ -25,12 +25,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             className={`
-              w-full bg-[#0b0e11] border text-[#eaecef] px-3 py-2 rounded-lg
+              w-full bg-[#0b0e11] border text-zinc-50 px-3 py-2 rounded-lg
               transition-all duration-200 ease-out
-              placeholder:text-[#848e9c]/60
+              placeholder:text-zinc-500
               focus:outline-none focus:border-[#fcd535] focus:shadow-[0_0_0_3px_rgba(252,213,53,0.1)]
-              hover:border-[#474d57]
-              ${error ? 'border-[#f6465d]' : 'border-[#2b3139]'}
+              hover:border-zinc-600
+              ${error ? 'border-[#f6465d]' : 'border-white/10'}
               ${leftIcon ? 'pl-10' : ''}
               ${rightIcon ? 'pr-10' : ''}
               ${className}

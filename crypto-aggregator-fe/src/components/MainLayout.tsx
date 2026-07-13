@@ -9,10 +9,16 @@ type Props = {
 
 export default function MainLayout({activeView, onViewChange, onLogout, children}: Props) {
   return (
-    <div className="flex h-screen w-full bg-[#0b0e14] font-sans overflow-hidden">
+    <div className="flex h-screen w-full bg-[#09090b] font-sans overflow-hidden relative">
+
+      {/* Ambient background glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#fcd535]/5 rounded-full blur-3xl"/>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#3b82f6]/5 rounded-full blur-3xl"/>
+      </div>
 
       {/* Left Navigation */}
-      <aside className="w-16 bg-[#181a20] border-r border-[#2b3139] flex flex-col items-center py-4 shrink-0 z-50">
+      <aside className="w-16 glass-surface flex flex-col items-center py-4 shrink-0 z-50 relative">
 
         <div className="w-10 h-10 bg-[#fcd535]/10 rounded-xl flex items-center justify-center mb-8 border border-[#fcd535]/20">
           <Activity className="text-[#fcd535]" size={22}/>
@@ -25,8 +31,8 @@ export default function MainLayout({activeView, onViewChange, onLogout, children
               w-full aspect-square rounded-xl flex items-center justify-center transition-all
               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50
               ${activeView === 'market'
-                ? 'bg-[#2b3139] text-[#eaecef] shadow-inner'
-                : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139]/50'
+                ? 'bg-white/10 text-[#eaecef] shadow-[0_0_15px_rgba(252,213,53,0.15)]'
+                : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-white/5'
               }
             `}
             title="Market Overview"
@@ -40,8 +46,8 @@ export default function MainLayout({activeView, onViewChange, onLogout, children
               w-full aspect-square rounded-xl flex items-center justify-center transition-all
               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50
               ${activeView === 'workspace'
-                ? 'bg-[#2b3139] text-[#eaecef] shadow-inner'
-                : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139]/50'
+                ? 'bg-white/10 text-[#eaecef] shadow-[0_0_15px_rgba(252,213,53,0.15)]'
+                : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-white/5'
               }
             `}
             title="Multichart Workspace"
@@ -62,7 +68,7 @@ export default function MainLayout({activeView, onViewChange, onLogout, children
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 relative z-10">
         {children}
       </main>
 

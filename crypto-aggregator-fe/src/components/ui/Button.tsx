@@ -14,13 +14,13 @@ type ButtonProps = {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-[#fcd535] text-[#0b0e14] font-semibold hover:bg-[#e0bc2e] focus-visible:ring-2 focus-visible:ring-[#fcd535]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0e14]',
+    'bg-[#fcd535] text-[#09090b] font-semibold hover:bg-[#e0bc2e] focus-visible:ring-2 focus-visible:ring-[#fcd535]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b] shadow-[0_0_20px_rgba(252,213,53,0.3)]',
   secondary:
-    'bg-[#2b3139] text-[#eaecef] font-medium hover:bg-[#474d57] focus-visible:ring-2 focus-visible:ring-[#848e9c]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0e14]',
+    'bg-white/5 text-zinc-50 font-medium hover:bg-white/10 border border-white/10 focus-visible:ring-2 focus-visible:ring-zinc-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]',
   ghost:
-    'bg-transparent text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139]/50 focus-visible:ring-2 focus-visible:ring-[#848e9c]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0e14]',
+    'bg-transparent text-zinc-400 hover:text-zinc-50 hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-zinc-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]',
   danger:
-    'bg-[#f6465d]/10 text-[#f6465d] border border-[#f6465d]/50 hover:bg-[#f6465d]/20 focus-visible:ring-2 focus-visible:ring-[#f6465d]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0e14]',
+    'bg-[#f6465d]/10 text-[#f6465d] border border-[#f6465d]/50 hover:bg-[#f6465d]/20 focus-visible:ring-2 focus-visible:ring-[#f6465d]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

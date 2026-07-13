@@ -53,11 +53,11 @@ function DashboardRow({
   return (
     <tr
       onClick={onClick}
-      className="border-b border-[#2b3139]/50 hover:bg-[#2b3139]/30 transition-colors cursor-pointer group"
+      className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
     >
-      <td className="p-4 text-[#848e9c] w-12 text-sm">{index + 1}</td>
-      <td className="p-4 font-bold text-[#eaecef] text-sm">{displayPair}</td>
-      <td className="p-4 text-right font-medium text-[#eaecef] text-sm">
+      <td className="p-4 text-zinc-400 w-12 text-sm">{index + 1}</td>
+      <td className="p-4 font-bold text-zinc-50 text-sm">{displayPair}</td>
+      <td className="p-4 text-right font-medium text-zinc-50 text-sm">
         {priceData?.lastPrice ? priceData.lastPrice.toLocaleString(undefined, {minimumFractionDigits: 2}) : '—'}
       </td>
       <td className={`p-4 text-right font-medium text-sm ${colorClass}`}>
@@ -168,14 +168,19 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
   const pairsToList = activeMetadata?.supportedPairs || [];
 
   return (
-    <div className="flex-1 bg-[#0b0e14] overflow-y-auto p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="flex-1 bg-[#09090b] overflow-y-auto p-8 relative">
+      {/* Ambient background glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#fcd535]/[0.03] rounded-full blur-3xl"/>
+      </div>
 
-        <h1 className="text-3xl font-bold text-[#eaecef] mb-2 tracking-tight">Market Overview</h1>
-        <p className="text-[#848e9c] mb-8">Real-time market data from integrated exchanges</p>
+      <div className="max-w-5xl mx-auto relative z-10">
+
+        <h1 className="text-3xl font-bold text-zinc-50 mb-2 tracking-tight">Market Overview</h1>
+        <p className="text-zinc-400 mb-8">Real-time market data from integrated exchanges</p>
 
         {/* Exchange Tabs */}
-        <div className="flex items-center gap-1 mb-6 border-b border-[#2b3139] pb-px">
+        <div className="flex items-center gap-1 mb-6 border-b border-white/5 pb-px">
           {metadata.map(m => (
             <button
               key={m.exchange}
@@ -183,33 +188,33 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
               className={`
                 px-5 py-3 text-sm font-semibold transition-all relative rounded-t-lg
                 ${activeTab === m.exchange
-                  ? 'text-[#fcd535] bg-[#2b3139]/30'
-                  : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-[#2b3139]/20'
+                  ? 'text-[#fcd535] bg-white/5'
+                  : 'text-zinc-400 hover:text-zinc-50 hover:bg-white/5'
                 }
               `}
             >
               {m.exchange}
               {activeTab === m.exchange && (
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#fcd535] rounded-full"/>
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#fcd535] rounded-full shadow-[0_0_8px_rgba(252,213,53,0.4)]"/>
               )}
             </button>
           ))}
 
           {/* Health Indicator */}
           {activeTab && (
-            <div className="ml-auto flex items-center gap-2 bg-[#181a20] border border-[#2b3139] px-3 py-1.5 rounded-md">
+            <div className="ml-auto flex items-center gap-2 glass-surface px-3 py-1.5 rounded-md">
               <div className={`w-2 h-2 rounded-full ${getStatusColor(health?.connectionStatus)}`}/>
-              <span className="text-[#eaecef] text-xs font-medium">Market is Open</span>
+              <span className="text-zinc-50 text-xs font-medium">Market is Open</span>
             </div>
           )}
         </div>
 
         {/* Table */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden gradient-border">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-              <tr className="border-b border-[#2b3139] text-[#848e9c] text-xs uppercase tracking-wider bg-[#0b0e14]/50">
+              <tr className="border-b border-white/5 text-zinc-400 text-xs uppercase tracking-wider bg-white/[0.02]">
                 <th className="p-4 font-medium">#</th>
                 <th className="p-4 font-medium">Trading Pair</th>
                 <th className="p-4 font-medium text-right">Live Price</th>
@@ -233,13 +238,13 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
           </div>
 
           {pairsToList.length === 0 && (
-            <div className="p-8 text-center text-[#848e9c]">
+            <div className="p-8 text-center text-zinc-400">
               No trading pairs available for this exchange.
             </div>
           )}
 
           {visibleCount < pairsToList.length && (
-            <div className="p-4 flex justify-center border-t border-[#2b3139]">
+            <div className="p-4 flex justify-center border-t border-white/5">
               <Button variant="secondary" onClick={() => setVisibleCount(prev => prev + 10)}>
                 Load More
               </Button>

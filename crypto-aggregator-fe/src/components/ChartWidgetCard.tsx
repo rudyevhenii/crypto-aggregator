@@ -85,29 +85,29 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
 
   return (
     <div ref={setNodeRef} style={style}
-         className="flex flex-col bg-[#181a20] rounded-lg border border-[#2b3139] overflow-hidden h-full relative group">
-      <div className="h-9 bg-[#181a20] border-b border-[#2b3139] flex items-center px-3 justify-between shrink-0">
+         className="flex flex-col glass-surface rounded-xl overflow-hidden h-full relative group">
+      <div className="h-9 bg-white/[0.02] border-b border-white/5 flex items-center px-3 justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-[#eaecef] font-bold text-xs">{displayPair}</span>
-            <span className="text-[#848e9c] text-[9px] uppercase">{widget.exchange}</span>
+            <span className="text-zinc-50 font-bold text-xs">{displayPair}</span>
+            <span className="text-zinc-400 text-[9px] uppercase tracking-wider">{widget.exchange}</span>
           </div>
-          <div className="h-3 w-px bg-[#2b3139]"/>
+          <div className="h-3 w-px bg-white/10"/>
 
           <Select
             value={widget.chartInterval}
             onChange={(value) => onUpdateInterval(widget.id, value as ChartInterval)}
             options={intervals.map(int => ({value: int, label: int.replace(/_/g, ' ')}))}
-            className="!w-auto !bg-transparent !border-none !p-0 !text-xs"
+            className="!w-auto !bg-transparent !border-none !pr-8 !pl-2 !text-xs"
           />
         </div>
         <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
           <button {...attributes} {...listeners}
-                  className="text-[#848e9c] hover:text-[#eaecef] cursor-grab active:cursor-grabbing p-1 rounded hover:bg-[#2b3139]/50 transition-colors">
+                  className="text-zinc-400 hover:text-zinc-50 cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/5 transition-colors">
             <GripHorizontal size={14}/>
           </button>
           <button onClick={() => onDelete(widget.id)}
-                  className="text-[#848e9c] hover:text-[#f6465d] transition-colors p-1 rounded hover:bg-[#f6465d]/10">
+                  className="text-zinc-400 hover:text-[#f6465d] transition-colors p-1 rounded hover:bg-[#f6465d]/10">
             <Trash2 size={14}/>
           </button>
         </div>
@@ -117,7 +117,7 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
           <ChartArea ref={chartRef} interval={widget.chartInterval} historical={historical} onLoadMore={handleLoadMore}
                      isWidget={true} exchange={widget.exchange} tradingPair={widget.tradingPair}/>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-[#848e9c] text-xs">Loading...</div>
+          <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-xs">Loading...</div>
         )}
       </div>
     </div>

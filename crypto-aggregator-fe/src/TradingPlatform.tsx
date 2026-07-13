@@ -111,20 +111,14 @@ function TradingPlatform() {
 
           <div className="flex flex-1 overflow-hidden">
             <main className="flex-1 flex flex-col">
-              {selectedExchange && selectedPair && selectedInterval ? (
-                <ChartArea
-                  ref={chartRef}
-                  interval={selectedInterval}
-                  historical={historical}
-                  onLoadMore={handleLoadMoreHistory}
-                  exchange={selectedExchange}
-                  tradingPair={selectedPair}
-                />
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-[#848e9c]">
-                  Loading market data...
-                </div>
-              )}
+              <ChartArea
+                ref={chartRef}
+                interval={selectedInterval}
+                historical={historical}
+                onLoadMore={handleLoadMoreHistory}
+                exchange={selectedExchange}
+                tradingPair={selectedPair}
+              />
             </main>
 
             <Sidebar

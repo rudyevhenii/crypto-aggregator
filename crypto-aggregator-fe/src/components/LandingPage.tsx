@@ -1,5 +1,5 @@
 import {Activity, ArrowRight, Database, Lock, X, Zap} from 'lucide-react';
-import {Button, Card, Input, Badge} from './ui';
+import {Button, Card, Input} from './ui';
 import {useAuth} from '../hooks/useAuth';
 
 export default function LandingPage() {
@@ -117,10 +117,10 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-[#eaecef] font-sans selection:bg-[#fcd535] selection:text-[#0b0e14] relative overflow-hidden">
+    <div className="min-h-screen bg-[#09090b] text-zinc-50 font-sans selection:bg-[#fcd535] selection:text-[#09090b] relative overflow-hidden">
       {/* Ambient background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[#fcd535]/[0.03] rounded-full blur-3xl"/>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[#fcd535]/[0.04] rounded-full blur-3xl"/>
         <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-[#3b82f6]/[0.03] rounded-full blur-3xl"/>
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#a855f7]/[0.02] rounded-full blur-3xl"/>
         {/* Grid pattern overlay */}
@@ -128,22 +128,22 @@ export default function LandingPage() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-50 border-b border-[#2b3139]/60 bg-[#181a20]/80 backdrop-blur-xl">
+      <nav className="relative z-50 border-b border-white/5 glass-surface">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-[#fcd535]/10 rounded-lg flex items-center justify-center border border-[#fcd535]/20">
               <Activity className="text-[#fcd535]" size={20}/>
             </div>
-            <span className="font-bold text-lg tracking-wide text-[#eaecef]">CryptoAggregator</span>
+            <span className="font-bold text-lg tracking-wide text-zinc-50">CryptoAggregator</span>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setView('login')}
-              className="text-sm font-medium text-[#848e9c] hover:text-[#eaecef] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#2b3139]/50"
+              className="text-sm font-medium text-zinc-400 hover:text-zinc-50 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
             >
               Log In
             </button>
-            <Button size="sm" onClick={() => setView('register')}>
+            <Button size="sm" onClick={() => setView('register')} className="shadow-[0_0_20px_rgba(252,213,53,0.3)]">
               Get Started
             </Button>
           </div>
@@ -152,11 +152,6 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16 flex flex-col items-center text-center">
-        <Badge variant="success" dot className="mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#0ecb81] animate-pulse"/>
-          v1.0.0 API LIVE
-        </Badge>
-
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl leading-[1.1]">
           The Ultimate Unified <br/>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd535] via-[#f6a000] to-[#fcd535] bg-[length:200%_auto] animate-[gradient_3s_linear_infinite]">
@@ -164,7 +159,7 @@ export default function LandingPage() {
           </span>
         </h1>
 
-        <p className="text-lg md:text-xl text-[#848e9c] mb-10 max-w-2xl leading-relaxed">
+        <p className="text-lg md:text-xl text-zinc-400 mb-10 max-w-2xl leading-relaxed">
           Connect to Binance, Coinbase, and Kraken through a single, powerful interface.
           Access lightning-fast live SSE streams, comprehensive historical klines, and unified metadata.
         </p>
@@ -205,7 +200,7 @@ export default function LandingPage() {
             <Card
               key={index}
               hoverable
-              className="p-6 group"
+              className="p-6 group gradient-border"
               glowColor={feature.color}
             >
               <div
@@ -214,10 +209,10 @@ export default function LandingPage() {
               >
                 {feature.icon}
               </div>
-              <h3 className="text-lg font-bold mb-2 text-[#eaecef] group-hover:text-[#fcd535] transition-colors">
+              <h3 className="text-lg font-bold mb-2 text-zinc-50 group-hover:text-[#fcd535] transition-colors">
                 {feature.title}
               </h3>
-              <p className="text-sm text-[#848e9c] leading-relaxed">
+              <p className="text-sm text-zinc-400 leading-relaxed">
                 {feature.description}
               </p>
             </Card>
