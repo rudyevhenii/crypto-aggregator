@@ -52,7 +52,7 @@ export function useAuth(): UseAuthReturn {
         const data = await response.json();
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
-        navigate('/app');
+        navigate('/app/overview');
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Authentication failed');

@@ -1,4 +1,5 @@
 import {Exchange, ExchangeHealthDto, LivePrice, TradingPair} from '../api';
+import {ArrowLeft} from 'lucide-react';
 import {Badge} from './ui';
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
 };
 
 export default function TopBar({exchange, pair, livePrice, health, onBack}: Props) {
-  if (!pair) return <div className="h-20 border-b border-white/5 glass-surface shrink-0"></div>;
+  if (!pair) return null;
 
   const displayPair = pair.replace('_', '/');
   const isPositive = (livePrice?.priceChangePercent24h ?? 0) >= 0;
@@ -53,10 +54,13 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
       {onBack && (
         <button
           onClick={onBack}
-          className="mr-6 text-zinc-400 hover:text-zinc-50 transition-colors flex items-center gap-2 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50 rounded-lg px-2 py-1"
+          className="mr-6 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition-all rounded-full p-2 flex items-center justify-center group relative"
+          title="Back to Overview"
         >
-          <span className="text-lg">←</span>
-          <span>Dashboard</span>
+          <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white transition-colors"/>
+          <span className="absolute left-full ml-3 px-2 py-1 bg-[#181a20] border border-white/10 rounded-md text-xs text-zinc-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            Back to Overview
+          </span>
         </button>
       )}
 

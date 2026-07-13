@@ -1,4 +1,4 @@
-import {Activity, ArrowRight, Database, Lock, X, Zap} from 'lucide-react';
+import {Activity, ArrowRight, Check, Lock, X} from 'lucide-react';
 import {Button, Card, Input} from './ui';
 import {useAuth} from '../hooks/useAuth';
 
@@ -175,47 +175,69 @@ export default function LandingPage() {
           </Button>
         </div>
 
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-6 mt-24 text-left w-full">
+        {/* Feature Showcase - Zig-Zag Layout */}
+        <div className="mt-32 space-y-32 w-full">
           {[
             {
-              icon: <Zap className="text-[#0ecb81]" size={20}/>,
+              title: 'Lightning-Fast Live Data',
+              description: 'Consume real-time price updates and 24h tickers via Server-Sent Events with automatic reconnection handling. Stay ahead of the market with sub-millisecond latency.',
+              features: ['Real-time SSE streams', 'Auto-reconnection', 'Multi-exchange aggregation'],
               color: '#0ecb81',
-              title: 'Live SSE Streams',
-              description: 'Consume real-time price updates and 24h tickers via Server-Sent Events with automatic reconnection handling.',
+              imagePosition: 'right',
             },
             {
-              icon: <Activity className="text-[#3b82f6]" size={20}/>,
+              title: 'Deep Historical Analysis',
+              description: 'Fetch deeply paginated historical candlestick data across 17 different time intervals. From 1-second ticks to monthly candles, get the data you need for precise charting.',
+              features: ['17 time intervals', 'Paginated klines', 'Precise candlestick data'],
               color: '#3b82f6',
-              title: 'Historical Klines',
-              description: 'Fetch deeply paginated historical candlestick data across 17 different time intervals for precise charting.',
+              imagePosition: 'left',
             },
             {
-              icon: <Database className="text-[#a855f7]" size={20}/>,
+              title: 'Unified Exchange API',
+              description: 'Standardized endpoints for discovering supported trading pairs and health statuses across Binance, Coinbase, and Kraken. One integration, infinite possibilities.',
+              features: ['Unified metadata', 'Exchange health monitoring', 'Standardized pair discovery'],
               color: '#a855f7',
-              title: 'Unified Metadata',
-              description: 'Standardized endpoints for discovering supported trading pairs and health statuses across all integrated exchanges.',
+              imagePosition: 'right',
             },
           ].map((feature, index) => (
-            <Card
+            <div
               key={index}
-              hoverable
-              className="p-6 group gradient-border"
-              glowColor={feature.color}
+              className={`flex flex-col ${feature.imagePosition === 'right' ? 'md:flex-row' : 'md:flex-row-reverse'} gap-12 items-center`}
             >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border transition-colors"
-                style={{backgroundColor: `${feature.color}10`, borderColor: `${feature.color}20`}}
-              >
-                {feature.icon}
+              {/* Text Content */}
+              <div className="flex-1 space-y-6">
+                <h2 className="text-3xl md:text-4xl font-bold text-zinc-50 tracking-tight">
+                  {feature.title}
+                </h2>
+                <p className="text-lg text-zinc-400 leading-relaxed">
+                  {feature.description}
+                </p>
+                <ul className="space-y-3">
+                  {feature.features.map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-zinc-300">
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{backgroundColor: `${feature.color}20`}}
+                      >
+                        <Check size={12} style={{color: feature.color}}/>
+                      </div>
+                      <span className="text-sm">{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <h3 className="text-lg font-bold mb-2 text-zinc-50 group-hover:text-[#fcd535] transition-colors">
-                {feature.title}
-              </h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                {feature.description}
-              </p>
-            </Card>
+
+              {/* Image Placeholder */}
+              <div className="flex-1 relative">
+                <div
+                  className="absolute -inset-4 rounded-2xl opacity-60 blur-2xl"
+                  style={{background: `radial-gradient(circle at center, ${feature.color}15, transparent 70%)`}}
+                />
+                <div className="w-full h-96 bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl flex items-center justify-center text-zinc-500 relative">
+                  App Screenshot Here
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </main>

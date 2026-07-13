@@ -1,25 +1,23 @@
 import {useEffect, useState} from 'react';
-import {api, Exchange, ExchangeHealthDto, ExchangeMetadata, LivePrice, Ticker24h, TradingPair} from '../api';
-import {Button, Card} from './ui';
-import DashboardRow from './DashboardRow';
+import {api, Exchange, ExchangeHealthDto, ExchangeMetadata, LivePrice, Ticker24h, TradingPair} from '../../api';
+import {Button, Card} from '../ui';
+import DashboardRow from '../DashboardRow';
 
-// --- Main Dashboard ---
-type Props = {
-  metadata: ExchangeMetadata[];
-  onSelectPair: (exchange: Exchange, pair: TradingPair) => void;
-};
-
-export default function Dashboard({metadata, onSelectPair}: Props) {
+export default function OverviewRoute() {
+  const [metadata, setMetadata] = useState<ExchangeMetadata[]>([]);
   const [activeTab, setActiveTab] = useState<Exchange | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice | Ticker24h>>({});
   const [health, setHealth] = useState<ExchangeHealthDto | null>(null);
   const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
-    if (metadata.length > 0 && !activeTab) {
-      setActiveTab(metadata[0].exchange);
-    }
-  }, [metadata, activeTab]);
+    api.getMetadata().then(data => {
+      setMetadata(data);
+      if (data.length > 0) {
+        setActiveTab(data[0].exchange);
+      }
+    }).catch(console.error);
+  }, []);
 
   useEffect(() => {
     setVisibleCount(10);
@@ -84,11 +82,11 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'CONNECTED':
-        return 'bg-[#0ecb81] glow-success';
+        return 'bg-[#0ecb81] shadow-[0_0_8px_rgba(14,203,129,0.4)]';
       case 'RECONNECTING':
-        return 'bg-[#fcd535] shadow-[0_0_8px_#fcd535] animate-pulse';
+        return 'bg-[#fcd535] shadow-[0_0_8px_rgba(252,213,53,0.4)] animate-pulse';
       case 'ERROR':
-        return 'bg-[#f6465d] glow-danger';
+        return 'bg-[#f6465d] shadow-[0_0_8px_rgba(246,70,93,0.4)]';
       case 'DISCONNECTED':
       default:
         return 'bg-[#848e9c]';
@@ -97,6 +95,10 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
 
   const activeMetadata = metadata.find(m => m.exchange === activeTab);
   const pairsToList = activeMetadata?.supportedPairs || [];
+
+  const handleSelectPair = (exchange: Exchange, pair: TradingPair) => {
+    window.location.href = `/app/chart/${exchange}/${pair}`;
+  };
 
   return (
     <div className="flex-1 bg-[#09090b] overflow-y-auto p-8 relative">
@@ -161,7 +163,7 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
                   exchange={activeTab!}
                   pair={pair}
                   priceData={livePrices[pair]}
-                  onClick={() => activeTab && onSelectPair(activeTab, pair)}
+                  onClick={() => activeTab && handleSelectPair(activeTab, pair)}
                 />
               ))}
               </tbody>
@@ -175,12 +177,8 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
           )}
 
           {visibleCount < pairsToList.length && (
-            <div className="border-t border-white/5">
-              <Button
-                variant="ghost"
-                onClick={() => setVisibleCount(prev => prev + 10)}
-                className="w-full rounded-none hover:bg-white/5 border-t border-white/5 text-zinc-400 hover:text-white transition-colors py-4"
-              >
+            <div className="p-4 flex justify-center border-t border-white/5">
+              <Button variant="secondary" onClick={() => setVisibleCount(prev => prev + 10)}>
                 Load More
               </Button>
             </div>
