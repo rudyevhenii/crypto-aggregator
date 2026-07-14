@@ -145,6 +145,13 @@ paths:
         - "HistoricalExchange"
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
+        - name: tradingPairs
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/TradingPair'
       responses:
         "200":
           description: "Successfully retrieves array of tickers data for exchange"

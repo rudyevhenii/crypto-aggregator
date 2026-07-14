@@ -14,7 +14,6 @@ import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.mapper.ExchangeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,28 +26,32 @@ public class HistoricalExchangeController implements HistoricalExchangeApi {
     private final ExchangeMapper mapper;
 
     @Override
-    public ResponseEntity<List<HistoricalPriceRqDto>> getHistoricalPrices(@PathVariable ExchangeRqDto exchange,
+    public ResponseEntity<List<HistoricalPriceRqDto>> getHistoricalPrices(ExchangeRqDto exchange,
                                                                           HistoricalPriceRequestRqDto request) {
         Exchange exchangeDomain = mapper.map(exchange);
         HistoricalPriceRequest historicalPriceDomain = mapper.map(request);
         List<HistoricalPriceDto> response = service.getHistoricalPrices(exchangeDomain, historicalPriceDomain);
         return ResponseEntity.ok(response.stream()
-                        .map(mapper::map)
-                        .toList());
+                .map(mapper::map)
+                .toList());
     }
 
     @Override
-    public ResponseEntity<List<Ticker24hRqDto>> get24hTickersByExchange(@PathVariable ExchangeRqDto exchange) {
+    public ResponseEntity<List<Ticker24hRqDto>> get24hTickersByExchange(ExchangeRqDto exchange,
+                                                                        List<TradingPairRqDto> tradingPairs) {
         Exchange exchangeDomain = mapper.map(exchange);
-        List<Ticker24hDto> response = service.get24hTickersByExchange(exchangeDomain);
+        List<TradingPair> tradingPairsDomain = tradingPairs.stream()
+                .map(mapper::map)
+                .toList();
+        List<Ticker24hDto> response = service.get24hTickersByExchange(exchangeDomain, tradingPairsDomain);
         return ResponseEntity.ok(response.stream()
-                        .map(mapper::map)
-                        .toList());
+                .map(mapper::map)
+                .toList());
     }
 
     @Override
-    public ResponseEntity<Ticker24hRqDto> get24hTickerForPair(@PathVariable ExchangeRqDto exchange,
-                                                    @PathVariable TradingPairRqDto pair) {
+    public ResponseEntity<Ticker24hRqDto> get24hTickerForPair(ExchangeRqDto exchange,
+                                                              TradingPairRqDto pair) {
         Exchange exchangeDomain = mapper.map(exchange);
         TradingPair tradingPairDomain = mapper.map(pair);
         Ticker24hDto response = service.get24hTickerForPair(exchangeDomain, tradingPairDomain);

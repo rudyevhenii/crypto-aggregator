@@ -98,9 +98,7 @@ public class CoinbaseHistoricalExchangeStrategy extends AbstractHistoricalExchan
     }
 
     @Override
-    public List<Ticker24hDto> fetch24hTickers() {
-        List<TradingPair> tradingPairs = properties.tradingPair().keySet().stream().toList();
-
+    public List<Ticker24hDto> fetch24hTickers(List<TradingPair> tradingPairs) {
         List<CompletableFuture<Ticker24hDto>> futures = tradingPairs.stream()
                 .map(pair -> CompletableFuture.supplyAsync(() -> fetch24hTicker(pair)))
                 .toList();
