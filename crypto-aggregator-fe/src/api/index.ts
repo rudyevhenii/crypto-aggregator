@@ -183,6 +183,14 @@ export const api = {
     return res.json();
   },
 
+  get24hTickersByExchange: async (exchange: Exchange, tradingPairs: TradingPair[]): Promise<Ticker24h[]> => {
+    const params = new URLSearchParams();
+    tradingPairs.forEach(pair => params.append('tradingPairs', pair));
+    const res = await fetch(`${BASE_URL}/api/historical/exchanges/${exchange}/tickers/24h?${params.toString()}`);
+    if (!res.ok) return [];
+    return res.json();
+  },
+
   // --- WORKSPACE & WIDGETS ---
   // Оновлено на fetchAuth
   searchExchangePairs: async (options: {
