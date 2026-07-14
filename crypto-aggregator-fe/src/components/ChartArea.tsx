@@ -107,6 +107,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
       grid: {vertLines: {color: '#27272a', style: 1}, horzLines: {color: '#27272a', style: 1}},
       rightPriceScale: {borderColor: '#27272a'},
       timeScale: {borderColor: '#27272a', timeVisible: true},
+      localization: {locale: 'en'},
       crosshair: {
         vertLine: {color: '#52525b', labelBackgroundColor: '#181a20'},
         horzLine: {color: '#52525b', labelBackgroundColor: '#181a20'}

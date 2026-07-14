@@ -116,7 +116,6 @@ export default function LandingPage() {
     );
   }
 
-  // TODO: add screenshots to landing page placeholders
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-50 font-sans selection:bg-[#fcd535] selection:text-[#09090b] relative overflow-hidden">
       {/* Ambient background effects */}
@@ -180,25 +179,28 @@ export default function LandingPage() {
         <div className="mt-32 space-y-32 w-full">
           {[
             {
-              title: 'Lightning-Fast Live Data',
-              description: 'Consume real-time price updates and 24h tickers via Server-Sent Events with automatic reconnection handling. Stay ahead of the market with sub-millisecond latency.',
-              features: ['Real-time SSE streams', 'Auto-reconnection', 'Multi-exchange aggregation'],
+              title: 'Real-Time Market Overview',
+              description: 'Monitor the pulse of the crypto market with our unified dashboard. Instantly switch between Binance, Coinbase, and Kraken to track live prices, 24h changes, and quick sparkline trends.',
+              features: ['Real-time SSE price updates', 'Cross-exchange aggregation', 'Instant visual trend indicators'],
               color: '#0ecb81',
               imagePosition: 'right',
+              video: '/dashboard.webm',
             },
             {
-              title: 'Deep Historical Analysis',
-              description: 'Fetch deeply paginated historical candlestick data across 17 different time intervals. From 1-second ticks to monthly candles, get the data you need for precise charting.',
-              features: ['17 time intervals', 'Paginated klines', 'Precise candlestick data'],
+              title: 'Deep Historical Charting',
+              description: 'Dive deep into price action with powerful, interactive charts. Analyze historical candlestick data across multiple time intervals, complete with real-time 24h high/low and volume tracking.',
+              features: ['Seamless historical data pagination', 'Interactive candlestick analysis', 'Detailed 24h price overview panel'],
               color: '#3b82f6',
               imagePosition: 'left',
+              video: '/chart.webm',
             },
             {
-              title: 'Unified Exchange API',
-              description: 'Standardized endpoints for discovering supported trading pairs and health statuses across Binance, Coinbase, and Kraken. One integration, infinite possibilities.',
-              features: ['Unified metadata', 'Exchange health monitoring', 'Standardized pair discovery'],
-              color: '#a855f7',
+              title: 'Advanced Multi-Chart Workspaces',
+              description: 'Never miss a macro or micro trend. Create custom grid workspaces to compare multiple timeframes—like 5m, 15m, 30m, and 1h—side-by-side simultaneously on a single screen.',
+              features: ['Customizable multi-chart grids', 'Synchronized timeframe comparison', 'Save and manage custom workspaces'],
+              color: '#fcd535',
               imagePosition: 'right',
+              video: '/workspace.webm',
             },
           ].map((feature, index) => (
             <div
@@ -228,14 +230,27 @@ export default function LandingPage() {
                 </ul>
               </div>
 
-              {/* Image Placeholder */}
-              <div className="flex-1 relative">
+              {/* Video Placeholder */}
+              <div className="flex-1 relative w-full lg:max-w-[550px] xl:max-w-[650px] mx-auto flex-shrink-0">
+                {/* Ambient Glow */}
                 <div
-                  className="absolute -inset-4 rounded-2xl opacity-60 blur-2xl"
-                  style={{background: `radial-gradient(circle at center, ${feature.color}15, transparent 70%)`}}
+                  className="absolute -inset-4 rounded-2xl opacity-60 blur-2xl transition-all duration-500"
+                  style={{ background: `radial-gradient(circle at center, ${feature.color}20, transparent 70%)` }}
                 />
-                <div className="w-full h-96 bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl flex items-center justify-center text-zinc-500 relative">
-                  App Screenshot Here
+                
+                {/* Standardized Aspect Ratio Container */}
+                <div className="relative w-full aspect-video rounded-xl border border-white/10 bg-[#0b0e14] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] group">
+                  {feature.video ? (
+                    <video
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover object-top opacity-85 group-hover:opacity-100 transition-all duration-700 ease-out"
+                    >
+                      <source src={feature.video} type="video/webm" />
+                    </video>
+                  ) : null}
                 </div>
               </div>
             </div>
