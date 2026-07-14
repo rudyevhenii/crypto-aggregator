@@ -116,6 +116,7 @@ export default function LandingPage() {
     );
   }
 
+  // TODO: add screenshots to landing page placeholders
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-50 font-sans selection:bg-[#fcd535] selection:text-[#09090b] relative overflow-hidden">
       {/* Ambient background effects */}

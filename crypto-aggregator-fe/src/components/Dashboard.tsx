@@ -40,10 +40,18 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
 
     try {
       const tickers = await api.get24hTickersByExchange(exchange, pairsToLoad);
-      setLoadedTickers(prev => page === 0 ? tickers : [...prev, ...tickers]);
+      const sortedTickers = tickers.sort((a, b) => {
+        const indexA = pairsToLoad.indexOf(a.tradingPair);
+        const indexB = pairsToLoad.indexOf(b.tradingPair);
+        return indexA - indexB;
+      });
+      setLoadedTickers(prev => page === 0 ? sortedTickers : [...prev, ...sortedTickers]);
       setCurrentPage(page);
     } catch (err) {
       console.error('Failed to load tickers page', err);
+      if (page === 0) {
+        setLoadedTickers([]);
+      }
     } finally {
       setIsLoadingMore(false);
     }
@@ -201,6 +209,12 @@ export default function Dashboard({metadata, onSelectPair}: Props) {
           {allPairs.length === 0 && (
             <div className="p-8 text-center text-zinc-400">
               No trading pairs available for this exchange.
+            </div>
+          )}
+
+          {allPairs.length > 0 && loadedTickers.length === 0 && (
+            <div className="p-8 text-center text-zinc-400">
+              No data available at the moment.
             </div>
           )}
 

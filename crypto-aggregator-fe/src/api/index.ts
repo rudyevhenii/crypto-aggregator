@@ -184,6 +184,9 @@ export const api = {
   },
 
   get24hTickersByExchange: async (exchange: Exchange, tradingPairs: TradingPair[]): Promise<Ticker24h[]> => {
+    if (!tradingPairs || tradingPairs.length === 0) {
+      return [];
+    }
     const params = new URLSearchParams();
     tradingPairs.forEach(pair => params.append('tradingPairs', pair));
     const res = await fetch(`${BASE_URL}/api/historical/exchanges/${exchange}/tickers/24h?${params.toString()}`);

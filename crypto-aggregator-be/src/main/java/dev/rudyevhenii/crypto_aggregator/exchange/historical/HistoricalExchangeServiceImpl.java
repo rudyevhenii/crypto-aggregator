@@ -48,7 +48,8 @@ public class HistoricalExchangeServiceImpl implements HistoricalExchangeService 
     }
 
     @Override
-    @Cacheable(value = HISTORICAL_PRICES_LIVE_CACHE, key = "{#exchange.name(), #tradingPairs.toString()}")
+    @Cacheable(value = HISTORICAL_PRICES_LIVE_CACHE, key = "{#exchange.name(), #tradingPairs.toString()}",
+            unless = "#result == null || #result.isEmpty()")
     public List<Ticker24hDto> get24hTickersByExchange(Exchange exchange, List<TradingPair> tradingPairs) {
         log.info("Requesting 24h tickers for exchange [{}] with tradingPairs: {}", exchange, tradingPairs.toString());
         return liveExchangeStrategies.get(exchange)

@@ -151,6 +151,7 @@ export default function WorkspaceView() {
     setWidgets(prev => [...prev, newWidget]);
   };
 
+  // TODO: after page reload user should land on workspace before he reloaded
   const handleDeleteWidget = async (widgetId: string) => {
     if (!activeWsId) return;
     setWidgets(prev => prev.filter(w => w.id !== widgetId));

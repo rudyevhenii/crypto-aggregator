@@ -109,6 +109,7 @@ paths:
   #  Historical
   # ════════════════════════════════════════════════════════════════
 
+  # TODO: add bearer info to the requests
   /api/historical/exchanges/{exchange}/klines:
     get:
       summary: "Get klines charts"

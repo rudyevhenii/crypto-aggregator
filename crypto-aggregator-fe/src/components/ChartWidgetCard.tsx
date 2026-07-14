@@ -13,6 +13,7 @@ type Props = {
   onUpdateInterval: (id: string, interval: ChartInterval) => void;
 };
 
+// TODO: fix to add more chartWidgets, 6 max right now
 export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateInterval}: Props) {
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
