@@ -173,17 +173,16 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16 flex flex-col items-center text-center">
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl leading-[1.1]">
-          The Ultimate Unified <br/>
+      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-8 flex flex-col items-center text-center">
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 max-w-3xl leading-[1.05]">
+          Three Exchanges. One Dashboard. <br/>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd535] via-[#f6a000] to-[#fcd535] bg-[length:200%_auto] animate-[gradient_3s_linear_infinite]">
-            Crypto Exchange API
+            Zero Hassle.
           </span>
         </h1>
 
-        <p className="text-lg md:text-xl text-zinc-400 mb-10 max-w-2xl leading-relaxed">
-          Connect to Binance, Coinbase, and Kraken through a single, powerful interface.
-          Access lightning-fast live SSE streams, comprehensive historical klines, and unified metadata.
+        <p className="text-base md:text-lg text-zinc-400 mb-8 max-w-2xl leading-snug">
+          Get real-time market updates, deep historical charts, and live trends for Binance, Coinbase, and Kraken. Everything you need, without ever switching tabs.
         </p>
 
         <div className="flex items-center gap-4">
@@ -197,17 +196,25 @@ export default function LandingPage() {
           </Button>
         </div>
 
+        {/* Hero Video - First Feature Showcase */}
+        <div className="mt-12 w-full max-w-5xl mx-auto" style={{perspective: '1200px'}}>
+          <div className="relative w-full aspect-video rounded-xl border border-white/10 bg-[#0b0e14] overflow-hidden shadow-[0_0_60px_rgba(252,213,53,0.15),0_20px_60px_rgba(0,0,0,0.5)] transform rotate-x-12 hover:rotate-x-0 transition-transform duration-700 ease-out">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-40 pointer-events-none mix-blend-overlay"/>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover object-top opacity-90 transition-all duration-700 ease-out"
+            >
+              <source src="/dashboard.webm" type="video/webm" />
+            </video>
+          </div>
+        </div>
+
         {/* Feature Showcase - Zig-Zag Layout */}
         <div className="mt-32 space-y-32 w-full">
           {[
-            {
-              title: 'Real-Time Market Overview',
-              description: 'Monitor the pulse of the crypto market with our unified dashboard. Instantly switch between Binance, Coinbase, and Kraken to track live prices, 24h changes, and quick sparkline trends.',
-              features: ['Real-time SSE price updates', 'Cross-exchange aggregation', 'Instant visual trend indicators'],
-              color: '#0ecb81',
-              imagePosition: 'right',
-              video: '/dashboard.webm',
-            },
             {
               title: 'Deep Historical Charting',
               description: 'Dive deep into price action with powerful, interactive charts. Analyze historical candlestick data across multiple time intervals, complete with real-time 24h high/low and volume tracking.',
