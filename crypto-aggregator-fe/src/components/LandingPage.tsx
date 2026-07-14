@@ -1,9 +1,31 @@
 import {Activity, ArrowRight, Check, Lock, X} from 'lucide-react';
 import {Button, Card, Input} from './ui';
 import {useAuth} from '../hooks/useAuth';
+import {useEffect, useRef} from 'react';
 
 export default function LandingPage() {
   const {view, setView, email, setEmail, password, setPassword, firstName, setFirstName, lastName, setLastName, error, isLoading, handleAuth} = useAuth();
+  const textRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const mediaRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {threshold: 0.15, rootMargin: '0px 0px -40px 0px'}
+    );
+
+    textRefs.current.forEach((el) => el && observer.observe(el));
+    mediaRefs.current.forEach((el) => el && observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   if (view !== 'landing') {
     return (
@@ -208,7 +230,10 @@ export default function LandingPage() {
               className={`flex flex-col ${feature.imagePosition === 'right' ? 'md:flex-row' : 'md:flex-row-reverse'} gap-12 items-center`}
             >
               {/* Text Content */}
-              <div className="flex-1 space-y-6">
+              <div
+                ref={(el) => { textRefs.current[index] = el; }}
+                className="w-full lg:w-2/5 space-y-6 reveal"
+              >
                 <h2 className="text-3xl md:text-4xl font-bold text-zinc-50 tracking-tight">
                   {feature.title}
                 </h2>
@@ -231,15 +256,21 @@ export default function LandingPage() {
               </div>
 
               {/* Video Placeholder */}
-              <div className="flex-1 relative w-full lg:max-w-[550px] xl:max-w-[650px] mx-auto flex-shrink-0">
+              <div
+                ref={(el) => { mediaRefs.current[index] = el; }}
+                className="w-full lg:w-[70%] relative lg:max-w-[1000px] xl:max-w-[1200px] mx-auto flex-shrink-0"
+              >
                 {/* Ambient Glow */}
                 <div
-                  className="absolute -inset-4 rounded-2xl opacity-60 blur-2xl transition-all duration-500"
-                  style={{ background: `radial-gradient(circle at center, ${feature.color}20, transparent 70%)` }}
+                  className="absolute -inset-4 rounded-2xl opacity-60 blur-2xl transition-all duration-500 group-hover:opacity-90 group-hover:blur-xl"
+                  style={{ background: `radial-gradient(circle at center, ${feature.color}25, transparent 70%)` }}
                 />
-                
+
                 {/* Standardized Aspect Ratio Container */}
-                <div className="relative w-full aspect-video rounded-xl border border-white/10 bg-[#0b0e14] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] group">
+                <div className="relative w-full aspect-video rounded-xl border border-white/10 bg-[#0b0e14] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] group transition-all duration-500 ease-out hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
+                  {/* Inner reflection overlay for glassmorphism */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-40 pointer-events-none mix-blend-overlay"/>
+
                   {feature.video ? (
                     <video
                       autoPlay
