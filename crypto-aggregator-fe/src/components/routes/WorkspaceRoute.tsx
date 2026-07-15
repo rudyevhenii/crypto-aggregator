@@ -178,24 +178,25 @@ export default function WorkspaceRoute() {
     }
   };
 
-  const getGridClass = () => {
+  const getGridConfig = () => {
     const count = widgets.length;
-    if (count === 0) return 'flex items-center justify-center';
-    if (count === 1) return 'grid-cols-1';
-    if (count === 2) return 'grid-cols-2';
-    if (count <= 4) return 'grid-cols-2 grid-rows-2';
-    return 'grid-cols-3 grid-rows-2';
+    if (count === 0) return {gridClass: 'flex items-center justify-center', rows: '', scrollable: false, fillHeight: false};
+    if (count === 1) return {gridClass: 'grid-cols-1', rows: 'grid-rows-1', scrollable: false, fillHeight: true};
+    if (count === 2) return {gridClass: 'grid-cols-2', rows: 'grid-rows-1', scrollable: false, fillHeight: true};
+    if (count === 4) return {gridClass: 'grid-cols-2', rows: 'grid-rows-2', scrollable: false, fillHeight: true};
+    if (count <= 6) return {gridClass: 'grid-cols-3', rows: 'grid-rows-2', scrollable: false, fillHeight: true};
+    return {gridClass: 'grid-cols-3', rows: '', scrollable: true, fillHeight: false};
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#09090b] p-3 relative">
+    <div className="flex flex-col h-full bg-[#09090b] p-3 relative overflow-hidden">
       {/* Ambient background glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#fcd535]/[0.02] rounded-full blur-3xl"/>
       </div>
 
       {/* Compact Control Panel */}
-      <Card className="mb-3 p-3 flex items-center justify-between gradient-border relative z-10">
+      <Card className="mb-3 p-3 flex items-center justify-between gradient-border relative z-10 shrink-0">
         <div className="flex items-center gap-2">
           <Select
             value={activeWsId || ''}
@@ -230,8 +231,8 @@ export default function WorkspaceRoute() {
         </div>
       </Card>
 
-      {/* Grid */}
-      <div className="flex-1 overflow-hidden relative z-10">
+      {/* Scrollable Grid Wrapper */}
+      <div className={`flex-1 min-h-0 pr-8 relative z-10 ${(() => { const cfg = getGridConfig(); return cfg.scrollable ? 'overflow-y-auto' : 'overflow-hidden'; })()}`}>
         {!activeWsId ? (
           <Card className="h-full flex flex-col items-center justify-center border-dashed border-white/10">
             <p className="mb-3 text-sm text-zinc-400">You don't have any workspaces yet.</p>
@@ -250,23 +251,27 @@ export default function WorkspaceRoute() {
               Add your first chart
             </Button>
           </Card>
-        ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-              <div className={`grid gap-2 h-full ${getGridClass()}`}>
-                {widgets.map(widget => (
-                  <ChartWidgetCard
-                    key={widget.id}
-                    widget={widget}
-                    livePrice={livePrices[widget.tradingPair]}
-                    onDelete={handleDeleteWidget}
-                    onUpdateInterval={handleUpdateInterval}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        )}
+        ) : (() => {
+          const cfg = getGridConfig();
+          return (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
+                <div className={`grid gap-2 ${cfg.scrollable ? '' : 'h-full'} ${cfg.gridClass} ${cfg.rows}`}>
+                  {widgets.map(widget => (
+                    <ChartWidgetCard
+                      key={widget.id}
+                      widget={widget}
+                      livePrice={livePrices[widget.tradingPair]}
+                      onDelete={handleDeleteWidget}
+                      onUpdateInterval={handleUpdateInterval}
+                      fillHeight={cfg.fillHeight}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          );
+        })()}
       </div>
 
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={handleAddWidget}/>

@@ -11,10 +11,10 @@ type Props = {
   livePrice?: LivePrice;
   onDelete: (id: string) => void;
   onUpdateInterval: (id: string, interval: ChartInterval) => void;
+  fillHeight?: boolean;
 };
 
-// TODO: fix to add more chartWidgets, 6 max right now
-export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateInterval}: Props) {
+export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateInterval, fillHeight = false}: Props) {
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
   const [intervals, setIntervals] = useState<ChartInterval[]>([]);
@@ -86,7 +86,7 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
 
   return (
     <div ref={setNodeRef} style={style}
-         className="flex flex-col glass-surface rounded-xl overflow-hidden h-full relative group">
+         className={`flex flex-col glass-surface rounded-xl overflow-hidden relative group ${fillHeight ? 'h-full' : 'aspect-video'}`}>
       <div className="h-9 bg-white/[0.02] border-b border-white/5 flex items-center px-3 justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-baseline gap-1.5">
