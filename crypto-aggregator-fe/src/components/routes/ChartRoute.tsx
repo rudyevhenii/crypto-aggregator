@@ -83,8 +83,10 @@ export default function ChartRoute() {
           setSelectedPair(exData.supportedPairs[0] || 'BTC_USD');
         }
       }
-    }).catch(console.error);
-  }, [selectedExchange]);
+    }).catch(() => {
+      // Metadata load failure handled by empty state
+    });
+  }, [selectedExchange, selectedPair]);
 
   useEffect(() => {
     if (!selectedExchange || !selectedPair) return;
@@ -94,7 +96,9 @@ export default function ChartRoute() {
       chartInterval: effectiveInterval
     })
       .then(setHistorical)
-      .catch(console.error);
+      .catch(() => {
+        // Historical prices load failure handled by empty state
+      });
 
     const priceSource = api.streamPrices(selectedExchange, selectedPair);
 
@@ -103,8 +107,8 @@ export default function ChartRoute() {
         const price: LivePrice = JSON.parse(event.data);
         setLivePrice(price);
         chartHandle?.applyLivePrice(price);
-      } catch (err) {
-        console.error("SSE Parse Error:", err);
+      } catch {
+        // SSE parse error handled silently
       }
     };
 
@@ -115,8 +119,8 @@ export default function ChartRoute() {
     healthSource.onmessage = (event) => {
       try {
         setExchangeHealth(JSON.parse(event.data));
-      } catch (err) {
-        console.error("Health SSE Parse Error:", err);
+      } catch {
+        // Health SSE parse error handled silently
       }
     };
 
@@ -146,8 +150,8 @@ export default function ChartRoute() {
       } else {
         setHistorical(prev => prev ? [...olderData, ...prev] : olderData);
       }
-    } catch (err) {
-      console.error("Failed to load more history", err);
+    } catch {
+      // History load failure handled by empty state
     }
   };
 

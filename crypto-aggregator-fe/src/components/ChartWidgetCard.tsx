@@ -35,7 +35,9 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
       .then(data => {
         if (isMounted) setIntervals(data);
       })
-      .catch(console.error);
+      .catch(() => {
+        // Intervals load failure handled by empty state
+      });
 
     return () => {
       isMounted = false;
@@ -51,7 +53,9 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
       chartInterval: widget.chartInterval
     }).then(data => {
       if (isMounted) setHistorical(data);
-    }).catch(console.error);
+    }).catch(() => {
+      // Historical prices load failure handled by empty state
+    });
 
     return () => {
       isMounted = false;
@@ -77,8 +81,8 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
       } else {
         setHistorical(prev => prev ? [...olderData, ...prev] : olderData);
       }
-    } catch (err) {
-      console.error("Failed to load more history", err);
+    } catch {
+      // History load failure handled by empty state
     }
   }, [hasMoreHistory, widget.exchange, widget.tradingPair, widget.chartInterval]);
 

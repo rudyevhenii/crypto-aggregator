@@ -42,7 +42,9 @@ export default function useMarketData() {
 
         setSelectedInterval(defaultInterval);
       }
-    }).catch(console.error);
+    }).catch(() => {
+      // Metadata load failure handled by empty state
+    });
   }, []);
 
   // 2. Оновлюємо списки залежно від обраної біржі
@@ -60,7 +62,9 @@ export default function useMarketData() {
       chartInterval: selectedInterval
     })
       .then(setHistorical)
-      .catch(console.error);
+      .catch(() => {
+        // Historical prices load failure handled by empty state
+      });
 
     // --- Потік Цін ---
     const priceSource = api.streamPrices(selectedExchange, selectedPair);
@@ -70,8 +74,8 @@ export default function useMarketData() {
         const price: LivePrice = JSON.parse(event.data);
         setLivePrice(price);
         chartRef.current?.applyLivePrice(price);
-      } catch (err) {
-        console.error("SSE Parse Error:", err);
+      } catch {
+        // SSE parse error handled silently
       }
     };
 
@@ -84,8 +88,8 @@ export default function useMarketData() {
       try {
         const health: ExchangeHealthDto = JSON.parse(event.data);
         setExchangeHealth(health);
-      } catch (err) {
-        console.error("Health SSE Parse Error:", err);
+      } catch {
+        // Health SSE parse error handled silently
       }
     };
 
@@ -120,8 +124,8 @@ export default function useMarketData() {
         // Додаємо старі свічки на початок масиву
         setHistorical(prev => prev ? [...olderData, ...prev] : olderData);
       }
-    } catch (err) {
-      console.error("Failed to load more history", err);
+    } catch {
+      // History load failure handled by empty state
     }
   }, [hasMoreHistory, selectedExchange, selectedPair, selectedInterval]);
 

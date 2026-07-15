@@ -1,161 +1,22 @@
-import {useEffect, useState, useCallback} from 'react';
-import {api, Exchange, ExchangeHealthDto, ExchangeMetadata, LivePrice, Ticker24h, TradingPair} from '../../api';
 import {Button, Card} from '../ui';
 import DashboardRow from '../DashboardRow';
-
-const PAGE_SIZE = 10;
+import useExchangeOverview from '../../hooks/useExchangeOverview';
 
 export default function OverviewRoute() {
-  const [metadata, setMetadata] = useState<ExchangeMetadata[]>([]);
-  const [activeTab, setActiveTab] = useState<Exchange | null>(null);
-  const [livePrices, setLivePrices] = useState<Record<string, LivePrice | Ticker24h>>({});
-  const [health, setHealth] = useState<ExchangeHealthDto | null>(null);
-  const [loadedTickers, setLoadedTickers] = useState<Ticker24h[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  useEffect(() => {
-    api.getMetadata().then(data => {
-      setMetadata(data);
-      if (data.length > 0) {
-        setActiveTab(data[0].exchange);
-      }
-    }).catch(console.error);
-  }, []);
-
-  const activeMetadata = metadata.find(m => m.exchange === activeTab);
-  const allPairs = activeMetadata?.supportedPairs || [];
-
-  const loadPage = useCallback(async (exchange: Exchange, page: number) => {
-    const start = page * PAGE_SIZE;
-    const pairsToLoad = allPairs.slice(start, start + PAGE_SIZE);
-
-    if (pairsToLoad.length === 0) return;
-
-    if (page === 0) {
-      setIsLoadingMore(true);
-    }
-
-    try {
-      const tickers = await api.get24hTickersByExchange(exchange, pairsToLoad);
-      const sortedTickers = tickers.sort((a, b) => {
-        const indexA = pairsToLoad.indexOf(a.tradingPair);
-        const indexB = pairsToLoad.indexOf(b.tradingPair);
-        return indexA - indexB;
-      });
-      setLoadedTickers(prev => page === 0 ? sortedTickers : [...prev, ...sortedTickers]);
-      setCurrentPage(page);
-    } catch (err) {
-      console.error('Failed to load tickers page', err);
-      if (page === 0) {
-        setLoadedTickers([]);
-      }
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [allPairs]);
-
-  useEffect(() => {
-    if (!activeTab) return;
-    setLoadedTickers([]);
-    setCurrentPage(0);
-    setLivePrices({});
-    void loadPage(activeTab, 0);
-  }, [activeTab, loadPage]);
-
-  useEffect(() => {
-    if (!activeTab) return;
-
-    let priceSource: EventSource | null = null;
-    let healthSource: EventSource | null = null;
-
-    const loadedPairs = new Set(loadedTickers.map(t => t.tradingPair));
-
-    priceSource = api.streamPricesByExchange(activeTab);
-    priceSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const updates = Array.isArray(data) ? data : [data];
-
-        setLivePrices(prev => {
-          const newMap = {...prev};
-          updates.forEach((p: LivePrice) => {
-            if (p.tradingPair && loadedPairs.has(p.tradingPair)) {
-              newMap[p.tradingPair] = p;
-            }
-          });
-          return newMap;
-        });
-      } catch (err) {
-        console.error("Dashboard SSE Parse Error:", err);
-      }
-    };
-    priceSource.onerror = () => priceSource?.close();
-
-    setHealth(null);
-    healthSource = api.streamExchangeHealth(activeTab);
-    healthSource.onmessage = (event) => {
-      try {
-        setHealth(JSON.parse(event.data));
-      } catch (err) {
-        console.error("Health SSE Parse Error:", err);
-      }
-    };
-    healthSource.onerror = () => {
-      setHealth(prev => prev ? {...prev, connectionStatus: 'DISCONNECTED'} : null);
-      healthSource?.close();
-    };
-
-    return () => {
-      if (priceSource) priceSource.close();
-      if (healthSource) healthSource.close();
-      setLivePrices({});
-    };
-  }, [activeTab, loadedTickers]);
-
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'CONNECTED':
-        return 'bg-[#0ecb81] shadow-[0_0_8px_rgba(14,203,129,0.4)]';
-      case 'RECONNECTING':
-        return 'bg-[#fcd535] shadow-[0_0_8px_rgba(252,213,53,0.4)] animate-pulse';
-      case 'ERROR':
-        return 'bg-[#f6465d] shadow-[0_0_8px_rgba(246,70,93,0.4)]';
-      case 'DISCONNECTED':
-      default:
-        return 'bg-[#848e9c]';
-    }
-  };
-
-  const handleSelectPair = (exchange: Exchange, pair: TradingPair) => {
-    window.location.href = `/app/chart/${exchange}/${pair}`;
-  };
-
-  const handleLoadMore = useCallback(async () => {
-    if (!activeTab || isLoadingMore) return;
-    const start = (currentPage + 1) * PAGE_SIZE;
-    const pairsToLoad = allPairs.slice(start, start + PAGE_SIZE);
-
-    if (pairsToLoad.length === 0) return;
-
-    setIsLoadingMore(true);
-    try {
-      const tickers = await api.get24hTickersByExchange(activeTab, pairsToLoad);
-      const sortedTickers = tickers.sort((a, b) => {
-        const indexA = pairsToLoad.indexOf(a.tradingPair);
-        const indexB = pairsToLoad.indexOf(b.tradingPair);
-        return indexA - indexB;
-      });
-      setLoadedTickers(prev => [...prev, ...sortedTickers]);
-      setCurrentPage(prev => prev + 1);
-    } catch (err) {
-      console.error('Failed to load more tickers', err);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [activeTab, currentPage, isLoadingMore, allPairs]);
-
-  const hasMore = allPairs.length > loadedTickers.length;
+  const {
+    metadata,
+    activeTab,
+    livePrices,
+    health,
+    loadedTickers,
+    isLoadingMore,
+    allPairs,
+    hasMore,
+    setActiveTab,
+    handleLoadMore,
+    handleSelectPair,
+    getStatusColor,
+  } = useExchangeOverview();
 
   return (
     <div className="flex-1 bg-[#09090b] overflow-y-auto p-8 relative">

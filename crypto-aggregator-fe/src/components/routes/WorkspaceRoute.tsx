@@ -1,195 +1,32 @@
-import {useEffect, useRef, useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import {Edit2, FolderPlus, Plus, Trash2} from 'lucide-react';
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors
-} from '@dnd-kit/core';
-import {arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates} from '@dnd-kit/sortable';
-import {api, ChartInterval, ChartWidget, LivePrice} from '../../api';
+import {DndContext, closestCenter} from '@dnd-kit/core';
+import {rectSortingStrategy, SortableContext} from '@dnd-kit/sortable';
 import {Button, Card, Select} from '../ui';
 import ChartWidgetCard from '../ChartWidgetCard';
 import SearchModal from '../SearchModal';
+import useWorkspace from '../../hooks/useWorkspace';
 
 export default function WorkspaceRoute() {
-  const [workspaces, setWorkspaces] = useState<{ id: string, name: string }[]>([]);
-  const [widgets, setWidgets] = useState<ChartWidget[]>([]);
-  const [widgetsLoading, setWidgetsLoading] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-  const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>({});
-
   const [searchParams, setSearchParams] = useSearchParams();
-  const initializedRef = useRef(false);
-
-  const activeWsId = searchParams.get('workspace');
-
-  const loadWorkspaces = async (wsIdToSelect?: string) => {
-    const list = await api.getWorkspaces();
-    setWorkspaces(list);
-
-    if (list.length > 0) {
-      const targetId = wsIdToSelect || list[0].id;
-      setSearchParams({workspace: targetId}, {replace: true});
-    } else {
-      setSearchParams({}, {replace: true});
-      setWidgets([]);
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-    api.getWorkspaces().then(list => {
-      if (!isMounted) return;
-      setWorkspaces(list);
-
-      if (!initializedRef.current) {
-        initializedRef.current = true;
-        const urlWsId = searchParams.get('workspace');
-        const validUrlWsId = urlWsId && list.some((w: { id: string }) => w.id === urlWsId) ? urlWsId : undefined;
-        const targetId = validUrlWsId || (list.length > 0 ? list[0].id : null);
-        if (targetId) {
-          setSearchParams({workspace: targetId}, {replace: true});
-        } else {
-          setSearchParams({}, {replace: true});
-        }
-      }
-    }).catch(console.error);
-
-    return () => {
-      isMounted = false;
-    };
-  }, [searchParams, setSearchParams]);
-
-  useEffect(() => {
-    if (!activeWsId) {
-      setWidgets([]);
-      return;
-    }
-    setWidgets([]);
-    setWidgetsLoading(true);
-    api.getWorkspaceWidgets(activeWsId).then(widgetList => {
-      setWidgets(widgetList.sort((a, b) => a.position - b.position));
-    }).catch(console.error)
-      .finally(() => setWidgetsLoading(false));
-  }, [activeWsId]);
-
-  useEffect(() => {
-    if (!activeWsId) return;
-
-    const source = api.streamAllPrices();
-
-    source.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const updates: LivePrice[] = Array.isArray(data) ? data : [data];
-
-        setLivePrices(prev => {
-          const next = {...prev};
-          updates.forEach(p => {
-            if (p.tradingPair) next[p.tradingPair] = p;
-          });
-          return next;
-        });
-      } catch (e) {
-        console.error("Global SSE Parse Error:", e);
-      }
-    };
-
-    return () => source.close();
-  }, [activeWsId]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {activationConstraint: {distance: 5}}),
-    useSensor(KeyboardSensor, {coordinateGetter: sortableKeyboardCoordinates})
-  );
-
-  const handleCreateWorkspace = async () => {
-    const name = prompt("Enter new workspace name:", "New Dashboard");
-    if (name && name.trim()) {
-      try {
-        const newWs = await api.createWorkspace(name.trim());
-        await loadWorkspaces(newWs.id);
-      } catch {
-        alert("Failed to create workspace.");
-      }
-    }
-  };
-
-  const handleRenameWorkspace = async () => {
-    if (!activeWsId) return;
-    const currentWs = workspaces.find(w => w.id === activeWsId);
-    const newName = prompt("Enter new name:", currentWs?.name);
-
-    if (newName && newName.trim() && newName !== currentWs?.name) {
-      try {
-        await api.updateWorkspace(activeWsId, newName.trim());
-        await loadWorkspaces(activeWsId);
-      } catch {
-        alert("Failed to rename workspace.");
-      }
-    }
-  };
-
-  const handleDeleteWorkspace = async () => {
-    if (!activeWsId) return;
-    if (confirm("Are you sure you want to delete this workspace and all its charts?")) {
-      try {
-        await api.deleteWorkspace(activeWsId);
-        await loadWorkspaces();
-      } catch {
-        alert("Failed to delete workspace.");
-      }
-    }
-  };
-
-  const handleAddWidget = async (exchangePairId: string) => {
-    if (!activeWsId) return;
-    const newWidget = await api.addChartWidget(activeWsId, exchangePairId);
-    setWidgets(prev => [...prev, newWidget]);
-  };
-
-  const handleDeleteWidget = async (widgetId: string) => {
-    if (!activeWsId) return;
-    setWidgets(prev => prev.filter(w => w.id !== widgetId));
-    await api.deleteChartWidget(activeWsId, widgetId);
-  };
-
-  const handleUpdateInterval = async (widgetId: string, interval: ChartInterval) => {
-    if (!activeWsId) return;
-    setWidgets(prev => prev.map(w => w.id === widgetId ? {...w, chartInterval: interval} : w));
-    await api.updateChartWidget(activeWsId, widgetId, interval);
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const {active, over} = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = widgets.findIndex(w => w.id === active.id);
-    const newIndex = widgets.findIndex(w => w.id === over.id);
-
-    const newOrder = arrayMove(widgets, oldIndex, newIndex);
-    setWidgets(newOrder);
-
-    if (activeWsId) {
-      const payload = newOrder.map((w, index) => ({chartWidgetId: w.id, position: index + 1}));
-      await api.updateWidgetPositions(activeWsId, payload);
-    }
-  };
-
-  const getGridConfig = () => {
-    const count = widgets.length;
-    if (count === 0) return {gridClass: 'flex items-center justify-center', rows: '', scrollable: false, fillHeight: false};
-    if (count === 1) return {gridClass: 'grid-cols-1', rows: 'grid-rows-1', scrollable: false, fillHeight: true};
-    if (count === 2) return {gridClass: 'grid-cols-2', rows: 'grid-rows-1', scrollable: false, fillHeight: true};
-    if (count === 4) return {gridClass: 'grid-cols-2', rows: 'grid-rows-2', scrollable: false, fillHeight: true};
-    if (count <= 6) return {gridClass: 'grid-cols-3', rows: 'grid-rows-2', scrollable: false, fillHeight: true};
-    return {gridClass: 'grid-cols-3', rows: '', scrollable: true, fillHeight: false};
-  };
+  const {
+    workspaces,
+    widgets,
+    widgetsLoading,
+    isSearchOpen,
+    livePrices,
+    activeWsId,
+    sensors,
+    setIsSearchOpen,
+    handleCreateWorkspace,
+    handleRenameWorkspace,
+    handleDeleteWorkspace,
+    handleAddWidget,
+    handleDeleteWidget,
+    handleUpdateInterval,
+    handleDragEnd,
+    getGridConfig,
+  } = useWorkspace(searchParams, setSearchParams);
 
   return (
     <div className="flex flex-col h-full bg-[#09090b] p-3 relative overflow-hidden">

@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useMemo, useEffect, useState} from 'react';
 import {api, Exchange, TradingPair, LivePrice, Ticker24h} from '../api';
 
 type Props = {
@@ -17,8 +17,7 @@ export default function DashboardRow({index, exchange, pair, priceData, onClick}
     api.getHistoricalPrices(exchange, {tradingPair: pair, chartInterval: 'FIFTEEN_MINUTES', limit: 96})
       .then(data => {
         if (isMounted) setHistory(data.map(d => Number(d.close)));
-      })
-      .catch(console.error);
+      });
 
     return () => {
       isMounted = false;
@@ -28,6 +27,19 @@ export default function DashboardRow({index, exchange, pair, priceData, onClick}
   const displayPair = pair.replace('_', '/');
   const isPositive = (priceData?.priceChangePercent24h ?? 0) >= 0;
   const colorClass = isPositive ? 'text-[#0ecb81]' : 'text-[#f6465d]';
+
+  // ❗ ВИСОКОЕФЕКТИВНЕ: Обчислюємо точки спарклайну в useMemo
+  const sparklinePoints = useMemo(() => {
+    if (history.length <= 1) return '';
+
+    const min = Math.min(...history);
+    const max = Math.max(...history);
+    const range = max - min || 1;
+
+    return history
+      .map((d, i) => `${(i / (history.length - 1)) * 100},${100 - ((d - min) / range) * 100}`)
+      .join(' ');
+  }, [history]);
 
   return (
     <tr
@@ -45,13 +57,16 @@ export default function DashboardRow({index, exchange, pair, priceData, onClick}
       <td className="p-4">
         <div className="flex justify-end">
           <svg viewBox="0 0 100 100" className="w-24 h-10 overflow-visible" preserveAspectRatio="none">
-            {history.length > 1 && (() => {
-              const min = Math.min(...history);
-              const max = Math.max(...history);
-              const range = max - min || 1;
-              const points = history.map((d, i) => `${(i / (history.length - 1)) * 100},${100 - ((d - min) / range) * 100}`).join(' ');
-              return <polyline points={points} fill="none" stroke={isPositive ? '#0ecb81' : '#f6465d'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>;
-            })()}
+            {sparklinePoints && (
+              <polyline
+                points={sparklinePoints}
+                fill="none"
+                stroke={isPositive ? '#0ecb81' : '#f6465d'}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
           </svg>
         </div>
       </td>
