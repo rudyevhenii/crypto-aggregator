@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
+import {useSearchParams} from 'react-router-dom';
 import {Edit2, FolderPlus, Plus, Trash2} from 'lucide-react';
 import {
   closestCenter,
@@ -17,14 +18,16 @@ import SearchModal from '../SearchModal';
 
 export default function WorkspaceRoute() {
   const [workspaces, setWorkspaces] = useState<{ id: string, name: string }[]>([]);
-  const [activeWsId, setActiveWsId] = useState<string | null>(null);
   const [widgets, setWidgets] = useState<ChartWidget[]>([]);
   const [widgetsLoading, setWidgetsLoading] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>({});
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const initializedRef = useRef(false);
+
+  const activeWsId = searchParams.get('workspace');
 
   const loadWorkspaces = async (wsIdToSelect?: string) => {
     const list = await api.getWorkspaces();
@@ -32,9 +35,9 @@ export default function WorkspaceRoute() {
 
     if (list.length > 0) {
       const targetId = wsIdToSelect || list[0].id;
-      setActiveWsId(targetId);
+      setSearchParams({workspace: targetId}, {replace: true});
     } else {
-      setActiveWsId(null);
+      setSearchParams({}, {replace: true});
       setWidgets([]);
     }
   };
@@ -47,21 +50,21 @@ export default function WorkspaceRoute() {
 
       if (!initializedRef.current) {
         initializedRef.current = true;
-        const savedId = localStorage.getItem('activeWsId');
-        const validSavedId = savedId && list.some((w: { id: string }) => w.id === savedId) ? savedId : undefined;
-        const targetId = validSavedId || (list.length > 0 ? list[0].id : null);
-        setActiveWsId(targetId);
+        const urlWsId = searchParams.get('workspace');
+        const validUrlWsId = urlWsId && list.some((w: { id: string }) => w.id === urlWsId) ? urlWsId : undefined;
+        const targetId = validUrlWsId || (list.length > 0 ? list[0].id : null);
+        if (targetId) {
+          setSearchParams({workspace: targetId}, {replace: true});
+        } else {
+          setSearchParams({}, {replace: true});
+        }
       }
     }).catch(console.error);
 
     return () => {
       isMounted = false;
     };
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('activeWsId', activeWsId || '');
-  }, [activeWsId]);
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (!activeWsId) {
@@ -200,7 +203,7 @@ export default function WorkspaceRoute() {
         <div className="flex items-center gap-2">
           <Select
             value={activeWsId || ''}
-            onChange={(value) => setActiveWsId(value)}
+            onChange={(value) => setSearchParams({workspace: value})}
             options={workspaces.map(ws => ({value: ws.id, label: ws.name}))}
             className="min-w-[150px]"
           />
