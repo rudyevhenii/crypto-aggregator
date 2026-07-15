@@ -1,9 +1,10 @@
-import {Outlet, useNavigate} from 'react-router-dom';
+import {Outlet, useNavigate, useLocation} from 'react-router-dom';
 import {useEffect} from 'react';
 import TopBar from '../TopBar';
 
 export default function AppLayout() {
   const navigate = useNavigate();
+  const {pathname} = useLocation();
 
   useEffect(() => {
     if (!localStorage.getItem('accessToken')) {
@@ -32,7 +33,14 @@ export default function AppLayout() {
         <nav className="flex flex-col gap-3 w-full px-2">
           <a
             href="/app/overview"
-            className="w-full aspect-square rounded-xl flex items-center justify-center transition-all text-[#848e9c] hover:text-[#eaecef] hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50"
+            className={`
+              w-full aspect-square rounded-xl flex items-center justify-center transition-all
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50
+              ${pathname === '/app/overview' || pathname.startsWith('/app/chart')
+                ? 'bg-white/10 text-[#fcd535]'
+                : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-white/5'
+              }
+            `}
             title="Market Overview"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -45,7 +53,14 @@ export default function AppLayout() {
 
           <a
             href="/app/workspace"
-            className="w-full aspect-square rounded-xl flex items-center justify-center transition-all text-[#848e9c] hover:text-[#eaecef] hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50"
+            className={`
+              w-full aspect-square rounded-xl flex items-center justify-center transition-all
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50
+              ${pathname.startsWith('/app/workspace')
+                ? 'bg-white/10 text-[#fcd535]'
+                : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-white/5'
+              }
+            `}
             title="Multichart Workspace"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

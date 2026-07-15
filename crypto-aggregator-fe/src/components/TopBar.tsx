@@ -1,10 +1,10 @@
-import {Exchange, ExchangeHealthDto, LivePrice, TradingPair} from '../api';
+import {ExchangeHealthDto, LivePrice} from '../api';
 import {ArrowLeft} from 'lucide-react';
 import {Badge} from './ui';
 
 type Props = {
-  exchange: Exchange | null;
-  pair: TradingPair | null;
+  exchange: string | null | undefined;
+  pair: string | null | undefined;
   livePrice: LivePrice | null;
   health: ExchangeHealthDto | null;
   onBack?: () => void;

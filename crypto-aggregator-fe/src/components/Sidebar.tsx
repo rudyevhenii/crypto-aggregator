@@ -5,8 +5,8 @@ type Props = {
   exchanges: Exchange[];
   pairs: TradingPair[];
   intervals: ChartInterval[];
-  selectedExchange: Exchange;
-  selectedPair: TradingPair;
+  selectedExchange: string;
+  selectedPair: string;
   selectedInterval: ChartInterval;
   livePrice: LivePrice | null;
   onExchangeChange: (e: Exchange) => void;

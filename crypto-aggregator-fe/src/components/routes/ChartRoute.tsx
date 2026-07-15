@@ -14,12 +14,13 @@ const CHART_INTERVALS: ChartInterval[] = [
 ];
 
 export default function ChartRoute() {
-  const {exchange, symbol} = useParams<{ exchange: string; symbol: string }>();
+  const params = useParams<{ exchange: string; symbol: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [selectedExchange, setSelectedExchange] = useState<Exchange>('BINANCE');
-  const [selectedPair, setSelectedPair] = useState<TradingPair>('BTC_USD');
+  const exchange = params.exchange?.toUpperCase() as Exchange | undefined;
+  const symbol = params.symbol?.toUpperCase() as TradingPair | undefined;
+
   const [livePrice, setLivePrice] = useState<LivePrice | null>(null);
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [exchangeHealth, setExchangeHealth] = useState<ExchangeHealthDto | null>(null);
@@ -64,35 +65,36 @@ export default function ChartRoute() {
       navigate('/app/overview');
       return;
     }
-
-    const ex = exchange.toUpperCase() as Exchange;
-    const pair = symbol.toUpperCase() as TradingPair;
-
-    setSelectedExchange(ex);
-    setSelectedPair(pair);
   }, [exchange, symbol, navigate]);
 
   useEffect(() => {
+    if (!exchange || !symbol) return;
+
     api.getMetadata().then(data => {
       setMetadata(data);
-      const exData = data.find(m => m.exchange === selectedExchange);
+      const exData = data.find(m => m.exchange === exchange);
       if (exData) {
         setAvailablePairs(exData.supportedPairs);
         setAvailableIntervals(exData.supportedIntervals);
-        if (!exData.supportedPairs.includes(selectedPair)) {
-          setSelectedPair(exData.supportedPairs[0] || 'BTC_USD');
+        if (!exData.supportedPairs.includes(symbol)) {
+          const fallback = exData.supportedPairs[0] || 'BTC_USD';
+          const currentInterval = searchParams.get('interval');
+          const query = currentInterval ? `?interval=${currentInterval}` : '';
+          navigate(`/app/chart/${exchange}/${fallback}${query}`, { replace: true });
         }
       }
     }).catch(() => {
       // Metadata load failure handled by empty state
     });
-  }, [selectedExchange, selectedPair]);
+    // searchParams is intentionally excluded to avoid re-running on every search change;
+    // the interval query is read directly inside the effect when needed.
+  }, [exchange, symbol, navigate]);
 
   useEffect(() => {
-    if (!selectedExchange || !selectedPair) return;
+    if (!exchange || !symbol) return;
 
-    api.getHistoricalPrices(selectedExchange, {
-      tradingPair: selectedPair,
+    api.getHistoricalPrices(exchange, {
+      tradingPair: symbol,
       chartInterval: effectiveInterval
     })
       .then(setHistorical)
@@ -100,7 +102,7 @@ export default function ChartRoute() {
         // Historical prices load failure handled by empty state
       });
 
-    const priceSource = api.streamPrices(selectedExchange, selectedPair);
+    const priceSource = api.streamPrices(exchange, symbol);
 
     priceSource.onmessage = (event) => {
       try {
@@ -114,7 +116,7 @@ export default function ChartRoute() {
 
     priceSource.onerror = () => priceSource.close();
 
-    const healthSource = api.streamExchangeHealth(selectedExchange);
+    const healthSource = api.streamExchangeHealth(exchange);
 
     healthSource.onmessage = (event) => {
       try {
@@ -135,12 +137,13 @@ export default function ChartRoute() {
       setLivePrice(null);
       setExchangeHealth(null);
     };
-  }, [selectedExchange, selectedPair, effectiveInterval, chartHandle]);
+  }, [exchange, symbol, effectiveInterval, chartHandle]);
 
   const handleLoadMoreHistory = async (oldestTimestamp: string) => {
+    if (!exchange || !symbol) return;
     try {
-      const olderData = await api.getHistoricalPrices(selectedExchange, {
-        tradingPair: selectedPair,
+      const olderData = await api.getHistoricalPrices(exchange, {
+        tradingPair: symbol,
         chartInterval: effectiveInterval,
         endTimeCursor: oldestTimestamp
       });
@@ -164,26 +167,26 @@ export default function ChartRoute() {
   };
 
   const handleExchangeChange = (ex: Exchange) => {
-    setSelectedExchange(ex);
-    const newExData = metadata.find(m => m.exchange === ex);
-    if (newExData) {
-      setSelectedPair(newExData.supportedPairs[0]);
-      const newDefaultInterval = newExData.supportedIntervals.includes('FIFTEEN_MINUTES')
-        ? 'FIFTEEN_MINUTES'
-        : newExData.supportedIntervals[0];
-      setSearchParams(prev => {
-        const next = new URLSearchParams(prev);
-        next.set('interval', newDefaultInterval);
-        return next;
-      }, { replace: true });
-    }
+    const currentInterval = searchParams.get('interval');
+    const query = currentInterval ? `?interval=${currentInterval}` : '';
+    navigate(`/app/chart/${ex}/${symbol}${query}`);
   };
+
+  const handlePairChange = (pair: TradingPair) => {
+    const currentInterval = searchParams.get('interval');
+    const query = currentInterval ? `?interval=${currentInterval}` : '';
+    navigate(`/app/chart/${exchange}/${pair}${query}`);
+  };
+
+  if (!exchange || !symbol) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-full w-full">
       <TopBar
-        exchange={selectedExchange}
-        pair={selectedPair}
+        exchange={exchange}
+        pair={symbol}
         livePrice={livePrice}
         health={exchangeHealth}
         onBack={() => navigate('/app/overview')}
@@ -196,8 +199,8 @@ export default function ChartRoute() {
             interval={effectiveInterval}
             historical={historical}
             onLoadMore={handleLoadMoreHistory}
-            exchange={selectedExchange}
-            tradingPair={selectedPair}
+            exchange={exchange}
+            tradingPair={symbol}
           />
         </main>
 
@@ -205,12 +208,12 @@ export default function ChartRoute() {
           exchanges={metadata.map(m => m.exchange)}
           pairs={availablePairs}
           intervals={availableIntervals}
-          selectedExchange={selectedExchange}
-          selectedPair={selectedPair}
+          selectedExchange={exchange}
+          selectedPair={symbol}
           selectedInterval={effectiveInterval}
           livePrice={livePrice}
           onExchangeChange={handleExchangeChange}
-          onPairChange={setSelectedPair}
+          onPairChange={handlePairChange}
           onIntervalChange={handleIntervalChange}
         />
       </div>
