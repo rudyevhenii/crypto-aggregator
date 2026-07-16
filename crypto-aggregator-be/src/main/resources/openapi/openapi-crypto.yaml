@@ -97,9 +97,17 @@ paths:
       operationId: "logout"
       tags:
         - "Auth"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
       responses:
         "204":
           description: "Successfully logged out"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
         "500":
@@ -749,6 +757,17 @@ components:
 
     TokenResponse:
       type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    LogoutRequest:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
       properties:
         accessToken:
           type: string

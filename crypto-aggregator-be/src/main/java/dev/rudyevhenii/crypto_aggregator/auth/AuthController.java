@@ -1,6 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.auth;
 
 import dev.rudyevhenii.crypto_aggregator.api.dto.LoginRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.LogoutRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.RefreshTokenRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.RegisterRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.TokenResponseRqDto;
@@ -12,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.NativeWebRequest;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,7 +20,6 @@ public class AuthController implements AuthApi {
 
     private final AuthService authService;
     private final AuthMapper mapper;
-    private final NativeWebRequest webRequest;
 
     @Override
     public ResponseEntity<TokenResponseRqDto> register(RegisterRequestRqDto request) {
@@ -44,12 +43,8 @@ public class AuthController implements AuthApi {
     }
 
     @Override
-    public ResponseEntity<Void> logout() {
-        String authHeader = webRequest.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            authService.logout(token);
-        }
+    public ResponseEntity<Void> logout(LogoutRequestRqDto request) {
+        authService.logout(mapper.map(request));
         return ResponseEntity.noContent()
                 .build();
     }

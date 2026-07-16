@@ -21,6 +21,8 @@ import java.util.function.Function;
 @Service
 public class JwtServiceImpl implements JwtService {
 
+    private static final String TOKEN_TYPE = "type";
+
     @Value("${security.jwt.access-token-expiration}")
     private long accessTokenExpiration;
 
@@ -32,12 +34,12 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateAccessToken(User user) {
-        return generateToken(user, accessTokenExpiration);
+        return generateToken(user, accessTokenExpiration, TokenType.ACCESS_TOKEN);
     }
 
     @Override
     public String generateRefreshToken(User user) {
-        return generateToken(user, refreshTokenExpiration);
+        return generateToken(user, refreshTokenExpiration, TokenType.REFRESH_TOKEN);
     }
 
     @Override
@@ -51,13 +53,19 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    public TokenType extractTokenType(String token) {
+        return TokenType.valueOf(extractClaims(claims -> claims.get(TOKEN_TYPE, String.class), token));
+    }
+
+    @Override
     public boolean isTokenValid(String token, User user) {
         return !isTokenExpired(token) && user.getEmail().equals(extractSubject(token));
     }
 
-    private String generateToken(User user, long expiration) {
+    private String generateToken(User user, long expiration, TokenType tokenType) {
         return Jwts.builder()
                 .subject(user.getEmail())
+                .claim(TOKEN_TYPE, tokenType)
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plus(expiration, ChronoUnit.MILLIS)))
                 .signWith(signWithSecretKey())

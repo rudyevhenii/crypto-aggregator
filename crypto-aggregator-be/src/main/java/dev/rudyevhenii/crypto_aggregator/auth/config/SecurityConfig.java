@@ -1,5 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.auth.config;
 
+import dev.rudyevhenii.crypto_aggregator.auth.entry.JwtAuthenticationEntryPoint;
 import dev.rudyevhenii.crypto_aggregator.auth.filter.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthenticationEntryPoint jwtEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -29,6 +31,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**", "/api/exchanges/**", "/api/historical/**",
                                 "/api/stream/**").permitAll()
                         .requestMatchers("/error").permitAll()
@@ -38,6 +41,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtEntryPoint))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .build();

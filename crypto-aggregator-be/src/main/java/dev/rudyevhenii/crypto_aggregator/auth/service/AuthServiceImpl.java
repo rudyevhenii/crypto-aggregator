@@ -2,15 +2,18 @@ package dev.rudyevhenii.crypto_aggregator.auth.service;
 
 import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LoginRequest;
+import dev.rudyevhenii.crypto_aggregator.auth.dto.LogoutRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.RefreshTokenRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.RegisterRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.TokenResponseDto;
 import dev.rudyevhenii.crypto_aggregator.auth.repository.UserRepository;
 import dev.rudyevhenii.crypto_aggregator.auth.security.SecurityUserDetails;
+import dev.rudyevhenii.crypto_aggregator.core.exception.InvalidJwtTokenException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.JwtTokenExpirationException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceAlreadyExistsException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
+import dev.rudyevhenii.crypto_aggregator.core.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -56,11 +59,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponseDto refreshToken(RefreshTokenRequest refreshToken) {
-        String email = jwtService.extractSubject(refreshToken.refreshToken());
+        String token = refreshToken.refreshToken();
+        if (!jwtService.extractTokenType(token).equals(TokenType.REFRESH_TOKEN)) {
+            throw new InvalidJwtTokenException("Expected REFRESH token");
+        }
+        String email = jwtService.extractSubject(token);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User does not exist"));
 
-        if (!jwtService.isTokenValid(refreshToken.refreshToken(), user)) {
+        if (!jwtService.isTokenValid(token, user)) {
             throw new JwtTokenExpirationException("Token is invalid for this user");
         }
         log.info("Generating refresh token for user {}", user.getId());
@@ -68,8 +75,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(String token) {
-        log.info("Invalidating refresh token for user {}", token);
+    public void logout(LogoutRequest logoutRequest) {
+        log.info("Invalidating access token for user {}", SecurityUtils.getCurrentUserId());
+        invalidateToken(logoutRequest.accessToken());
+        log.info("Invalidating refresh token for user {}", SecurityUtils.getCurrentUserId());
+        invalidateToken(logoutRequest.refreshToken());
+    }
+
+    private void invalidateToken(String token) {
         Date expiration = jwtService.extractExpiration(token);
         Duration ttl = Duration.between(Instant.now(), expiration.toInstant());
         tokenBlacklistService.blacklist(token, ttl);
