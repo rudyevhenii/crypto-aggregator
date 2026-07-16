@@ -254,7 +254,18 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ name }), // fetchAuth вже має 'Content-Type': 'application/json'
     });
-    if (!res.ok) throw new Error('Failed to create workspace');
+    if (!res.ok) {
+      let message = 'Failed to create workspace';
+      if (res.status === 409) {
+        try {
+          const data = await res.json();
+          message = data?.message || message;
+        } catch {
+          // keep generic message if JSON parsing fails
+        }
+      }
+      throw new Error(message);
+    }
     return res.json();
   },
 
@@ -263,7 +274,18 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ name }),
     });
-    if (!res.ok) throw new Error('Failed to rename workspace');
+    if (!res.ok) {
+      let message = 'Failed to rename workspace';
+      if (res.status === 409) {
+        try {
+          const data = await res.json();
+          message = data?.message || message;
+        } catch {
+          // keep generic message if JSON parsing fails
+        }
+      }
+      throw new Error(message);
+    }
     return res.json();
   },
 

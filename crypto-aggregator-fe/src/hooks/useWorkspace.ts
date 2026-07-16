@@ -26,9 +26,15 @@ type UseWorkspaceReturn = {
   activeWsId: string | null;
   sensors: ReturnType<typeof useSensors>;
   setIsSearchOpen: (open: boolean) => void;
-  handleCreateWorkspace: () => Promise<void>;
-  handleRenameWorkspace: () => Promise<void>;
-  handleDeleteWorkspace: () => Promise<void>;
+  handleCreateWorkspace: (name: string) => Promise<void>;
+  isRenameModalOpen: boolean;
+  isDeleteModalOpen: boolean;
+  openRenameModal: () => void;
+  closeRenameModal: () => void;
+  confirmRename: (newName: string) => Promise<void>;
+  openDeleteModal: () => void;
+  closeDeleteModal: () => void;
+  confirmDelete: () => Promise<void>;
   handleAddWidget: (exchangePairId: string) => Promise<void>;
   handleDeleteWidget: (widgetId: string) => Promise<void>;
   handleUpdateInterval: (widgetId: string, interval: ChartInterval) => Promise<void>;
@@ -42,6 +48,8 @@ export default function useWorkspace(searchParams: ReturnType<typeof useSearchPa
   const [widgetsLoading, setWidgetsLoading] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>({});
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const initializedRef = useRef(false);
 
@@ -130,43 +138,39 @@ export default function useWorkspace(searchParams: ReturnType<typeof useSearchPa
     useSensor(KeyboardSensor)
   );
 
-  const handleCreateWorkspace = useCallback(async () => {
-    const name = prompt('Enter new workspace name:', 'New Dashboard');
-    if (name && name.trim()) {
-      try {
-        const newWs = await api.createWorkspace(name.trim());
-        await loadWorkspaces(newWs.id);
-      } catch {
-        alert('Failed to create workspace.');
-      }
-    }
+  const handleCreateWorkspace = useCallback(async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const newWs = await api.createWorkspace(trimmed);
+    await loadWorkspaces(newWs.id);
   }, [loadWorkspaces]);
 
-  const handleRenameWorkspace = useCallback(async () => {
-    if (!activeWsId) return;
-    const currentWs = workspaces.find(w => w.id === activeWsId);
-    const newName = prompt('Enter new name:', currentWs?.name);
+  const openRenameModal = useCallback(() => {
+    if (activeWsId) setIsRenameModalOpen(true);
+  }, [activeWsId]);
 
-    if (newName && newName.trim() && newName !== currentWs?.name) {
-      try {
-        await api.updateWorkspace(activeWsId, newName.trim());
-        await loadWorkspaces(activeWsId);
-      } catch {
-        alert('Failed to rename workspace.');
-      }
-    }
-  }, [activeWsId, workspaces, loadWorkspaces]);
+  const closeRenameModal = useCallback(() => {
+    setIsRenameModalOpen(false);
+  }, []);
 
-  const handleDeleteWorkspace = useCallback(async () => {
+  const confirmRename = useCallback(async (newName: string) => {
     if (!activeWsId) return;
-    if (confirm('Are you sure you want to delete this workspace and all its charts?')) {
-      try {
-        await api.deleteWorkspace(activeWsId);
-        await loadWorkspaces();
-      } catch {
-        alert('Failed to delete workspace.');
-      }
-    }
+    await api.updateWorkspace(activeWsId, newName.trim());
+    await loadWorkspaces(activeWsId);
+  }, [activeWsId, loadWorkspaces]);
+
+  const openDeleteModal = useCallback(() => {
+    if (activeWsId) setIsDeleteModalOpen(true);
+  }, [activeWsId]);
+
+  const closeDeleteModal = useCallback(() => {
+    setIsDeleteModalOpen(false);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!activeWsId) return;
+    await api.deleteWorkspace(activeWsId);
+    await loadWorkspaces();
   }, [activeWsId, loadWorkspaces]);
 
   const handleAddWidget = useCallback(async (exchangePairId: string) => {
@@ -222,8 +226,14 @@ export default function useWorkspace(searchParams: ReturnType<typeof useSearchPa
     sensors,
     setIsSearchOpen,
     handleCreateWorkspace,
-    handleRenameWorkspace,
-    handleDeleteWorkspace,
+    isRenameModalOpen,
+    isDeleteModalOpen,
+    openRenameModal,
+    closeRenameModal,
+    confirmRename,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDelete,
     handleAddWidget,
     handleDeleteWidget,
     handleUpdateInterval,

@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import {Edit2, FolderPlus, Plus, Trash2} from 'lucide-react';
 import {DndContext, closestCenter} from '@dnd-kit/core';
@@ -5,10 +6,14 @@ import {rectSortingStrategy, SortableContext} from '@dnd-kit/sortable';
 import {Button, Card, Select} from '../ui';
 import ChartWidgetCard from '../ChartWidgetCard';
 import SearchModal from '../SearchModal';
+import RenameWorkspaceModal from '../modals/RenameWorkspaceModal';
+import DeleteWorkspaceModal from '../modals/DeleteWorkspaceModal';
+import CreateWorkspaceModal from '../modals/CreateWorkspaceModal';
 import useWorkspace from '../../hooks/useWorkspace';
 
 export default function WorkspaceRoute() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const {
     workspaces,
     widgets,
@@ -19,8 +24,14 @@ export default function WorkspaceRoute() {
     sensors,
     setIsSearchOpen,
     handleCreateWorkspace,
-    handleRenameWorkspace,
-    handleDeleteWorkspace,
+    isRenameModalOpen,
+    isDeleteModalOpen,
+    openRenameModal,
+    closeRenameModal,
+    confirmRename,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDelete,
     handleAddWidget,
     handleDeleteWidget,
     handleUpdateInterval,
@@ -47,12 +58,12 @@ export default function WorkspaceRoute() {
 
           {activeWsId && (
             <div className="flex items-center gap-0.5 border-l border-white/5 pl-2 ml-1">
-              <button onClick={handleRenameWorkspace}
+              <button onClick={openRenameModal}
                       className="p-1.5 text-zinc-400 hover:text-zinc-50 hover:bg-white/5 rounded-lg transition-colors"
                       title="Rename Workspace">
                 <Edit2 size={14}/>
               </button>
-              <button onClick={handleDeleteWorkspace}
+              <button onClick={openDeleteModal}
                       className="p-1.5 text-zinc-400 hover:text-[#f6465d] hover:bg-[#f6465d]/10 rounded-lg transition-colors"
                       title="Delete Workspace">
                 <Trash2 size={14}/>
@@ -62,7 +73,7 @@ export default function WorkspaceRoute() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={handleCreateWorkspace} leftIcon={<FolderPlus size={16}/>}>
+          <Button variant="secondary" size="sm" onClick={() => setIsCreateModalOpen(true)} leftIcon={<FolderPlus size={16}/>}>
             New Workspace
           </Button>
           <Button size="sm" onClick={() => setIsSearchOpen(true)} leftIcon={<Plus size={16}/>} disabled={!activeWsId} className="shadow-[0_0_20px_rgba(252,213,53,0.3)]">
@@ -76,7 +87,7 @@ export default function WorkspaceRoute() {
         {!activeWsId ? (
           <Card className="h-full flex flex-col items-center justify-center border-dashed border-white/10">
             <p className="mb-3 text-sm text-zinc-400">You don't have any workspaces yet.</p>
-            <Button variant="ghost" size="sm" onClick={handleCreateWorkspace}>
+            <Button variant="ghost" size="sm" onClick={() => setIsCreateModalOpen(true)}>
               Create your first workspace
             </Button>
           </Card>
@@ -113,6 +124,26 @@ export default function WorkspaceRoute() {
           );
         })()}
       </div>
+
+      <RenameWorkspaceModal
+        isOpen={isRenameModalOpen}
+        onClose={closeRenameModal}
+        currentName={workspaces.find(w => w.id === activeWsId)?.name || ''}
+        onConfirm={confirmRename}
+      />
+      {activeWsId && (
+        <DeleteWorkspaceModal
+          isOpen={isDeleteModalOpen}
+          onClose={closeDeleteModal}
+          workspaceName={workspaces.find(w => w.id === activeWsId)?.name || ''}
+          onConfirm={confirmDelete}
+        />
+      )}
+      <CreateWorkspaceModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onConfirm={handleCreateWorkspace}
+      />
 
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={handleAddWidget}/>
     </div>
