@@ -124,7 +124,16 @@ export const api = {
   },
 
   logout: async (): Promise<void> => {
-    const res = await fetchAuth('/api/auth/logout', { method: 'POST' });
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    const res = await fetch(`${BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify({ accessToken, refreshToken }),
+    });
     if (!res.ok && res.status !== 204) {
       throw new Error('Logout failed');
     }

@@ -1,5 +1,6 @@
 import {Outlet, useNavigate, useLocation} from 'react-router-dom';
 import {useEffect} from 'react';
+import {api} from '../../api';
 import TopBar from '../TopBar';
 
 export default function AppLayout() {
@@ -73,11 +74,17 @@ export default function AppLayout() {
 
         <div className="mt-auto w-full px-2">
           <button
-            onClick={() => {
-              localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
-              localStorage.removeItem('appView');
-              navigate('/');
+            onClick={async () => {
+              try {
+                await api.logout();
+              } catch {
+                // ignore logout API failure and continue with local cleanup
+              } finally {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('appView');
+                navigate('/');
+              }
             }}
             className="w-full aspect-square rounded-xl flex items-center justify-center text-[#848e9c] hover:text-[#f6465d] hover:bg-[#f6465d]/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f6465d]/50"
             title="Log Out"
