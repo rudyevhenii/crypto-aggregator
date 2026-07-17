@@ -32,11 +32,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
-                        .requestMatchers("/api/auth/**", "/api/exchanges/**", "/api/historical/**",
-                                "/api/stream/**").permitAll()
-                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/stream/**", "/error").permitAll()
                         .requestMatchers("/api/exchange-pairs/**").authenticated()
                         .requestMatchers("/api/workspaces/**").authenticated()
+                        .requestMatchers("/api/historical/**").authenticated()
+                        .requestMatchers("/api/exchanges/**").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -1,10 +1,13 @@
 openapi: 3.1.0
 info:
   title: Crypto Aggregator API
-  description: Crypto Aggregator API
+  description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
   version: 1.0.0
 servers:
   - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
 
 paths:
   # ════════════════════════════════════════════════════════════════
@@ -13,10 +16,12 @@ paths:
 
   /api/auth/register:
     post:
-      summary: "Endpoint to register a user"
+      summary: "Register a new user"
       operationId: "register"
       tags:
         - "Auth"
+      security:
+        - {}
       requestBody:
         required: true
         content:
@@ -24,8 +29,8 @@ paths:
             schema:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
-        "200":
-          description: "Successfully registers a user and returns access and refresh jwt tokens"
+        "201":
+          description: "User registered; returns access and refresh JWT tokens"
           content:
             application/json:
               schema:
@@ -39,10 +44,12 @@ paths:
 
   /api/auth/login:
     post:
-      summary: "Endpoint to login a user"
+      summary: "Login and receive JWT tokens"
       operationId: "login"
       tags:
         - "Auth"
+      security:
+        - {}
       requestBody:
         required: true
         content:
@@ -51,7 +58,7 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         "200":
-          description: "Successfully registers a user and returns access and refresh jwt tokens"
+          description: "Login successful; returns access and refresh JWT tokens"
           content:
             application/json:
               schema:
@@ -65,10 +72,12 @@ paths:
 
   /api/auth/refresh-token:
     post:
-      summary: "Refreshes jwt access and refresh tokens"
+      summary: "Refresh JWT access and refresh tokens"
       operationId: "refreshToken"
       tags:
         - "Auth"
+      security:
+        - {}
       requestBody:
         required: true
         content:
@@ -77,7 +86,7 @@ paths:
               $ref: '#/components/schemas/RefreshTokenRequest'
       responses:
         "200":
-          description: "Returns refreshed jwt tokens"
+          description: "Returns refreshed JWT tokens"
           content:
             application/json:
               schema:
@@ -93,7 +102,7 @@ paths:
 
   /api/auth/logout:
     post:
-      summary: "Logout user by blacklisting the current access token"
+      summary: "Logout by blacklisting the current access token"
       operationId: "logout"
       tags:
         - "Auth"
@@ -117,10 +126,9 @@ paths:
   #  Historical
   # ════════════════════════════════════════════════════════════════
 
-  # TODO: add bearer info to the requests
   /api/historical/exchanges/{exchange}/klines:
     get:
-      summary: "Get klines charts"
+      summary: "Get historical klines for a trading pair"
       operationId: "getHistoricalPrices"
       tags:
         - "HistoricalExchange"
@@ -134,7 +142,7 @@ paths:
             $ref: '#/components/schemas/HistoricalPriceRequest'
       responses:
         "200":
-          description: "Successfully retrieves array of historical charts"
+          description: "Returns historical OHLCV data"
           content:
             application/json:
               schema:
@@ -148,7 +156,7 @@ paths:
 
   /api/historical/exchanges/{exchange}/tickers/24h:
     get:
-      summary: "Get tickers for the exchange"
+      summary: "Get 24h tickers for multiple trading pairs"
       operationId: "get24hTickersByExchange"
       tags:
         - "HistoricalExchange"
@@ -163,7 +171,7 @@ paths:
               $ref: '#/components/schemas/TradingPair'
       responses:
         "200":
-          description: "Successfully retrieves array of tickers data for exchange"
+          description: "Returns 24h ticker data for requested pairs"
           content:
             application/json:
               schema:
@@ -177,7 +185,7 @@ paths:
 
   /api/historical/exchanges/{exchange}/tickers/24h/{pair}:
     get:
-      summary: "Get tickers for a trading pair"
+      summary: "Get 24h ticker for a single trading pair"
       operationId: "get24hTickerForPair"
       tags:
         - "HistoricalExchange"
@@ -186,7 +194,7 @@ paths:
         - $ref: '#/components/parameters/TradingPairParam'
       responses:
         "200":
-          description: "Successfully retrieves ticker for a trading pair"
+          description: "Returns 24h ticker data for the requested pair"
           content:
             application/json:
               schema:
@@ -202,13 +210,15 @@ paths:
 
   /api/stream/exchanges/prices:
     get:
-      summary: "Stream prices from all exchanges (SSE)"
+      summary: "Stream live prices from all exchanges (SSE)"
       operationId: "streamAllPrices"
       tags:
         - "LiveExchange"
+      security:
+        - {}
       responses:
         "200":
-          description: "Continuous event stream for updating all prices"
+          description: "Continuous SSE stream of live prices"
           content:
             text/event-stream:
               schema:
@@ -218,15 +228,17 @@ paths:
 
   /api/stream/exchanges/{exchange}/prices:
     get:
-      summary: "Stream prices for the exchange (SSE)"
+      summary: "Stream live prices for an exchange (SSE)"
       operationId: "streamPriceByExchange"
       tags:
         - "LiveExchange"
+      security:
+        - {}
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
       responses:
         "200":
-          description: "Continuous event stream for updating all prices in exchange"
+          description: "Continuous SSE stream of live prices for the exchange"
           content:
             text/event-stream:
               schema:
@@ -234,16 +246,18 @@ paths:
 
   /api/stream/exchanges/{exchange}/prices/{pair}:
     get:
-      summary: "Stream prices for a trading pair (SSE)"
+      summary: "Stream live prices for a trading pair (SSE)"
       operationId: "streamSinglePair"
       tags:
         - "LiveExchange"
+      security:
+        - {}
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
         - $ref: '#/components/parameters/TradingPairParam'
       responses:
         "200":
-          description: "Continuous event stream for updating prices for specific trading pair"
+          description: "Continuous SSE stream of live prices for the trading pair"
           content:
             text/event-stream:
               schema:
@@ -251,15 +265,17 @@ paths:
 
   /api/stream/exchanges/{exchange}/health:
     get:
-      summary: "Stream exchange health (SSE)"
+      summary: "Stream exchange connection health (SSE)"
       operationId: "streamExchangeHealth"
       tags:
         - "LiveExchange"
+      security:
+        - {}
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
       responses:
         "200":
-          description: "Continuous event stream for the health state of the exchange"
+          description: "Continuous SSE stream of exchange health status"
           content:
             text/event-stream:
               schema:
@@ -271,13 +287,13 @@ paths:
 
   /api/exchanges:
     get:
-      summary: "Get all exchanges"
+      summary: "Get supported exchanges"
       operationId: "getSupportedExchanges"
       tags:
         - "ExchangeMetadata"
       responses:
         "200":
-          description: "OK"
+          description: "Returns list of supported exchanges"
           content:
             application/json:
               schema:
@@ -287,16 +303,15 @@ paths:
 
   /api/exchanges/{exchange}/pairs:
     get:
-      summary: "Get all trading pairs"
+      summary: "Get supported trading pairs for an exchange"
       operationId: "getSupportedPairs"
       tags:
         - "ExchangeMetadata"
-      description: "Returns all trading pairs for exchange"
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
       responses:
         "200":
-          description: "OK"
+          description: "Returns supported trading pairs"
           content:
             application/json:
               schema:
@@ -306,7 +321,7 @@ paths:
 
   /api/exchanges/{exchange}/intervals:
     get:
-      summary: "Get intervals for the exchange"
+      summary: "Get supported chart intervals for an exchange"
       operationId: "getSupportedIntervals"
       tags:
         - "ExchangeMetadata"
@@ -314,7 +329,7 @@ paths:
         - $ref: '#/components/parameters/ExchangeParam'
       responses:
         "200":
-          description: "OK"
+          description: "Returns supported chart intervals"
           content:
             application/json:
               schema:
@@ -324,13 +339,13 @@ paths:
 
   /api/exchanges/metadata:
     get:
-      summary: "Get all metadata"
+      summary: "Get all exchange metadata"
       operationId: "getAllMetadata"
       tags:
         - "ExchangeMetadata"
       responses:
         "200":
-          description: "OK"
+          description: "Returns metadata for all supported exchanges"
           content:
             application/json:
               schema:
@@ -350,7 +365,7 @@ paths:
         - "ExchangePair"
       responses:
         "200":
-          description: "OK"
+          description: "Returns all exchange pairs"
           content:
             application/json:
               schema:
@@ -364,7 +379,7 @@ paths:
 
   /api/exchange-pairs/search:
     get:
-      summary: "Search exchange pairs by parameter"
+      summary: "Search exchange pairs by exchange and/or trading pair"
       operationId: "searchExchangePairs"
       tags:
         - "ExchangePair"
@@ -381,7 +396,7 @@ paths:
             type: string
       responses:
         "200":
-          description: "OK"
+          description: "Returns matching exchange pairs"
           content:
             application/json:
               schema:
@@ -399,7 +414,7 @@ paths:
 
   /api/workspaces:
     post:
-      summary: "Create new workspace"
+      summary: "Create a new workspace"
       operationId: "createWorkspace"
       tags:
         - "Workspace"
@@ -411,7 +426,7 @@ paths:
               $ref: '#/components/schemas/WorkspaceRequest'
       responses:
         "201":
-          description: "CREATED"
+          description: "Workspace created"
           content:
             application/json:
               schema:
@@ -426,13 +441,13 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
     get:
-      summary: "Get all workspaces"
+      summary: "Get all workspaces for the current user"
       operationId: "getAllWorkspaces"
       tags:
         - "Workspace"
       responses:
         "200":
-          description: "OK"
+          description: "Returns all workspaces"
           content:
             application/json:
               schema:
@@ -446,7 +461,7 @@ paths:
 
   /api/workspaces/{workspaceId}:
     patch:
-      summary: "Update workspace"
+      summary: "Update a workspace"
       operationId: "updateWorkspace"
       tags:
         - "Workspace"
@@ -460,7 +475,7 @@ paths:
               $ref: '#/components/schemas/WorkspaceRequest'
       responses:
         "200":
-          description: "OK"
+          description: "Returns updated workspace"
           content:
             application/json:
               schema:
@@ -475,7 +490,7 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
     get:
-      summary: "Get workspace"
+      summary: "Get a workspace by ID"
       operationId: "getWorkspaceById"
       tags:
         - "Workspace"
@@ -483,7 +498,7 @@ paths:
         - $ref: '#/components/parameters/WorkspaceParam'
       responses:
         "200":
-          description: "OK"
+          description: "Returns the requested workspace"
           content:
             application/json:
               schema:
@@ -504,7 +519,7 @@ paths:
         - $ref: '#/components/parameters/WorkspaceParam'
       responses:
         "204":
-          description: "No content"
+          description: "Workspace deleted"
         "404":
           $ref: 'common-components.yaml#/components/responses/NotFoundError'
         "500":
@@ -512,7 +527,7 @@ paths:
 
   /api/workspaces/{workspaceId}/widgets:
     post:
-      summary: "Create chart widget"
+      summary: "Create a chart widget in a workspace"
       operationId: "createChartWidget"
       tags:
         - "ChartWidget"
@@ -526,7 +541,7 @@ paths:
               $ref: '#/components/schemas/ChartWidgetRequest'
       responses:
         "201":
-          description: "Created"
+          description: "Chart widget created"
           content:
             application/json:
               schema:
@@ -549,7 +564,7 @@ paths:
         - $ref: '#/components/parameters/WorkspaceParam'
       responses:
         "200":
-          description: "Ok"
+          description: "Returns all chart widgets for the workspace"
           content:
             application/json:
               schema:
@@ -566,7 +581,7 @@ paths:
 
   /api/workspaces/{workspaceId}/widgets/{chartWidgetId}:
     patch:
-      summary: "Update specific chart widget"
+      summary: "Update a specific chart widget"
       operationId: "updateChartWidget"
       tags:
         - "ChartWidget"
@@ -580,7 +595,7 @@ paths:
               $ref: '#/components/schemas/UpdateChartWidgetRequest'
       responses:
         "200":
-          description: "Ok"
+          description: "Returns updated chart widget"
           content:
             application/json:
               schema:
@@ -595,7 +610,7 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
     delete:
-      summary: "Delete specific chart widget"
+      summary: "Delete a specific chart widget"
       operationId: "deleteChartWidget"
       tags:
         - "ChartWidget"
@@ -604,7 +619,7 @@ paths:
         - $ref: '#/components/parameters/ChartWidgetParam'
       responses:
         "204":
-          description: "No content"
+          description: "Chart widget deleted"
         "400":
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
@@ -631,7 +646,7 @@ paths:
                 $ref: '#/components/schemas/UpdateChartWidgetPositionsRequest'
       responses:
         "204":
-          description: "No content"
+          description: "Positions updated"
         "400":
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
@@ -642,6 +657,13 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
 components:
+  # ── Security scheme ───────────────────────────────
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     # ── Common enums & error models ───────────────────────────────
     Exchange:
@@ -709,6 +731,7 @@ components:
     # ── Auth schemas ──────────────────────────────────────────────
     RegisterRequest:
       type: object
+      description: "User registration payload"
       required:
         - email
         - password
@@ -718,22 +741,27 @@ components:
         email:
           type: string
           format: email
+          description: "User email address"
         password:
           type: string
           format: password
           minLength: 6
           maxLength: 100
+          description: "User password"
         firstName:
           type: string
           minLength: 2
           maxLength: 50
+          description: "User first name"
         lastName:
           type: string
           minLength: 2
           maxLength: 50
+          description: "User last name"
 
     LoginRequest:
       type: object
+      description: "User login payload"
       required:
         - email
         - password
@@ -741,130 +769,205 @@ components:
         email:
           type: string
           format: email
+          description: "User email address"
         password:
           type: string
           format: password
           minLength: 6
           maxLength: 100
+          description: "User password"
 
     RefreshTokenRequest:
       type: object
+      description: "Refresh token request payload"
       required:
         - refreshToken
       properties:
         refreshToken:
           type: string
+          description: "Valid refresh token"
 
     TokenResponse:
       type: object
+      description: "JWT token response"
       properties:
         accessToken:
           type: string
+          description: "Short-lived access token"
         refreshToken:
           type: string
+          description: "Long-lived refresh token"
+      example:
+        accessToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNjk4OTk1MDAwLCJleHAiOjE2OTkwMzgwMDB9.signature"
+        refreshToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNjk4OTk1MDAwLCJ0eXBlIjoicmVmcmVzaCJ9.signature"
 
     LogoutRequest:
       type: object
+      description: "Logout request payload"
       required:
         - accessToken
         - refreshToken
       properties:
         accessToken:
           type: string
+          description: "Access token to blacklist"
         refreshToken:
           type: string
+          description: "Refresh token to blacklist"
 
     # ── Historical schemas ────────────────────────────────────────
     HistoricalPriceRequest:
       type: object
+      description: "Historical price request parameters"
       required:
         - tradingPair
         - chartInterval
       properties:
         tradingPair:
           $ref: '#/components/schemas/TradingPair'
+          description: "Trading pair to fetch"
         chartInterval:
           $ref: '#/components/schemas/ChartInterval'
+          description: "Chart interval for OHLCV data"
         limit:
           type: integer
           format: int32
           minimum: 1
           default: 100
           maximum: 200
+          description: "Maximum number of results"
         endTimeCursor:
           type: string
           format: date-time
+          description: "End time cursor for pagination"
 
     HistoricalPrice:
       type: object
+      description: "Historical OHLCV price data point"
       properties:
         openTime:
           type: string
           format: date-time
+          description: "Candle open time"
         open:
           type: number
+          description: "Opening price"
         high:
           type: number
+          description: "Highest price"
         low:
           type: number
+          description: "Lowest price"
         close:
           type: number
+          description: "Closing price"
         volume:
           type: number
+          description: "Trading volume"
+      example:
+        openTime: "2024-01-15T00:00:00Z"
+        open: 42150.50
+        high: 42380.25
+        low: 41980.00
+        close: 42250.75
+        volume: 1250.45
 
     Ticker24h:
       type: object
+      description: "24-hour ticker statistics"
       properties:
         exchange:
           $ref: '#/components/schemas/Exchange'
+          description: "Exchange name"
         tradingPair:
           $ref: '#/components/schemas/TradingPair'
+          description: "Trading pair"
         lastPrice:
           type: number
+          description: "Last traded price"
         priceChangePercent24h:
           type: number
+          description: "24-hour price change percentage"
         high24h:
           type: number
+          description: "24-hour highest price"
         low24h:
           type: number
+          description: "24-hour lowest price"
         volume24h:
           type: number
+          description: "24-hour trading volume"
+      example:
+        exchange: "BINANCE"
+        tradingPair: "BTC_USD"
+        lastPrice: 42300.0
+        priceChangePercent24h: 2.5
+        high24h: 42500.0
+        low24h: 41800.0
+        volume24h: 12345.67
 
     # ── Live schemas ──────────────────────────────────────────────
     LivePrice:
       type: object
+      description: "Live price update"
       properties:
         exchange:
           $ref: '#/components/schemas/Exchange'
+          description: "Exchange name"
         tradingPair:
           $ref: '#/components/schemas/TradingPair'
+          description: "Trading pair"
         lastPrice:
           type: number
+          description: "Last traded price"
         priceChangePercent24h:
           type: number
+          description: "24-hour price change percentage"
         highPrice24h:
           type: number
+          description: "24-hour highest price"
         lowPrice24h:
           type: number
+          description: "24-hour lowest price"
         volume24h:
           type: number
+          description: "24-hour trading volume"
         timestamp:
           type: string
           format: date-time
+          description: "Update timestamp"
+      example:
+        exchange: "BINANCE"
+        tradingPair: "BTC_USD"
+        lastPrice: 42300.0
+        priceChangePercent24h: 2.5
+        highPrice24h: 42500.0
+        lowPrice24h: 41800.0
+        volume24h: 12345.67
+        timestamp: "2024-01-01T00:00:00Z"
 
     ExchangeHealth:
       type: object
+      description: "Exchange connection health status"
       properties:
         exchange:
           $ref: '#/components/schemas/Exchange'
+          description: "Exchange name"
         connectionStatus:
           $ref: '#/components/schemas/ConnectionStatus'
+          description: "Current connection status"
         timestamp:
           type: string
           format: date-time
+          description: "Status timestamp"
+      example:
+        exchange: "BINANCE"
+        connectionStatus: "CONNECTED"
+        timestamp: "2024-01-01T00:00:00Z"
 
     ConnectionStatus:
       type: string
+      description: "Exchange connection status"
       enum:
         - CONNECTED
         - DISCONNECTED
@@ -874,99 +977,157 @@ components:
     # ── Metadata schemas ──────────────────────────────────────────
     ExchangeMetadata:
       type: object
+      description: "Exchange metadata including supported pairs and intervals"
       properties:
         exchange:
           $ref: '#/components/schemas/Exchange'
+          description: "Exchange name"
         supportedPairs:
           type: array
           items:
             $ref: '#/components/schemas/TradingPair'
+          description: "Supported trading pairs"
         supportedIntervals:
           type: array
           items:
             $ref: '#/components/schemas/ChartInterval'
+          description: "Supported chart intervals"
+      example:
+        exchange: "BINANCE"
+        supportedPairs:
+          - "BTC_USD"
+          - "ETH_USD"
+          - "SOL_USD"
+        supportedIntervals:
+          - "ONE_MINUTE"
+          - "FIVE_MINUTES"
+          - "ONE_HOUR"
+          - "ONE_DAY"
 
     # ── Exchange pair schemas ──────────────────────────────────────
     ExchangePair:
       type: object
+      description: "Exchange-trading pair mapping"
       properties:
         id:
           type: string
           format: uuid
+          description: "Unique identifier"
         tradingPair:
           $ref: '#/components/schemas/TradingPair'
+          description: "Trading pair"
         exchange:
           $ref: '#/components/schemas/Exchange'
+          description: "Exchange name"
+      example:
+        id: "550e8400-e29b-41d4-a716-446655440000"
+        tradingPair: "BTC_USD"
+        exchange: "BINANCE"
 
 
     # ── Workspace schemas ──────────────────────────────────────────────
     WorkspaceRequest:
       type: object
+      description: "Workspace creation/update request"
       required:
         - name
       properties:
         name:
           type: string
+          description: "Workspace name"
 
     Workspace:
       type: object
+      description: "User workspace"
       properties:
         id:
           type: string
           format: uuid
+          description: "Unique identifier"
         name:
           type: string
+          description: "Workspace name"
         createdAt:
           type: string
           format: date-time
+          description: "Creation timestamp"
         updatedAt:
           type: string
           format: date-time
+          description: "Last update timestamp"
+      example:
+        id: "550e8400-e29b-41d4-a716-446655440000"
+        name: "My Trading Dashboard"
+        createdAt: "2024-01-15T10:00:00Z"
+        updatedAt: "2024-01-15T14:30:00Z"
 
     ChartWidgetRequest:
       type: object
+      description: "Chart widget creation request"
       required:
         - exchangePairId
       properties:
         exchangePairId:
           type: string
           format: uuid
+          description: "Exchange pair ID to chart"
 
     ChartWidget:
       type: object
+      description: "Chart widget configuration"
       properties:
         id:
           type: string
           format: uuid
+          description: "Unique identifier"
         chartInterval:
           $ref: '#/components/schemas/ChartInterval'
+          description: "Chart interval"
         exchangePairId:
           type: string
           format: uuid
+          description: "Exchange pair ID"
         tradingPair:
           $ref: '#/components/schemas/TradingPair'
+          description: "Trading pair"
         exchange:
           $ref: '#/components/schemas/Exchange'
+          description: "Exchange name"
         position:
           type: integer
           format: int32
+          description: "Widget position in workspace"
         createdAt:
           type: string
           format: date-time
+          description: "Creation timestamp"
         updatedAt:
           type: string
           format: date-time
+          description: "Last update timestamp"
+      example:
+        id: "660e8400-e29b-41d4-a716-446655440001"
+        chartInterval: "ONE_HOUR"
+        exchangePairId: "550e8400-e29b-41d4-a716-446655440000"
+        tradingPair: "BTC_USD"
+        exchange: "BINANCE"
+        position: 0
+        createdAt: "2024-01-15T10:05:00Z"
+        updatedAt: "2024-01-15T14:30:00Z"
 
     UpdateChartWidgetRequest:
       type: object
+      description: "Chart widget update request"
       required:
         - chartInterval
       properties:
         chartInterval:
           $ref: '#/components/schemas/ChartInterval'
+          description: "New chart interval"
 
     UpdateChartWidgetPositionsRequest:
       type: object
+      description: "Chart widget position update"
       required:
         - chartWidgetId
         - position
@@ -974,8 +1135,10 @@ components:
         chartWidgetId:
           type: string
           format: uuid
+          description: "Widget ID to update"
         position:
           type: integer
+          description: "New position value"
 
   parameters:
     ExchangeParam:

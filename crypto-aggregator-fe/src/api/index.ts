@@ -15,7 +15,7 @@ import {
 export * from './types';
 
 // --- API CLIENT ---
-const BASE_URL = 'http://localhost:8080';
+export const BASE_URL = 'http://localhost:8080';
 
 // Змінні для керування чергою запитів під час оновлення токена
 let isRefreshing = false;
@@ -32,15 +32,34 @@ const onTokenRefreshed = (token: string) => {
   refreshSubscribers = [];
 };
 
+// Визначає, чи є ендпоінт публічним згідно з правилами безпеки бекенду
+const isPublicEndpoint = (endpoint: string): boolean => {
+  // Публічні: /api/auth/** — КРОМЕ /api/auth/logout
+  if (endpoint.startsWith('/api/auth/') && endpoint !== '/api/auth/logout') {
+    return true;
+  }
+  // Публічні: /api/auth/login, /api/auth/register, /api/auth/refresh-token тощо
+  if (endpoint === '/api/auth/login' || endpoint === '/api/auth/register' || endpoint === '/api/auth/refresh-token') {
+    return true;
+  }
+  // Публічні: /api/stream/** (SSE/WebSocket)
+  if (endpoint.startsWith('/api/stream/')) {
+    return true;
+  }
+  return false;
+};
+
 // ДОДАНО: Розумна обгортка, яка автоматично оновлює токен при 401 помилці
+// та дотримується правил безпеки: не додає Authorization для публічних ендпоінтів
 async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
   const token = localStorage.getItem('accessToken');
+  const publicEndpoint = isPublicEndpoint(endpoint);
 
   // Допоміжна функція для генерації хедерів
   const getHeaders = (accessToken: string | null) => ({
     'Content-Type': 'application/json',
     ...options.headers,
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...(!publicEndpoint && accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   });
 
   // Робимо оригінальний запит
@@ -63,7 +82,7 @@ async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<R
     if (!isRefreshing) {
       isRefreshing = true;
       try {
-        // Робимо запит на оновлення токена
+        // Робимо запит на оновлення токена (публічний ендпоінт, без Authorization)
         const refreshRes = await fetch(`${BASE_URL}/api/auth/refresh-token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -118,7 +137,7 @@ async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<R
 
 export const api = {
   getIntervals: async (exchange: Exchange): Promise<ChartInterval[]> => {
-    const res = await fetch(`${BASE_URL}/api/exchanges/${exchange}/intervals`);
+    const res = await fetchAuth(`/api/exchanges/${exchange}/intervals`);
     if (!res.ok) return [];
     return res.json();
   },
@@ -126,11 +145,10 @@ export const api = {
   logout: async (): Promise<void> => {
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
-    const res = await fetch(`${BASE_URL}/api/auth/logout`, {
+    const res = await fetchAuth(`/api/auth/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify({ accessToken, refreshToken }),
     });
@@ -140,7 +158,7 @@ export const api = {
   },
 
   getMetadata: async (): Promise<ExchangeMetadata[]> => {
-    const res = await fetch(`${BASE_URL}/api/exchanges/metadata`);
+    const res = await fetchAuth(`/api/exchanges/metadata`);
     if (!res.ok) return [];
     return res.json();
   },
@@ -162,7 +180,7 @@ export const api = {
       params.append('endTimeCursor', request.endTimeCursor);
     }
 
-    const res = await fetch(`${BASE_URL}/api/historical/exchanges/${exchange}/klines?${params}`);
+    const res = await fetchAuth(`/api/historical/exchanges/${exchange}/klines?${params}`);
 
     if (!res.ok) {
       return [];
@@ -191,7 +209,7 @@ export const api = {
   },
 
   get24hTickers: async (exchange: Exchange): Promise<Ticker24h[]> => {
-    const res = await fetch(`${BASE_URL}/api/historical/exchanges/${exchange}/tickers/24h`);
+    const res = await fetchAuth(`/api/historical/exchanges/${exchange}/tickers/24h`);
     if (!res.ok) return [];
     return res.json();
   },
@@ -202,7 +220,7 @@ export const api = {
     }
     const params = new URLSearchParams();
     tradingPairs.forEach(pair => params.append('tradingPairs', pair));
-    const res = await fetch(`${BASE_URL}/api/historical/exchanges/${exchange}/tickers/24h?${params.toString()}`);
+    const res = await fetchAuth(`/api/historical/exchanges/${exchange}/tickers/24h?${params.toString()}`);
     if (!res.ok) return [];
     return res.json();
   },
