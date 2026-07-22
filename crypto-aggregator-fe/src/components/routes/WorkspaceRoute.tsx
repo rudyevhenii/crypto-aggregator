@@ -1,18 +1,15 @@
-import {useState} from 'react';
-import {useSearchParams} from 'react-router-dom';
-import {Edit2, FolderPlus, Plus, Trash2} from 'lucide-react';
+import {useState, useEffect} from 'react';
 import {DndContext, closestCenter} from '@dnd-kit/core';
 import {rectSortingStrategy, SortableContext} from '@dnd-kit/sortable';
-import {Button, Card, Select} from '../ui';
+import {Button, Card} from '../ui';
 import ChartWidgetCard from '../ChartWidgetCard';
 import SearchModal from '../SearchModal';
 import RenameWorkspaceModal from '../modals/RenameWorkspaceModal';
 import DeleteWorkspaceModal from '../modals/DeleteWorkspaceModal';
 import CreateWorkspaceModal from '../modals/CreateWorkspaceModal';
-import useWorkspace from '../../hooks/useWorkspace';
+import {useWorkspaceContext} from '../../contexts/WorkspaceContext';
 
-export default function WorkspaceRoute() {
-  const [searchParams, setSearchParams] = useSearchParams();
+function WorkspaceRouteInner() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const {
     workspaces,
@@ -26,10 +23,8 @@ export default function WorkspaceRoute() {
     handleCreateWorkspace,
     isRenameModalOpen,
     isDeleteModalOpen,
-    openRenameModal,
     closeRenameModal,
     confirmRename,
-    openDeleteModal,
     closeDeleteModal,
     confirmDelete,
     handleAddWidget,
@@ -37,7 +32,19 @@ export default function WorkspaceRoute() {
     handleUpdateInterval,
     handleDragEnd,
     getGridConfig,
-  } = useWorkspace(searchParams, setSearchParams);
+  } = useWorkspaceContext();
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(!isSearchOpen);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setIsSearchOpen, isSearchOpen]);
 
   return (
     <div className="flex flex-col h-full bg-[#09090b] p-3 relative overflow-hidden">
@@ -46,44 +53,24 @@ export default function WorkspaceRoute() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#fcd535]/[0.02] rounded-full blur-3xl"/>
       </div>
 
-      {/* Compact Control Panel */}
-      <Card className="mb-3 p-3 flex items-center justify-between gradient-border relative z-10 shrink-0">
-        <div className="flex items-center gap-2">
-          <Select
-            value={activeWsId || ''}
-            onChange={(value) => setSearchParams({workspace: value})}
-            options={workspaces.map(ws => ({value: ws.id, label: ws.name}))}
-            className="min-w-[150px]"
-          />
-
-          {activeWsId && (
-            <div className="flex items-center gap-0.5 border-l border-white/5 pl-2 ml-1">
-              <button onClick={openRenameModal}
-                      className="p-1.5 text-zinc-400 hover:text-zinc-50 hover:bg-white/5 rounded-lg transition-colors"
-                      title="Rename Workspace">
-                <Edit2 size={14}/>
-              </button>
-              <button onClick={openDeleteModal}
-                      className="p-1.5 text-zinc-400 hover:text-[#f6465d] hover:bg-[#f6465d]/10 rounded-lg transition-colors"
-                      title="Delete Workspace">
-                <Trash2 size={14}/>
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setIsCreateModalOpen(true)} leftIcon={<FolderPlus size={16}/>}>
-            New Workspace
-          </Button>
-          <Button size="sm" onClick={() => setIsSearchOpen(true)} leftIcon={<Plus size={16}/>} disabled={!activeWsId} className="shadow-[0_0_20px_rgba(252,213,53,0.3)]">
-            Add Chart
-          </Button>
-        </div>
-      </Card>
+      {/* Floating Search Bar - centered within main content */}
+      <div className="relative z-20 w-full max-w-xl mx-auto mb-4">
+        <button
+          onClick={() => setIsSearchOpen(true)}
+          className="
+            w-full flex items-center gap-3 px-4 py-3 rounded-2xl
+            bg-[rgba(20,20,20,0.6)] backdrop-blur-xl
+            border border-white/10 shadow-2xl
+            text-zinc-400 hover:text-zinc-50 hover:border-white/20
+            transition-all duration-200
+          "
+        >
+          <span className="flex-1 text-left text-sm">Search markets...</span>
+        </button>
+      </div>
 
       {/* Scrollable Grid Wrapper */}
-      <div className={`flex-1 min-h-0 pr-8 relative z-10 ${(() => { const cfg = getGridConfig(); return cfg.scrollable ? 'overflow-y-auto' : 'overflow-hidden'; })()}`}>
+      <div className={`flex-1 min-h-0 relative z-10 ${(() => { const cfg = getGridConfig(); return cfg.scrollable ? 'overflow-y-auto' : 'overflow-hidden'; })()}`}>
         {!activeWsId ? (
           <Card className="h-full flex flex-col items-center justify-center border-dashed border-white/10">
             <p className="mb-3 text-sm text-zinc-400">You don't have any workspaces yet.</p>
@@ -148,4 +135,8 @@ export default function WorkspaceRoute() {
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={handleAddWidget}/>
     </div>
   );
+}
+
+export default function WorkspaceRoute() {
+  return <WorkspaceRouteInner />;
 }

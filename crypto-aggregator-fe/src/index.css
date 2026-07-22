@@ -60,6 +60,10 @@
     @apply bg-surface/80 backdrop-blur-xl border border-border/60;
   }
 
+  .glass-float {
+    @apply bg-[rgba(20,20,20,0.6)] backdrop-blur-xl border border-white/10;
+  }
+
   .glow-accent {
     box-shadow: 0 0 30px rgba(252, 213, 53, 0.15);
   }
