@@ -49,7 +49,7 @@ export default function CreateWorkspaceModal({isOpen, onClose, onConfirm}: Props
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="bg-[#0b0e14] border border-white/10 rounded-xl shadow-2xl w-full max-w-md p-5">
+      <div className="bg-[#0b0e14] border border-white/10 rounded-xl shadow-2xl w-full max-w-md p-5 mx-auto">
         <div className="flex items-center gap-2 mb-4">
           <FolderPlus size={18} className="text-[#fcd535]"/>
           <h2 className="text-base font-semibold text-zinc-50">New Workspace</h2>

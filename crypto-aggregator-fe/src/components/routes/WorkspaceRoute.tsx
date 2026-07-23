@@ -54,15 +54,16 @@ function WorkspaceRouteInner() {
       </div>
 
       {/* Floating Search Bar - centered within main content */}
-      <div className="relative z-20 w-full max-w-xl mx-auto mb-4">
+      <div className="relative z-20 w-full max-w-xl mx-auto mb-4 pointer-events-none">
         <button
           onClick={() => setIsSearchOpen(true)}
           className="
-            w-full flex items-center gap-3 px-4 py-3 rounded-2xl
-            bg-[rgba(20,20,20,0.6)] backdrop-blur-xl
-            border border-white/10 shadow-2xl
-            text-zinc-400 hover:text-zinc-50 hover:border-white/20
+            w-full flex items-center gap-3 px-4 py-3 rounded-2xl pointer-events-auto
+            bg-white/5 backdrop-blur-xl
+            border border-white/10
+            text-zinc-400 hover:text-zinc-50 hover:bg-white/10 hover:border-white/20
             transition-all duration-200
+            shadow-lg shadow-black/5
           "
         >
           <span className="flex-1 text-left text-sm">Search markets...</span>

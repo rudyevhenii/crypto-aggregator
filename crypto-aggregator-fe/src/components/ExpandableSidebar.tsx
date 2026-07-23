@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Activity, LogOut, ChevronLeft, ChevronRight, Edit2, Trash2, FolderPlus, Grid3x3 } from 'lucide-react';
+import { Activity, LogOut, Edit2, Trash2, FolderPlus, Grid3x3, PanelLeftClose, PanelRightOpen } from 'lucide-react';
 import { Workspace } from '../api';
 import CreateWorkspaceModal from './modals/CreateWorkspaceModal';
 import RenameWorkspaceModal from './modals/RenameWorkspaceModal';
@@ -34,7 +34,6 @@ export default function ExpandableSidebar({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [hoveredWorkspace, setHoveredWorkspace] = useState<string | null>(null);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
-  const [isLogoHovered, setIsLogoHovered] = useState(false);
 
   const handleRename = async (newName: string) => {
     if (editingWorkspace) {
@@ -61,39 +60,46 @@ export default function ExpandableSidebar({
         glass-surface border-r border-white/10
       `}
     >
-      {/* Top Block: Logo / Brand - acts as toggle */}
-      <div
-        className="h-16 flex items-center justify-center border-b border-white/5 shrink-0 cursor-pointer w-full"
-        onClick={() => setIsExpanded(!isExpanded)}
-        onMouseEnter={() => setIsLogoHovered(true)}
-        onMouseLeave={() => setIsLogoHovered(false)}
-      >
-        <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
-          {/* Logo icon */}
-          <div className={`
-            absolute inset-0 flex items-center justify-center rounded-xl border border-[#fcd535]/20 bg-[#fcd535]/10
-            transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-            ${isLogoHovered ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}
-          `}>
-            <Activity className="text-[#fcd535]" size={22} />
+      {/* Top Header */}
+      <div className={`h-16 flex items-center w-full border-b border-white/5 shrink-0 relative ${isExpanded ? 'justify-start pl-4' : 'justify-center px-0'}`}>
+        {isExpanded ? (
+          <div className="flex items-center gap-3">
+            <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
+              <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-[#fcd535]/20 bg-[#fcd535]/10">
+                <Activity className="text-[#fcd535]" size={18} />
+              </div>
+            </div>
+            <span className="text-zinc-50 font-bold text-base tracking-tight">
+              CryptoAggregator
+            </span>
           </div>
-          {/* Expand/Collapse icon on hover */}
-          <div className={`
-            absolute inset-0 flex items-center justify-center rounded-xl border border-white/20 bg-white/5
-            transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-            ${isLogoHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}
-          `}>
-            {isExpanded ? <ChevronLeft size={20} className="text-zinc-300" /> : <ChevronRight size={20} className="text-zinc-300" />}
-          </div>
-        </div>
-        <span className={`
-          ${isExpanded ? 'ml-3' : ''}
-          text-zinc-50 font-bold text-lg tracking-tight
-          transition-opacity duration-300 delay-100
-          ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden whitespace-nowrap'}
-        `}>
-          CryptoView
-        </span>
+        ) : (
+          <button
+            onClick={() => setIsExpanded(true)}
+            className="group relative flex items-center justify-center w-8 h-8"
+            title="Expand sidebar"
+          >
+            {/* Default: Logo */}
+            <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-[#fcd535]/20 bg-[#fcd535]/10 transition-opacity duration-200 group-hover:opacity-0">
+              <Activity className="text-[#fcd535]" size={18} />
+            </div>
+            {/* Hover: Expand icon */}
+            <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-white/20 bg-white/5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <PanelRightOpen size={18} className="text-zinc-300" />
+            </div>
+          </button>
+        )}
+
+        {/* Right: Collapse toggle */}
+        {isExpanded && (
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="absolute right-4 p-1 text-zinc-400 hover:text-zinc-50 hover:bg-white/5 rounded-md transition-colors"
+            title="Collapse sidebar"
+          >
+            <PanelLeftClose size={18} />
+          </button>
+        )}
       </div>
 
       {/* Middle Block: Primary Navigation */}

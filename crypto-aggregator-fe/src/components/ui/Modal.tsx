@@ -1,4 +1,5 @@
 import React, {useEffect, useRef} from 'react';
+import {createPortal} from 'react-dom';
 
 type ModalProps = {
   isOpen: boolean;
@@ -24,10 +25,10 @@ export default function Modal({isOpen, onClose, children}: ModalProps) {
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] w-screen h-screen flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={(event) => {
         if (event.target === overlayRef.current) {
           onClose();
@@ -37,4 +38,6 @@ export default function Modal({isOpen, onClose, children}: ModalProps) {
       {children}
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

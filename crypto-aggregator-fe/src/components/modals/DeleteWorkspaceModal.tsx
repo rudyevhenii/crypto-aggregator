@@ -28,7 +28,7 @@ export default function DeleteWorkspaceModal({isOpen, onClose, workspaceName, on
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="bg-[#0b0e14] border border-white/10 rounded-xl shadow-2xl w-full max-w-md p-5">
+      <div className="bg-[#0b0e14] border border-white/10 rounded-xl shadow-2xl w-full max-w-md p-5 mx-auto">
         <div className="flex items-center gap-2 mb-2">
           <Trash2 size={18} className="text-[#f6465d]"/>
           <h2 className="text-base font-semibold text-zinc-50">Delete Workspace</h2>
