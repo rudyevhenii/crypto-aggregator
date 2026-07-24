@@ -79,6 +79,7 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     @Override
     @Transactional
     public void delete(UUID workspaceId, UUID id) {
+        validateChartWidgetExists(workspaceId, id);
         log.info("User [{}] deleted chart widget [{}] from workspace [{}]", userContext.getUserId(), id, workspaceId);
         repository.deleteById(workspaceId, id);
     }
@@ -86,6 +87,12 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     private ChartWidget getById(UUID workspaceId, UUID id) {
         return repository.findByWorkspaceIdAndId(workspaceId, id)
                 .orElseThrow(() -> new ResourceNotFoundException("Chart widget not found with id: '%s'".formatted(id)));
+    }
+
+    private void validateChartWidgetExists(UUID workspaceId, UUID id) {
+        if (!repository.existsByWorkspaceIdAndId(workspaceId, id)) {
+            throw new ResourceNotFoundException("Chart widget not found with id: '%s'".formatted(id));
+        }
     }
 
     private void updateChartWidgetPositions(UpdateChartWidgetPositionsRequest request,

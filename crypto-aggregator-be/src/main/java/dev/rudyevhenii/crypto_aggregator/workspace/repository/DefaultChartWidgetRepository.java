@@ -79,4 +79,9 @@ public class DefaultChartWidgetRepository implements ChartWidgetRepository {
     public int findMaxPositionByWorkspaceId(UUID workspaceId) {
         return repository.findMaxPositionByWorkspaceId(workspaceId);
     }
+
+    @Override
+    public boolean existsByWorkspaceIdAndId(UUID workspaceId, UUID id) {
+        return repository.existsByWorkspaceIdAndId(workspaceId, id);
+    }
 }

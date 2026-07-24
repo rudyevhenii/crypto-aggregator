@@ -8,13 +8,13 @@ import java.util.UUID;
 
 public interface WorkspaceService {
 
-    Workspace create(UUID userId, WorkspaceRequest request);
+    Workspace create(WorkspaceRequest request);
 
-    Workspace update(UUID userId, UUID workspaceId, WorkspaceRequest request);
+    Workspace update(UUID workspaceId, WorkspaceRequest request);
 
-    Workspace getWorkspaceById(UUID userId, UUID workspaceId);
+    Workspace getWorkspaceById(UUID workspaceId);
 
-    List<Workspace> getAllWorkspaces(UUID userId);
+    List<Workspace> getAllWorkspaces();
 
-    void deleteById(UUID userId, UUID workspaceId);
+    void deleteById(UUID workspaceId);
 }

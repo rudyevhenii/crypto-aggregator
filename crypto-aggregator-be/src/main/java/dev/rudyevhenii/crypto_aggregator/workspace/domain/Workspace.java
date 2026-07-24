@@ -17,6 +17,7 @@ import java.util.UUID;
 public class Workspace {
     private UUID id;
     private String name;
+    private UUID userId;
     private Instant createdAt;
     private Instant updatedAt;
 }

@@ -1,114 +1,87 @@
 package dev.rudyevhenii.crypto_aggregator.workspace.service;
 
-import dev.rudyevhenii.crypto_aggregator.auth.repository.SpringDataUserRepository;
+import dev.rudyevhenii.crypto_aggregator.auth.context.UserContext;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceAlreadyExistsException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
-import dev.rudyevhenii.crypto_aggregator.workspace.WorkspaceEntity;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.WorkspaceRequest;
-import dev.rudyevhenii.crypto_aggregator.workspace.mapper.WorkspaceEntityMapper;
 import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.WORKSPACE_CACHE;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WorkspaceServiceImpl implements WorkspaceService {
 
-    private final WorkspaceRepository workspaceRepository;
-    private final SpringDataUserRepository userRepository;
-    private final WorkspaceEntityMapper mapper;
+    private final WorkspaceRepository repository;
+    private final UserContext userContext;
     private final GeneratorUtils generator;
 
     @Override
-    @CacheEvict(value = WORKSPACE_CACHE, key = "#userId")
     @Transactional
-    public Workspace create(UUID userId, WorkspaceRequest request) {
-        validateUniqueWorkspaceName(userId, request.name());
+    public Workspace create(WorkspaceRequest request) {
+        validateUniqueWorkspaceName(userContext.getUserId(), request.name());
         Workspace workspace = toDomain(request);
-        WorkspaceEntity createEntity = mapper.toCreateEntity(workspace);
-        createEntity.setUser(userRepository.getReferenceById(userId));
-        log.info("User [{}] created a new workspace", userId);
-        return mapper.toDomain(workspaceRepository.save(createEntity));
+
+        log.info("User [{}] created a new workspace", userContext.getUserId());
+        return repository.create(workspace);
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = WORKSPACE_CACHE, key = "#userId"),
-            @CacheEvict(value = WORKSPACE_CACHE, key = "{#userId, #workspaceId}"),
-    })
     @Transactional
-    public Workspace update(UUID userId, UUID workspaceId, WorkspaceRequest request) {
-        validateUniqueWorkspaceName(userId, request.name());
-        WorkspaceEntity workspaceEntity = findById(userId, workspaceId);
-        updateWorkspace(request, workspaceEntity);
-        log.info("User [{}] updated workspace [{}]", userId, workspaceId);
-        return mapper.toDomain(workspaceEntity);
+    public Workspace update(UUID workspaceId, WorkspaceRequest request) {
+        validateUniqueWorkspaceName(userContext.getUserId(), request.name());
+        Workspace workspace = getById(userContext.getUserId(), workspaceId);
+        workspace.setUpdatedAt(generator.now());
+
+        log.info("User [{}] updated workspace [{}]", userContext.getUserId(), workspaceId);
+        return repository.update(workspace);
     }
 
     @Override
-    @Cacheable(value = WORKSPACE_CACHE, key = "{#userId, #workspaceId}")
     @Transactional(readOnly = true)
-    public Workspace getWorkspaceById(UUID userId, UUID workspaceId) {
-        WorkspaceEntity workspaceEntity = findById(userId, workspaceId);
-        log.info("User [{}] retrieved workspace [{}] with chart widgets", userId, workspaceId);
-        return mapper.toDomain(workspaceEntity);
+    public Workspace getWorkspaceById(UUID workspaceId) {
+        Workspace workspace = getById(userContext.getUserId(), workspaceId);
+
+        log.info("User [{}] retrieved workspace [{}] with chart widgets", userContext.getUserId(), workspaceId);
+        return workspace;
     }
 
     @Override
-    @Cacheable(value = WORKSPACE_CACHE, key = "#userId")
     @Transactional(readOnly = true)
-    public List<Workspace> getAllWorkspaces(UUID userId) {
-        log.info("User [{}] getting all workspaces", userId);
-        return workspaceRepository.findAllByUserId(userId).stream()
-                .map(mapper::toDomain)
-                .collect(Collectors.toList());
+    public List<Workspace> getAllWorkspaces() {
+        log.info("User [{}] getting all workspaces", userContext.getUserId());
+        return repository.findAllByUserId(userContext.getUserId());
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = WORKSPACE_CACHE, key = "#userId"),
-            @CacheEvict(value = WORKSPACE_CACHE, key = "{#userId, #workspaceId}"),
-    })
     @Transactional
-    public void deleteById(UUID userId, UUID workspaceId) {
-        validateWorkspaceExists(userId, workspaceId);
-        log.info("User [{}] deleting workspace [{}]", userId, workspaceId);
-        workspaceRepository.deleteById(workspaceId);
+    public void deleteById(UUID workspaceId) {
+        validateWorkspaceExists(userContext.getUserId(), workspaceId);
+        log.info("User [{}] deleting workspace [{}]", userContext.getUserId(), workspaceId);
+        repository.deleteById(userContext.getUserId(), workspaceId);
     }
 
-    private WorkspaceEntity findById(UUID userId, UUID workspaceId) {
-        return workspaceRepository.findByUserIdAndId(userId, workspaceId)
+    private Workspace getById(UUID userId, UUID workspaceId) {
+        return repository.findByUserIdAndId(userId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: '%s'"
                         .formatted(workspaceId)));
     }
-
-    private void updateWorkspace(WorkspaceRequest request, WorkspaceEntity workspaceEntity) {
-        mapper.toUpdateEntity(request, workspaceEntity);
-        workspaceEntity.setUpdatedAt(generator.now());
-    }
-
     private void validateWorkspaceExists(UUID userId, UUID workspaceId) {
-        if (!workspaceRepository.existsByUserIdAndId(userId, workspaceId)) {
+        if (!repository.existsByUserIdAndId(userId, workspaceId)) {
             throw new ResourceNotFoundException("Workspace not found with id: '%s'".formatted(workspaceId));
         }
     }
 
     private void validateUniqueWorkspaceName(UUID userId, String name) {
-        if (workspaceRepository.existsByUserIdAndName(userId, name)) {
+        if (repository.existsByUserIdAndName(userId, name)) {
             throw new ResourceAlreadyExistsException("Workspace with name '%s' already exists"
                     .formatted(name));
         }

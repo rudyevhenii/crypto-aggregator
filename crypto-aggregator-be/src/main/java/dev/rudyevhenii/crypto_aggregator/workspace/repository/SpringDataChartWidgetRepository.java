@@ -19,4 +19,6 @@ public interface SpringDataChartWidgetRepository extends JpaRepository<ChartWidg
     int findMaxPositionByWorkspaceId(UUID workspaceId);
 
     Optional<ChartWidgetEntity> findByWorkspaceIdAndId(UUID workspaceId, UUID id);
+
+    boolean existsByWorkspaceIdAndId(UUID workspaceId, UUID id);
 }
