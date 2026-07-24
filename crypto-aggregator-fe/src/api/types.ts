@@ -79,8 +79,7 @@ export interface ChartWidget {
   id: string;
   chartInterval: ChartInterval;
   exchangePairId: string;
-  tradingPair: TradingPair;
-  exchange: Exchange;
+  workspaceId: string;
   position: number;
   createdAt: string;
   updatedAt: string;
@@ -89,6 +88,7 @@ export interface ChartWidget {
 export interface Workspace {
   id: string;
   name: string;
+  userId: string;
   createdAt: string;
   updatedAt: string;
 }

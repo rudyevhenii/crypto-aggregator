@@ -23,11 +23,11 @@ export default function MainLayout({activeView, onViewChange, onLogout, children
       {/* Left Navigation */}
       <aside className="w-16 bg-[#09090b]/80 backdrop-blur-xl border-r border-white/10 flex flex-col items-center py-4 shrink-0 z-50 relative">
 
-        <div className="w-10 h-10 bg-[#fcd535]/10 rounded-xl flex items-center justify-center mb-8 border border-[#fcd535]/20">
-          <Activity className="text-[#fcd535]" size={22}/>
+        <div className="w-8 h-8 flex items-center justify-center">
+          <Activity className="text-[#fcd535]" size={20}/>
         </div>
 
-        <nav className="flex flex-col gap-3 w-full px-2">
+        <nav className="flex flex-col gap-3 w-full px-2 mt-4">
           <div
             className="relative"
             onMouseEnter={() => setHoveredItem('market')}
@@ -64,7 +64,7 @@ export default function MainLayout({activeView, onViewChange, onLogout, children
                 w-full aspect-square rounded-xl flex items-center justify-center transition-all
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50
                 ${activeView === 'workspace'
-                  ? 'bg-white/10 text-[#fcd535] border-l-2 border-[#fcd535] shadow-[0_0_15px_rgba(252,213,53,0.15)]'
+                  ? 'text-[#fcd535]'
                   : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-white/5'
                 }
               `}

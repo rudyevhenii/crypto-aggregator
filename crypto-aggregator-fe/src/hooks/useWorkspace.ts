@@ -31,7 +31,7 @@ type UseWorkspaceReturn = {
   isDeleteModalOpen: boolean;
   openRenameModal: () => void;
   closeRenameModal: () => void;
-  confirmRename: (newName: string) => Promise<void>;
+  confirmRename: (id: string, newName: string) => Promise<void>;
   openDeleteModal: () => void;
   closeDeleteModal: () => void;
   confirmDelete: () => Promise<void>;
@@ -153,11 +153,10 @@ export default function useWorkspace(searchParams: ReturnType<typeof useSearchPa
     setIsRenameModalOpen(false);
   }, []);
 
-  const confirmRename = useCallback(async (newName: string) => {
-    if (!activeWsId) return;
-    await api.updateWorkspace(activeWsId, newName.trim());
-    await loadWorkspaces(activeWsId);
-  }, [activeWsId, loadWorkspaces]);
+  const confirmRename = useCallback(async (id: string, newName: string) => {
+    await api.updateWorkspace(id, newName.trim());
+    await loadWorkspaces(id);
+  }, [loadWorkspaces]);
 
   const openDeleteModal = useCallback(() => {
     if (activeWsId) setIsDeleteModalOpen(true);

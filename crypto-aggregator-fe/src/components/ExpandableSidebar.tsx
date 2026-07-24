@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Activity, LogOut, Edit2, Trash2, FolderPlus, Grid3x3, PanelLeftClose, PanelRightOpen } from 'lucide-react';
+import { Activity, LogOut, Edit2, Trash2, FolderPlus, LayoutDashboard, PanelLeftClose, PanelRightOpen } from 'lucide-react';
 import { Workspace } from '../api';
 import CreateWorkspaceModal from './modals/CreateWorkspaceModal';
 import RenameWorkspaceModal from './modals/RenameWorkspaceModal';
@@ -61,12 +61,12 @@ export default function ExpandableSidebar({
       `}
     >
       {/* Top Header */}
-      <div className={`h-16 flex items-center w-full border-b border-white/5 shrink-0 relative ${isExpanded ? 'justify-start pl-4' : 'justify-center px-0'}`}>
+      <div className={`h-16 flex items-center w-full shrink-0 relative ${isExpanded ? 'justify-start pl-4' : 'justify-center px-0'}`}>
         {isExpanded ? (
           <div className="flex items-center gap-3">
             <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
               <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-[#fcd535]/20 bg-[#fcd535]/10">
-                <Activity className="text-[#fcd535]" size={18} />
+                <Activity className="text-[#fcd535]" size={20} />
               </div>
             </div>
             <span className="text-zinc-50 font-bold text-base tracking-tight">
@@ -81,7 +81,7 @@ export default function ExpandableSidebar({
           >
             {/* Default: Logo */}
             <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-[#fcd535]/20 bg-[#fcd535]/10 transition-opacity duration-200 group-hover:opacity-0">
-              <Activity className="text-[#fcd535]" size={18} />
+              <Activity className="text-[#fcd535]" size={20} />
             </div>
             {/* Hover: Expand icon */}
             <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-white/20 bg-white/5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -112,7 +112,7 @@ export default function ExpandableSidebar({
             ${isExpanded ? 'px-3 py-2.5 justify-start gap-3' : 'aspect-square justify-center'}
             focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fcd535]/50
             ${activeView === 'market'
-              ? 'bg-white/10 text-[#fcd535]'
+              ? 'text-[#fcd535]'
               : 'text-[#848e9c] hover:text-[#eaecef] hover:bg-white/5'
             }
           `}
@@ -197,7 +197,7 @@ export default function ExpandableSidebar({
             className="w-full flex items-center justify-center aspect-square rounded-xl text-zinc-400 hover:text-zinc-50 hover:bg-white/5 transition-colors"
             title="Workspaces"
           >
-            <Grid3x3 size={20} />
+            <LayoutDashboard size={20} />
           </button>
         )}
       </nav>

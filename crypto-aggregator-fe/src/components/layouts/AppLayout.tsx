@@ -2,6 +2,7 @@ import {Outlet, useNavigate, useLocation, useSearchParams} from 'react-router-do
 import {useEffect} from 'react';
 import {api} from '../../api';
 import {WorkspaceProvider, useWorkspaceContext} from '../../contexts/WorkspaceContext';
+import {ExchangePairsProvider} from '../../contexts/ExchangePairsContext';
 import ExpandableSidebar from '../ExpandableSidebar';
 
 function AppLayoutInner() {
@@ -68,8 +69,10 @@ export default function AppLayout() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   return (
-    <WorkspaceProvider searchParams={searchParams} setSearchParams={setSearchParams}>
-      <AppLayoutInner />
-    </WorkspaceProvider>
+    <ExchangePairsProvider>
+      <WorkspaceProvider searchParams={searchParams} setSearchParams={setSearchParams}>
+        <AppLayoutInner />
+      </WorkspaceProvider>
+    </ExchangePairsProvider>
   );
 }

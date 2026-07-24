@@ -3,6 +3,7 @@ import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import {GripHorizontal, Trash2} from 'lucide-react';
 import {api, ChartInterval, ChartWidget, HistoricalPrice, LivePrice} from '../api';
+import {useExchangePairs} from '../contexts/ExchangePairsContext';
 import {Select} from './ui';
 import ChartArea, {ChartHandle} from './ChartArea';
 
@@ -20,6 +21,8 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
   const [intervals, setIntervals] = useState<ChartInterval[]>([]);
 
   const chartRef = useRef<ChartHandle>(null);
+  const {exchangePairs, exchangePairsLoading} = useExchangePairs();
+  const exchangePair = exchangePairs[widget.exchangePairId];
 
   const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id: widget.id});
   const style = {
@@ -31,7 +34,10 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
 
   useEffect(() => {
     let isMounted = true;
-    api.getIntervals(widget.exchange)
+    const exchange = exchangePair?.exchange;
+    if (!exchange) return;
+
+    api.getIntervals(exchange)
       .then(data => {
         if (isMounted) setIntervals(data);
       })
@@ -42,14 +48,19 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
     return () => {
       isMounted = false;
     };
-  }, [widget.exchange]);
+  }, [exchangePair?.exchange]);
 
   useEffect(() => {
     let isMounted = true;
     setHasMoreHistory(true);
 
-    api.getHistoricalPrices(widget.exchange, {
-      tradingPair: widget.tradingPair,
+    const exchange = exchangePair?.exchange;
+    const tradingPair = exchangePair?.tradingPair;
+
+    if (!exchange || !tradingPair) return;
+
+    api.getHistoricalPrices(exchange, {
+      tradingPair,
       chartInterval: widget.chartInterval
     }).then(data => {
       if (isMounted) setHistorical(data);
@@ -60,7 +71,7 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
     return () => {
       isMounted = false;
     };
-  }, [widget.exchange, widget.tradingPair, widget.chartInterval]);
+  }, [exchangePair?.exchange, exchangePair?.tradingPair, widget.chartInterval]);
 
   useEffect(() => {
     if (livePrice && chartRef.current) {
@@ -70,9 +81,13 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
 
   const handleLoadMore = useCallback(async (oldestTimestamp: string) => {
     if (!hasMoreHistory) return;
+    const exchange = exchangePair?.exchange;
+    const tradingPair = exchangePair?.tradingPair;
+    if (!exchange || !tradingPair) return;
+
     try {
-      const olderData = await api.getHistoricalPrices(widget.exchange, {
-        tradingPair: widget.tradingPair,
+      const olderData = await api.getHistoricalPrices(exchange, {
+        tradingPair,
         chartInterval: widget.chartInterval,
         endTimeCursor: oldestTimestamp
       });
@@ -84,9 +99,10 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
     } catch {
       // History load failure handled by empty state
     }
-  }, [hasMoreHistory, widget.exchange, widget.tradingPair, widget.chartInterval]);
+  }, [hasMoreHistory, exchangePair?.exchange, exchangePair?.tradingPair, widget.chartInterval]);
 
-  const displayPair = widget.tradingPair.replace('_', '/');
+  const displayPair = exchangePair ? exchangePair.tradingPair.replace('_', '/') : '...';
+  const displayExchange = exchangePair ? exchangePair.exchange : '';
 
   return (
     <div ref={setNodeRef} style={style}
@@ -95,7 +111,7 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
         <div className="flex items-center gap-3">
           <div className="flex items-baseline gap-1.5">
             <span className="text-zinc-50 font-bold text-xs">{displayPair}</span>
-            <span className="text-zinc-400 text-[9px] uppercase tracking-wider">{widget.exchange}</span>
+            <span className="text-zinc-400 text-[9px] uppercase tracking-wider">{displayExchange}</span>
           </div>
           <div className="h-3 w-px bg-white/10"/>
 
@@ -118,11 +134,13 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
         </div>
       </div>
       <div className="flex-1 relative">
-        {historical ? (
+        {historical && exchangePair ? (
           <ChartArea ref={chartRef} interval={widget.chartInterval} historical={historical} onLoadMore={handleLoadMore}
-                     isWidget={true} exchange={widget.exchange} tradingPair={widget.tradingPair}/>
+                     isWidget={true} exchange={exchangePair.exchange} tradingPair={exchangePair.tradingPair}/>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-xs">Loading...</div>
+          <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-xs">
+            {exchangePairsLoading ? 'Loading...' : 'No data'}
+          </div>
         )}
       </div>
     </div>

@@ -8,6 +8,7 @@ import RenameWorkspaceModal from '../modals/RenameWorkspaceModal';
 import DeleteWorkspaceModal from '../modals/DeleteWorkspaceModal';
 import CreateWorkspaceModal from '../modals/CreateWorkspaceModal';
 import {useWorkspaceContext} from '../../contexts/WorkspaceContext';
+import {useExchangePairs} from '../../contexts/ExchangePairsContext';
 
 function WorkspaceRouteInner() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -33,6 +34,7 @@ function WorkspaceRouteInner() {
     handleDragEnd,
     getGridConfig,
   } = useWorkspaceContext();
+  const {exchangePairs} = useExchangePairs();
 
   // Keyboard shortcut for search
   useEffect(() => {
@@ -71,7 +73,7 @@ function WorkspaceRouteInner() {
       </div>
 
       {/* Scrollable Grid Wrapper */}
-      <div className={`flex-1 min-h-0 relative z-10 ${(() => { const cfg = getGridConfig(); return cfg.scrollable ? 'overflow-y-auto' : 'overflow-hidden'; })()}`}>
+      <div className={`flex-1 min-h-0 relative z-10 pr-8 ${(() => { const cfg = getGridConfig(); return cfg.scrollable ? 'overflow-y-auto' : 'overflow-hidden'; })()}`}>
         {!activeWsId ? (
           <Card className="h-full flex flex-col items-center justify-center border-dashed border-white/10">
             <p className="mb-3 text-sm text-zinc-400">You don't have any workspaces yet.</p>
@@ -96,16 +98,20 @@ function WorkspaceRouteInner() {
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
                 <div className={`grid gap-2 ${cfg.scrollable ? '' : 'h-full'} ${cfg.gridClass} ${cfg.rows}`}>
-                  {widgets.map(widget => (
-                    <ChartWidgetCard
-                      key={widget.id}
-                      widget={widget}
-                      livePrice={livePrices[widget.tradingPair]}
-                      onDelete={handleDeleteWidget}
-                      onUpdateInterval={handleUpdateInterval}
-                      fillHeight={cfg.fillHeight}
-                    />
-                  ))}
+                  {widgets.map(widget => {
+                    const pair = exchangePairs[widget.exchangePairId];
+                    const livePrice = pair ? livePrices[pair.tradingPair] : undefined;
+                    return (
+                      <ChartWidgetCard
+                        key={widget.id}
+                        widget={widget}
+                        livePrice={livePrice}
+                        onDelete={handleDeleteWidget}
+                        onUpdateInterval={handleUpdateInterval}
+                        fillHeight={cfg.fillHeight}
+                      />
+                    );
+                  })}
                 </div>
               </SortableContext>
             </DndContext>
@@ -117,7 +123,7 @@ function WorkspaceRouteInner() {
         isOpen={isRenameModalOpen}
         onClose={closeRenameModal}
         currentName={workspaces.find(w => w.id === activeWsId)?.name || ''}
-        onConfirm={confirmRename}
+        onConfirm={(newName) => activeWsId ? confirmRename(activeWsId, newName) : Promise.resolve()}
       />
       {activeWsId && (
         <DeleteWorkspaceModal
