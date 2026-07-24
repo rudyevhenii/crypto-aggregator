@@ -1,21 +1,24 @@
 package dev.rudyevhenii.crypto_aggregator.workspace.repository;
 
-import dev.rudyevhenii.crypto_aggregator.workspace.ChartWidgetEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-public interface ChartWidgetRepository extends JpaRepository<ChartWidgetEntity, UUID> {
+public interface ChartWidgetRepository {
 
-    List<ChartWidgetEntity> findAllByWorkspaceId(UUID workspaceId);
+    ChartWidget create(ChartWidget chartWidget);
 
-    @Query("""
-            SELECT COALESCE(MAX(c.position), 0)
-            FROM ChartWidgetEntity c
-            WHERE c.workspace.id = :workspaceId""")
+    ChartWidget update(ChartWidget chartWidget);
+
+    void updatePositions(UUID workspaceId, List<ChartWidget> chartWidgets);
+
+    Optional<ChartWidget> findByWorkspaceIdAndId(UUID workspaceId, UUID id);
+
+    List<ChartWidget> findAllByWorkspaceId(UUID workspaceId);
+
+    void deleteById(UUID workspaceId, UUID id);
+
     int findMaxPositionByWorkspaceId(UUID workspaceId);
-
-    void deleteByWorkspaceIdAndId(UUID workspaceId, UUID chartWidgetId);
 }

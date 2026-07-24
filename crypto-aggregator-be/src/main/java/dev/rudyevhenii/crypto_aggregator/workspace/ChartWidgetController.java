@@ -5,7 +5,6 @@ import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetPositionsRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.interfaces.ChartWidgetApi;
-import dev.rudyevhenii.crypto_aggregator.core.util.SecurityUtils;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
 import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetPositionsRequest;
 import dev.rudyevhenii.crypto_aggregator.workspace.mapper.ChartWidgetMapper;
@@ -27,8 +26,7 @@ public class ChartWidgetController implements ChartWidgetApi {
 
     @Override
     public ResponseEntity<ChartWidgetRqDto> createChartWidget(UUID workspaceId, ChartWidgetRequestRqDto request) {
-        UUID userId = SecurityUtils.getCurrentUserId();
-        ChartWidget response = chartWidgetService.create(userId, workspaceId, mapper.map(request));
+        ChartWidget response = chartWidgetService.create(workspaceId, mapper.map(request));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.map(response));
     }
@@ -36,27 +34,24 @@ public class ChartWidgetController implements ChartWidgetApi {
     @Override
     public ResponseEntity<ChartWidgetRqDto> updateChartWidget(UUID workspaceId, UUID chartWidgetId,
                                                               UpdateChartWidgetRequestRqDto request) {
-        UUID userId = SecurityUtils.getCurrentUserId();
-        ChartWidget response = chartWidgetService.update(userId, workspaceId, chartWidgetId, mapper.map(request));
+        ChartWidget response = chartWidgetService.update(workspaceId, chartWidgetId, mapper.map(request));
         return ResponseEntity.ok(mapper.map(response));
     }
 
     @Override
     public ResponseEntity<Void> updateChartWidgetPositions(UUID workspaceId,
                                                            List<UpdateChartWidgetPositionsRequestRqDto> request) {
-        UUID userId = SecurityUtils.getCurrentUserId();
         List<UpdateChartWidgetPositionsRequest> requestList = request.stream()
                 .map(mapper::map)
                 .toList();
-        chartWidgetService.updatePositions(userId, workspaceId, requestList);
+        chartWidgetService.updatePositions(workspaceId, requestList);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
     }
 
     @Override
     public ResponseEntity<List<ChartWidgetRqDto>> getAllByWorkspaceId(UUID workspaceId) {
-        UUID userId = SecurityUtils.getCurrentUserId();
-        List<ChartWidget> response = chartWidgetService.getAllByWorkspaceId(userId, workspaceId);
+        List<ChartWidget> response = chartWidgetService.getAllByWorkspaceId(workspaceId);
         return ResponseEntity.ok(response.stream()
                 .map(mapper::map)
                 .toList());
@@ -64,8 +59,7 @@ public class ChartWidgetController implements ChartWidgetApi {
 
     @Override
     public ResponseEntity<Void> deleteChartWidget(UUID workspaceId, UUID chartWidgetId) {
-        UUID userId = SecurityUtils.getCurrentUserId();
-        chartWidgetService.delete(userId, workspaceId, chartWidgetId);
+        chartWidgetService.delete(workspaceId, chartWidgetId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
     }

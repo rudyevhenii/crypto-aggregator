@@ -1,5 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.auth.service;
 
+import dev.rudyevhenii.crypto_aggregator.auth.context.UserContext;
 import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LoginRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LogoutRequest;
@@ -13,7 +14,6 @@ import dev.rudyevhenii.crypto_aggregator.core.exception.JwtTokenExpirationExcept
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceAlreadyExistsException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
-import dev.rudyevhenii.crypto_aggregator.core.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,7 +36,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final GeneratorUtils generator;
-    private final TokenBlacklistServiceImpl tokenBlacklistService;
+    private final UserContext userContext;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     public TokenResponseDto register(RegisterRequest request) {
@@ -76,9 +77,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(LogoutRequest logoutRequest) {
-        log.info("Invalidating access token for user {}", SecurityUtils.getCurrentUserId());
+        log.info("Invalidating access token for user {}", userContext.getUserId());
         invalidateToken(logoutRequest.accessToken());
-        log.info("Invalidating refresh token for user {}", SecurityUtils.getCurrentUserId());
+        log.info("Invalidating refresh token for user {}", userContext.getUserId());
         invalidateToken(logoutRequest.refreshToken());
     }
 
