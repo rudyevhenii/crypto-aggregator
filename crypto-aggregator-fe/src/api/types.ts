@@ -13,7 +13,11 @@ export interface ExchangeHealthDto {
 
 export type TradingPair =
   | 'BTC_USD' | 'ETH_USD' | 'SOL_USD' | 'ADA_USD' | 'XRP_USD'
-  | 'DOT_USD' | 'DOGE_USD' | 'LINK_USD' | 'LTC_USD' | 'AVAX_USD';
+  | 'DOT_USD' | 'DOGE_USD' | 'LINK_USD' | 'LTC_USD' | 'AVAX_USD'
+  | 'SHIB_USD' | 'GRT_USD' | 'UNI_USD' | 'ATOM_USD' | 'BCH_USD'
+  | 'ETC_USD' | 'XLM_USD' | 'ALGO_USD' | 'FIL_USD' | 'ICP_USD'
+  | 'OP_USD' | 'ARB_USD' | 'AAVE_USD' | 'CRV_USD' | 'SNX_USD'
+  | 'COMP_USD' | 'BAT_USD' | 'ZRX_USD' | 'YFI_USD' | 'SUSHI_USD';
 
 export type ChartInterval =
   | 'ONE_SECOND' | 'ONE_MINUTE' | 'THREE_MINUTES' | 'FIVE_MINUTES'
@@ -75,8 +79,7 @@ export interface ChartWidget {
   id: string;
   chartInterval: ChartInterval;
   exchangePairId: string;
-  tradingPair: TradingPair;
-  exchange: Exchange;
+  workspaceId: string;
   position: number;
   createdAt: string;
   updatedAt: string;
@@ -85,6 +88,7 @@ export interface ChartWidget {
 export interface Workspace {
   id: string;
   name: string;
+  userId: string;
   createdAt: string;
   updatedAt: string;
 }

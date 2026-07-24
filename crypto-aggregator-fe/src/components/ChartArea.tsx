@@ -1,4 +1,4 @@
-import {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
+import {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useCallback} from 'react';
 import {CandlestickData, CandlestickSeries, createChart, IChartApi, ISeriesApi, UTCTimestamp} from 'lightweight-charts';
 import {ChartInterval, HistoricalPrice, intervalToSeconds, LivePrice} from '../api';
 
@@ -35,6 +35,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
   const dataLengthRef = useRef<number>(0);
   const oldestTimeRef = useRef<string | null>(null);
   const onLoadMoreRef = useRef(onLoadMore);
+  const parsedCandlesRef = useRef<{candles: CandlestickData[], oldestTime: string | null} | null>(null);
 
   useEffect(() => {
     onLoadMoreRef.current = onLoadMore;
@@ -53,110 +54,55 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
     }
   }, [interval, exchange, tradingPair]);
 
+  const applyLivePrice = useCallback((p: LivePrice) => {
+    if (!seriesRef.current || !p.timestamp || p.lastPrice == null) return;
+
+    // ❗ ЗАХИСТ ВІД ЗМІШУВАННЯ ДАНИХ: Ігноруємо ціни з інших бірж/пар
+    if (p.exchange !== exchange || p.tradingPair !== tradingPair) return;
+
+    // ❗ ЗАХИСТ: Не малюємо живі ціни, поки не завантажилась історія для поточного інтервалу
+    if (lastBucketRef.current === null || !currentCandleRef.current) return;
+
+    const ts = Math.floor(new Date(p.timestamp).getTime() / 1000);
+    const bucket = Math.floor(ts / intervalToSeconds(interval)) * intervalToSeconds(interval);
+    const price = Number(p.lastPrice);
+
+    if (bucket < lastBucketRef.current) {
+      return;
+    }
+
+    if (lastBucketRef.current === bucket) {
+      currentCandleRef.current.close = price;
+      currentCandleRef.current.high = Math.max(currentCandleRef.current.high, price);
+      currentCandleRef.current.low = Math.min(currentCandleRef.current.low, price);
+      seriesRef.current.update(currentCandleRef.current);
+    } else {
+      const newCandle: CandlestickData = {
+        time: bucket as UTCTimestamp,
+        open: price,
+        high: price,
+        low: price,
+        close: price,
+      };
+      currentCandleRef.current = newCandle;
+      lastBucketRef.current = bucket;
+      seriesRef.current.update(newCandle);
+    }
+  }, [interval, exchange, tradingPair]);
+
   useImperativeHandle(ref, () => ({
-    applyLivePrice: (p: LivePrice) => {
-      if (!seriesRef.current || !p.timestamp || p.lastPrice == null) return;
+    applyLivePrice,
+  }), [applyLivePrice]);
 
-      // ❗ ЗАХИСТ ВІД ЗМІШУВАННЯ ДАНИХ: Ігноруємо ціни з інших бірж/пар
-      if (p.exchange !== exchange || p.tradingPair !== tradingPair) return;
-
-      // ❗ ЗАХИСТ: Не малюємо живі ціни, поки не завантажилась історія для поточного інтервалу
-      // Це запобігає появі "літаючих" свічок на порожньому графіку
-      if (lastBucketRef.current === null || !currentCandleRef.current) return;
-
-      const ts = Math.floor(new Date(p.timestamp).getTime() / 1000);
-      const bucket = Math.floor(ts / intervalToSeconds(interval)) * intervalToSeconds(interval);
-      const price = Number(p.lastPrice);
-
-      // Ігноруємо "запізнілі" тики, які старші за поточну свічку
-      if (bucket < lastBucketRef.current) {
-        return;
-      }
-
-      if (lastBucketRef.current === bucket) {
-        // Оновлюємо поточну свічку (агрегація)
-        currentCandleRef.current.close = price;
-        currentCandleRef.current.high = Math.max(currentCandleRef.current.high, price);
-        currentCandleRef.current.low = Math.min(currentCandleRef.current.low, price);
-        seriesRef.current.update(currentCandleRef.current);
-      } else {
-        // Почався новий часовий інтервал, формуємо нову свічку
-        // Всі поля дорівнюють поточній ціні — не використовуємо закриття попередньої свічки,
-        // щоб уникнути "розтягнутих" свічок при проміжках у часі
-        const newCandle: CandlestickData = {
-          time: bucket as UTCTimestamp,
-          open: price, // ✅ Відкриття на реальній ціні нового тіку
-          high: price, // ✅ Жодних старих даних
-          low: price,  // ✅
-          close: price
-        };
-        currentCandleRef.current = newCandle;
-        lastBucketRef.current = bucket;
-        seriesRef.current.update(newCandle);
-      }
-    },
-  }), [interval, exchange, tradingPair]);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const chart = createChart(containerRef.current, {
-      width: containerRef.current.clientWidth,
-      height: containerRef.current.clientHeight,
-      layout: {background: {color: isWidget ? 'transparent' : '#181a20'}, textColor: '#848e9c'},
-      grid: {vertLines: {color: '#2b3139', style: 1}, horzLines: {color: '#2b3139', style: 1}},
-      rightPriceScale: {borderColor: '#2b3139'},
-      timeScale: {borderColor: '#2b3139', timeVisible: true},
-      crosshair: {
-        vertLine: {color: '#848e9c', labelBackgroundColor: '#2b3139'},
-        horzLine: {color: '#848e9c', labelBackgroundColor: '#2b3139'}
-      }
-    });
-
-    chartRef.current = chart;
-
-    seriesRef.current = chart.addSeries(CandlestickSeries, {
-      upColor: '#0ecb81',
-      downColor: '#f6465d',
-      borderVisible: false,
-      wickUpColor: '#0ecb81',
-      wickDownColor: '#f6465d',
-    });
-
-    chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
-      if (logicalRange !== null && logicalRange.from < 20 && !isFetchingRef.current) {
-        const currentOnLoadMore = onLoadMoreRef.current;
-        const oldestTime = oldestTimeRef.current;
-
-        if (oldestTime && currentOnLoadMore) {
-          isFetchingRef.current = true;
-          currentOnLoadMore(oldestTime);
-        }
-      }
-    });
-
-    const resizeObserver = new ResizeObserver(() => {
-      if (containerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({
-          width: containerRef.current.clientWidth,
-          height: containerRef.current.clientHeight
-        });
-      }
-    });
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-      chart.remove();
-    };
-  }, [isWidget]);
-
-  useEffect(() => {
-    if (!seriesRef.current || !historical || !Array.isArray(historical)) return;
+  // ❗ ВИСОКОЕФЕКТИВНЕ: Парсимо дані в useMemo, щоб уникнути повторних обчислень
+  const parsedCandles = useMemo(() => {
+    if (!historical || !Array.isArray(historical)) {
+      parsedCandlesRef.current = {candles: [] as CandlestickData[], oldestTime: null as string | null};
+      return {candles: [] as CandlestickData[], oldestTime: null as string | null};
+    }
 
     let oldestTimeStr: string | null = null;
     let minTime = Infinity;
-
     const uniqueCandles = new Map<number, CandlestickData>();
 
     historical
@@ -179,48 +125,157 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
         });
       });
 
-    oldestTimeRef.current = oldestTimeStr;
-
-    const data: CandlestickData[] = Array.from(uniqueCandles.values())
+    const candles = Array.from(uniqueCandles.values())
       .sort((a, b) => (a.time as number) - (b.time as number));
 
-    if (data.length > 0) {
-      const lastCandle = data[data.length - 1];
+    parsedCandlesRef.current = {candles, oldestTime: oldestTimeStr};
+    return {candles, oldestTime: oldestTimeStr};
+  }, [historical]);
+
+  useEffect(() => {
+    if (!seriesRef.current) return;
+
+    const {candles, oldestTime} = parsedCandles;
+    oldestTimeRef.current = oldestTime;
+
+    if (candles.length > 0) {
+      const lastCandle = candles[candles.length - 1];
       const formatParams = getPrecisionParams(lastCandle.close);
 
       seriesRef.current.applyOptions({
         priceFormat: {type: 'price', precision: formatParams.precision, minMove: formatParams.minMove},
       });
 
-      if (chartRef.current && dataLengthRef.current > 0 && data.length > dataLengthRef.current) {
+      if (chartRef.current && dataLengthRef.current > 0 && candles.length > dataLengthRef.current) {
         const visibleRange = chartRef.current.timeScale().getVisibleLogicalRange();
-        seriesRef.current.setData(data);
+        seriesRef.current.setData(candles);
 
         if (visibleRange !== null) {
-          const addedItemsCount = data.length - dataLengthRef.current;
+          const addedItemsCount = candles.length - dataLengthRef.current;
           chartRef.current.timeScale().setVisibleLogicalRange({
             from: visibleRange.from + addedItemsCount,
             to: visibleRange.to + addedItemsCount,
           });
         }
       } else {
-        seriesRef.current.setData(data);
+        seriesRef.current.setData(candles);
       }
 
-      dataLengthRef.current = data.length;
+      dataLengthRef.current = candles.length;
       lastBucketRef.current = lastCandle.time as number;
       currentCandleRef.current = {...lastCandle};
 
       isFetchingRef.current = false;
     } else {
-      // Якщо історія прийшла порожньою
       lastBucketRef.current = null;
       currentCandleRef.current = null;
       seriesRef.current.setData([]);
       dataLengthRef.current = 0;
       isFetchingRef.current = false;
     }
-  }, [historical]);
+  }, [parsedCandles]);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    let resizeObserver: ResizeObserver | null = null;
+
+    const initChart = () => {
+      if (!containerRef.current || chartRef.current) return;
+
+      const { clientWidth, clientHeight } = containerRef.current;
+      if (clientWidth <= 0 || clientHeight <= 0) return;
+
+      const chart = createChart(containerRef.current, {
+        width: clientWidth,
+        height: clientHeight,
+        layout: {background: {color: isWidget ? 'transparent' : '#181a20'}, textColor: '#a1a1aa'},
+        grid: {vertLines: {color: '#27272a', style: 1}, horzLines: {color: '#27272a', style: 1}},
+        rightPriceScale: {borderColor: '#27272a'},
+        timeScale: {borderColor: '#27272a', timeVisible: true},
+        localization: {locale: 'en'},
+        crosshair: {
+          vertLine: {color: '#52525b', labelBackgroundColor: '#181a20'},
+          horzLine: {color: '#52525b', labelBackgroundColor: '#181a20'}
+        }
+      });
+
+      chartRef.current = chart;
+
+      seriesRef.current = chart.addSeries(CandlestickSeries, {
+        upColor: '#0ecb81',
+        downColor: '#f6465d',
+        borderVisible: false,
+        wickUpColor: '#0ecb81',
+        wickDownColor: '#f6465d',
+      });
+
+      chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
+        if (logicalRange !== null && logicalRange.from < 20 && !isFetchingRef.current) {
+          const currentOnLoadMore = onLoadMoreRef.current;
+          const oldestTime = oldestTimeRef.current;
+
+          if (oldestTime && currentOnLoadMore) {
+            isFetchingRef.current = true;
+            currentOnLoadMore(oldestTime);
+          }
+        }
+      });
+
+      // Apply any existing data that arrived before the chart was ready
+      const existing = parsedCandlesRef.current;
+      if (existing && existing.candles.length > 0) {
+        const { candles, oldestTime } = existing;
+        const lastCandle = candles[candles.length - 1];
+        const formatParams = getPrecisionParams(lastCandle.close);
+
+        seriesRef.current.applyOptions({
+          priceFormat: {type: 'price', precision: formatParams.precision, minMove: formatParams.minMove},
+        });
+
+        seriesRef.current.setData(candles);
+        dataLengthRef.current = candles.length;
+        lastBucketRef.current = lastCandle.time as number;
+        currentCandleRef.current = {...lastCandle};
+        oldestTimeRef.current = oldestTime;
+        isFetchingRef.current = false;
+      }
+    };
+
+    const handleResize = () => {
+      if (!containerRef.current) return;
+
+      const { clientWidth, clientHeight } = containerRef.current;
+
+      if (clientWidth > 0 && clientHeight > 0) {
+        if (!chartRef.current) {
+          initChart();
+        } else {
+          chartRef.current.applyOptions({
+            width: clientWidth,
+            height: clientHeight
+          });
+        }
+      }
+    };
+
+    // Attempt immediate initialization if container already has size
+    handleResize();
+
+    resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      if (chartRef.current) {
+        chartRef.current.remove();
+        chartRef.current = null;
+        seriesRef.current = null;
+      }
+    };
+  }, [isWidget]);
 
   return (
     <div className={`w-full h-full ${isWidget ? '' : 'p-4 bg-[#0b0e14]'}`}>
@@ -236,5 +291,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
     </div>
   );
 });
+
+ChartArea.displayName = 'ChartArea';
 
 export default ChartArea;

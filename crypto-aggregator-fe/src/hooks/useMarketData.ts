@@ -14,9 +14,9 @@ import {ChartHandle} from '../components/ChartArea';
 export default function useMarketData() {
   const [metadata, setMetadata] = useState<ExchangeMetadata[]>([]);
 
-  const [selectedExchange, setSelectedExchange] = useState<Exchange | null>(null);
-  const [selectedPair, setSelectedPair] = useState<TradingPair | null>(null);
-  const [selectedInterval, setSelectedInterval] = useState<ChartInterval | null>(null);
+  const [selectedExchange, setSelectedExchange] = useState<Exchange>('BINANCE');
+  const [selectedPair, setSelectedPair] = useState<TradingPair>('BTC_USD');
+  const [selectedInterval, setSelectedInterval] = useState<ChartInterval>('FIFTEEN_MINUTES');
 
   const [livePrice, setLivePrice] = useState<LivePrice | null>(null);
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
@@ -42,7 +42,9 @@ export default function useMarketData() {
 
         setSelectedInterval(defaultInterval);
       }
-    }).catch(console.error);
+    }).catch(() => {
+      // Metadata load failure handled by empty state
+    });
   }, []);
 
   // 2. Оновлюємо списки залежно від обраної біржі
@@ -52,8 +54,6 @@ export default function useMarketData() {
 
   // 3. Завантаження історії та SSE (Ціни + Статус Біржі)
   useEffect(() => {
-    if (!selectedExchange || !selectedPair || !selectedInterval) return;
-
     // Скидаємо прапорець пагінації при зміні торгової пари або інтервалу
     setHasMoreHistory(true);
 
@@ -62,7 +62,9 @@ export default function useMarketData() {
       chartInterval: selectedInterval
     })
       .then(setHistorical)
-      .catch(console.error);
+      .catch(() => {
+        // Historical prices load failure handled by empty state
+      });
 
     // --- Потік Цін ---
     const priceSource = api.streamPrices(selectedExchange, selectedPair);
@@ -72,8 +74,8 @@ export default function useMarketData() {
         const price: LivePrice = JSON.parse(event.data);
         setLivePrice(price);
         chartRef.current?.applyLivePrice(price);
-      } catch (err) {
-        console.error("SSE Parse Error:", err);
+      } catch {
+        // SSE parse error handled silently
       }
     };
 
@@ -86,8 +88,8 @@ export default function useMarketData() {
       try {
         const health: ExchangeHealthDto = JSON.parse(event.data);
         setExchangeHealth(health);
-      } catch (err) {
-        console.error("Health SSE Parse Error:", err);
+      } catch {
+        // Health SSE parse error handled silently
       }
     };
 
@@ -106,7 +108,7 @@ export default function useMarketData() {
 
   // 4. Функція для завантаження старіших даних (Пагінація)
   const handleLoadMoreHistory = useCallback(async (oldestTimestamp: string) => {
-    if (!hasMoreHistory || !selectedExchange || !selectedPair || !selectedInterval) return;
+    if (!hasMoreHistory) return;
 
     try {
       const olderData = await api.getHistoricalPrices(selectedExchange, {
@@ -122,8 +124,8 @@ export default function useMarketData() {
         // Додаємо старі свічки на початок масиву
         setHistorical(prev => prev ? [...olderData, ...prev] : olderData);
       }
-    } catch (err) {
-      console.error("Failed to load more history", err);
+    } catch {
+      // History load failure handled by empty state
     }
   }, [hasMoreHistory, selectedExchange, selectedPair, selectedInterval]);
 

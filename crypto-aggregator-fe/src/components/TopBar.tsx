@@ -1,15 +1,17 @@
-import {Exchange, ExchangeHealthDto, LivePrice, TradingPair} from '../api';
+import {ExchangeHealthDto, LivePrice} from '../api';
+import {ArrowLeft} from 'lucide-react';
+import {Badge} from './ui';
 
 type Props = {
-  exchange: Exchange | null;
-  pair: TradingPair | null;
+  exchange: string | null | undefined;
+  pair: string | null | undefined;
   livePrice: LivePrice | null;
   health: ExchangeHealthDto | null;
   onBack?: () => void;
 };
 
 export default function TopBar({exchange, pair, livePrice, health, onBack}: Props) {
-  if (!pair) return <div className="h-20 border-b border-[#2b3139] bg-[#181a20]"></div>;
+  if (!pair) return null;
 
   const displayPair = pair.replace('_', '/');
   const isPositive = (livePrice?.priceChangePercent24h ?? 0) >= 0;
@@ -19,18 +21,17 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'CONNECTED':
-        return 'bg-[#0ecb81] shadow-[0_0_8px_#0ecb81]';
+        return 'bg-[#0ecb81] shadow-[0_0_8px_rgba(14,203,129,0.4)]';
       case 'RECONNECTING':
-        return 'bg-[#fcd535] shadow-[0_0_8px_#fcd535] animate-pulse';
+        return 'bg-[#fcd535] shadow-[0_0_8px_rgba(252,213,53,0.4)] animate-pulse';
       case 'ERROR':
-        return 'bg-[#f6465d] shadow-[0_0_8px_#f6465d]';
+        return 'bg-[#f6465d] shadow-[0_0_8px_rgba(246,70,93,0.4)]';
       case 'DISCONNECTED':
       default:
         return 'bg-[#848e9c]';
     }
   };
 
-  // ❗ ДОДАНО: Функція для динамічного форматування ціни
   const formatPrice = (price?: number) => {
     if (price == null) return '—';
     let precision = 2;
@@ -47,30 +48,33 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
   };
 
   return (
-    <div className="flex items-center px-6 h-20 border-b border-[#2b3139] bg-[#181a20] shrink-0">
+    <div className="flex items-center px-6 h-20 border-b border-white/5 glass-surface shrink-0 relative z-30">
 
-      {/* Кнопка "Назад" */}
+      {/* Back Button */}
       {onBack && (
         <button
           onClick={onBack}
-          className="mr-6 text-[#848e9c] hover:text-[#eaecef] transition-colors flex items-center gap-2 text-sm font-medium focus:outline-none"
+          className="mr-6 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition-all rounded-full p-2 flex items-center justify-center group relative"
+          title="Back to Overview"
         >
-          <span className="text-lg">←</span>
-          <span>Dashboard</span>
+          <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white transition-colors"/>
+          <span className="absolute left-full ml-3 px-2 py-1 bg-[#181a20] border border-white/10 rounded-md text-xs text-zinc-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            Back to Overview
+          </span>
         </button>
       )}
 
       {/* Pair Info */}
       <div className="flex flex-col mr-8">
-        <h1 className="text-2xl font-bold text-[#eaecef]">{displayPair}</h1>
-        <span className="text-xs text-[#848e9c] underline decoration-dashed underline-offset-4 cursor-pointer">
+        <h1 className="text-2xl font-bold text-zinc-50 tracking-tight">{displayPair}</h1>
+        <span className="text-xs text-zinc-400 underline decoration-dashed underline-offset-4 cursor-pointer hover:text-zinc-50 transition-colors">
           Bitcoin
         </span>
       </div>
 
-      {/* ❗ ВИПРАВЛЕНО: Live Price */}
+      {/* Live Price */}
       <div className="flex flex-col mr-10">
-        <div className={`text-2xl font-bold ${colorClass}`}>
+        <div className={`text-2xl font-bold ${colorClass} tracking-tight`}>
           {formatPrice(livePrice?.lastPrice)}
         </div>
         <div className={`text-xs ${colorClass}`}>
@@ -78,20 +82,19 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
         </div>
       </div>
 
-      {/* ❗ ВИПРАВЛЕНО: 24h Stats (High, Low) */}
+      {/* 24h Stats */}
       <div className="flex space-x-8 text-xs">
         <div className="flex flex-col">
-          <span className="text-[#848e9c] mb-1">24h High</span>
-          <span className="text-[#eaecef] font-medium">{formatPrice(livePrice?.highPrice24h)}</span>
+          <span className="text-zinc-400 mb-1">24h High</span>
+          <span className="text-zinc-50 font-medium">{formatPrice(livePrice?.highPrice24h)}</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[#848e9c] mb-1">24h Low</span>
-          <span className="text-[#eaecef] font-medium">{formatPrice(livePrice?.lowPrice24h)}</span>
+          <span className="text-zinc-400 mb-1">24h Low</span>
+          <span className="text-zinc-50 font-medium">{formatPrice(livePrice?.lowPrice24h)}</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[#848e9c] mb-1">24h Volume</span>
-          <span className="text-[#eaecef] font-medium">
-            {/* Volume зазвичай велике число, тому залишаємо 2 знаки або без дробів */}
+          <span className="text-zinc-400 mb-1">24h Volume</span>
+          <span className="text-zinc-50 font-medium">
             {livePrice?.volume24h ? livePrice.volume24h.toLocaleString(undefined, {maximumFractionDigits: 0}) : '—'}
           </span>
         </div>
@@ -100,10 +103,10 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
       {/* Exchange Status */}
       <div className="flex items-center ml-auto">
         {exchange && (
-          <div className="flex items-center gap-2 bg-[#2b3139] px-3 py-1.5 rounded-md">
-            <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(health?.connectionStatus)}`}/>
-            <span className="text-[#eaecef] text-sm font-medium">{exchange}</span>
-          </div>
+          <Badge variant="neutral" className="gap-2">
+            <div className={`w-2 h-2 rounded-full ${getStatusColor(health?.connectionStatus)}`}/>
+            <span className="text-zinc-50 text-sm font-medium">{exchange}</span>
+          </Badge>
         )}
       </div>
     </div>

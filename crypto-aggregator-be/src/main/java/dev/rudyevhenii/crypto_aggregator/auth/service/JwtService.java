@@ -15,4 +15,6 @@ public interface JwtService {
     boolean isTokenValid(String token, User user);
 
     Date extractExpiration(String token);
+
+    TokenType extractTokenType(String token);
 }

@@ -1,15 +1,11 @@
 package dev.rudyevhenii.crypto_aggregator.workspace;
 
 import dev.rudyevhenii.crypto_aggregator.core.enums.ChartInterval;
-import dev.rudyevhenii.crypto_aggregator.exchange_pair.ExchangePairEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
@@ -40,13 +36,11 @@ public class ChartWidgetEntity implements Persistable<UUID> {
     @Column(name = Fields.chartInterval)
     private ChartInterval chartInterval;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "exchange_pair_id")
-    private ExchangePairEntity exchangePair;
+    @Column(name = Fields.exchangePairId)
+    private UUID exchangePairId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workspace_id")
-    private WorkspaceEntity workspace;
+    @Column(name = Fields.workspaceId)
+    private UUID workspaceId;
 
     @Column(name = Fields.position)
     private int position;

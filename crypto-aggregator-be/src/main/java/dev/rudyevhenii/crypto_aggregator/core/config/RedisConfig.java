@@ -27,10 +27,13 @@ public class RedisConfig {
     public static final String EXCHANGE_PAIR_CACHE = "exchangePairs";
     public static final String CHART_WIDGET_CACHE = "chartWidgets";
     public static final String WORKSPACE_CACHE = "workspaces";
-    public static final String HISTORICAL_PRICES_CACHE = "historicalPrices";
+
+    public static final String HISTORICAL_PRICES_LIVE_CACHE = "historicalPrices:live";
+    public static final String HISTORICAL_PRICES_ARCHIVE_CACHE = "historicalPrices:archive";
 
     private static final int DEFAULT_TTL_MINUTES = 60;
-    private static final int HISTORICAL_PRICES_TTL_MINUTES = 3;
+    private static final int HISTORICAL_PRICES_LIVE_TTL_MINUTES = 3;
+    private static final int HISTORICAL_RRICES_ARCHIVE_TTL_HOURS = 3;
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
@@ -68,7 +71,8 @@ public class RedisConfig {
 
     private Map<String, RedisCacheConfiguration> cacheConfigurations(RedisCacheConfiguration defaultConfig) {
         return Map.of(
-                HISTORICAL_PRICES_CACHE, defaultConfig.entryTtl(Duration.ofMinutes(HISTORICAL_PRICES_TTL_MINUTES))
+                HISTORICAL_PRICES_LIVE_CACHE, defaultConfig.entryTtl(Duration.ofMinutes(HISTORICAL_PRICES_LIVE_TTL_MINUTES)),
+                HISTORICAL_PRICES_ARCHIVE_CACHE, defaultConfig.entryTtl(Duration.ofHours(HISTORICAL_RRICES_ARCHIVE_TTL_HOURS))
         );
     }
 }

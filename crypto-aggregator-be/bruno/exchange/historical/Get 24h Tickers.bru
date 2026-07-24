@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: {{BASE_URL}}/api/historical/exchanges/:exchange/tickers/24h
+  url: {{BASE_URL}}/api/historical/exchanges/:exchange/tickers/24h?tradingPairs=BTC_USD,ETH_USD,SOL_USD
   body: none
   auth: inherit
+}
+
+params:query {
+  tradingPairs: BTC_USD,ETH_USD,SOL_USD
 }
 
 params:path {

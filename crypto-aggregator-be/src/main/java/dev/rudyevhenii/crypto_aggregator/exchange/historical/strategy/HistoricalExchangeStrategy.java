@@ -12,7 +12,7 @@ public interface HistoricalExchangeStrategy extends ExchangeStrategy {
 
     List<HistoricalPriceDto> fetchHistoricalData(HistoricalPriceRequest request);
 
-    List<Ticker24hDto> fetch24hTickers();
+    List<Ticker24hDto> fetch24hTickers(List<TradingPair> tradingPairs);
 
     Ticker24hDto fetch24hTicker(TradingPair pair);
 }

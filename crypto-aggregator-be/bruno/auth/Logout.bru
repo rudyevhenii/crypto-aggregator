@@ -6,8 +6,19 @@ meta {
 
 post {
   url: {{BASE_URL}}/api/auth/logout
-  body: none
-  auth: inherit
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "accessToken": "{{ACCESS_TOKEN}}",
+    "refreshToken": "{{REFRESH_TOKEN}}"
+  }
 }
 
 settings {

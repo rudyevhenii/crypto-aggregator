@@ -10,13 +10,13 @@ import java.util.UUID;
 
 public interface ChartWidgetService {
 
-    ChartWidget create(UUID userId, UUID workspaceId, ChartWidgetRequest request);
+    ChartWidget create(UUID workspaceId, ChartWidgetRequest request);
 
-    ChartWidget update(UUID userId, UUID workspaceId, UUID chartWidgetId, UpdateChartWidgetRequest request);
+    ChartWidget update(UUID workspaceId, UUID id, UpdateChartWidgetRequest request);
 
-    void updatePositions(UUID userId, UUID workspaceId, List<UpdateChartWidgetPositionsRequest> request);
+    void updatePositions(UUID workspaceId, List<UpdateChartWidgetPositionsRequest> request);
 
-    List<ChartWidget> getAllByWorkspaceId(UUID userId, UUID workspaceId);
+    List<ChartWidget> getAllByWorkspaceId(UUID workspaceId);
 
-    void delete(UUID userId, UUID workspaceId, UUID chartWidgetId);
+    void delete(UUID workspaceId, UUID id);
 }

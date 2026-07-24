@@ -9,12 +9,13 @@ import {
   Ticker24h,
   TradingPair,
   WidgetPositionUpdate,
-} from "./types.ts";
+  Workspace,
+} from './types';
 
 export * from './types';
 
 // --- API CLIENT ---
-const BASE_URL = 'http://localhost:8080';
+export const BASE_URL = 'http://localhost:8080';
 
 // Змінні для керування чергою запитів під час оновлення токена
 let isRefreshing = false;
@@ -31,21 +32,40 @@ const onTokenRefreshed = (token: string) => {
   refreshSubscribers = [];
 };
 
+// Визначає, чи є ендпоінт публічним згідно з правилами безпеки бекенду
+const isPublicEndpoint = (endpoint: string): boolean => {
+  // Публічні: /api/auth/** — КРОМЕ /api/auth/logout
+  if (endpoint.startsWith('/api/auth/') && endpoint !== '/api/auth/logout') {
+    return true;
+  }
+  // Публічні: /api/auth/login, /api/auth/register, /api/auth/refresh-token тощо
+  if (endpoint === '/api/auth/login' || endpoint === '/api/auth/register' || endpoint === '/api/auth/refresh-token') {
+    return true;
+  }
+  // Публічні: /api/stream/** (SSE/WebSocket)
+  if (endpoint.startsWith('/api/stream/')) {
+    return true;
+  }
+  return false;
+};
+
 // ДОДАНО: Розумна обгортка, яка автоматично оновлює токен при 401 помилці
+// та дотримується правил безпеки: не додає Authorization для публічних ендпоінтів
 async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
   const token = localStorage.getItem('accessToken');
+  const publicEndpoint = isPublicEndpoint(endpoint);
 
   // Допоміжна функція для генерації хедерів
   const getHeaders = (accessToken: string | null) => ({
     'Content-Type': 'application/json',
     ...options.headers,
-    ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+    ...(!publicEndpoint && accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   });
 
   // Робимо оригінальний запит
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
-    headers: getHeaders(token)
+    headers: getHeaders(token),
   });
 
   // Якщо токен протух
@@ -62,15 +82,15 @@ async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<R
     if (!isRefreshing) {
       isRefreshing = true;
       try {
-        // Робимо запит на оновлення токена
+        // Робимо запит на оновлення токена (публічний ендпоінт, без Authorization)
         const refreshRes = await fetch(`${BASE_URL}/api/auth/refresh-token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken })
+          body: JSON.stringify({ refreshToken }),
         });
 
         if (refreshRes.ok) {
-          const tokens = await refreshRes.json();
+          const tokens = (await refreshRes.json()) as { accessToken: string; refreshToken: string };
           // Зберігаємо нові токени
           localStorage.setItem('accessToken', tokens.accessToken);
           localStorage.setItem('refreshToken', tokens.refreshToken);
@@ -81,7 +101,7 @@ async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<R
           // Повторюємо запит, який впав з 401, вже з новим токеном
           return fetch(`${BASE_URL}${endpoint}`, {
             ...options,
-            headers: getHeaders(tokens.accessToken)
+            headers: getHeaders(tokens.accessToken),
           });
         } else {
           // Якщо refresh-токен теж протух (наприклад, пройшов тиждень)
@@ -102,10 +122,12 @@ async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<R
     // ми просто ставимо цей запит у чергу (Promise) і чекаємо на новий токен
     return new Promise(resolve => {
       subscribeTokenRefresh((newToken: string) => {
-        resolve(fetch(`${BASE_URL}${endpoint}`, {
-          ...options,
-          headers: getHeaders(newToken)
-        }));
+        resolve(
+          fetch(`${BASE_URL}${endpoint}`, {
+            ...options,
+            headers: getHeaders(newToken),
+          })
+        );
       });
     });
   }
@@ -115,19 +137,29 @@ async function fetchAuth(endpoint: string, options: RequestInit = {}): Promise<R
 
 export const api = {
   getIntervals: async (exchange: Exchange): Promise<ChartInterval[]> => {
-    const res = await fetch(`${BASE_URL}/api/exchanges/${exchange}/intervals`);
+    const res = await fetchAuth(`/api/exchanges/${exchange}/intervals`);
+    if (!res.ok) return [];
     return res.json();
   },
 
   logout: async (): Promise<void> => {
-    const res = await fetchAuth('/api/auth/logout', {method: 'POST'});
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    const res = await fetchAuth(`/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ accessToken, refreshToken }),
+    });
     if (!res.ok && res.status !== 204) {
       throw new Error('Logout failed');
     }
   },
 
   getMetadata: async (): Promise<ExchangeMetadata[]> => {
-    const res = await fetch(`${BASE_URL}/api/exchanges/metadata`);
+    const res = await fetchAuth(`/api/exchanges/metadata`);
+    if (!res.ok) return [];
     return res.json();
   },
 
@@ -148,10 +180,9 @@ export const api = {
       params.append('endTimeCursor', request.endTimeCursor);
     }
 
-    const res = await fetch(`${BASE_URL}/api/historical/exchanges/${exchange}/klines?${params}`);
+    const res = await fetchAuth(`/api/historical/exchanges/${exchange}/klines?${params}`);
 
     if (!res.ok) {
-      console.error("Failed to fetch historical data", await res.text());
       return [];
     }
 
@@ -178,17 +209,45 @@ export const api = {
   },
 
   get24hTickers: async (exchange: Exchange): Promise<Ticker24h[]> => {
-    const res = await fetch(`${BASE_URL}/api/historical/exchanges/${exchange}/tickers/24h`);
+    const res = await fetchAuth(`/api/historical/exchanges/${exchange}/tickers/24h`);
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  get24hTickersByExchange: async (exchange: Exchange, tradingPairs: TradingPair[]): Promise<Ticker24h[]> => {
+    if (!tradingPairs || tradingPairs.length === 0) {
+      return [];
+    }
+    const params = new URLSearchParams();
+    tradingPairs.forEach(pair => params.append('tradingPairs', pair));
+    const res = await fetchAuth(`/api/historical/exchanges/${exchange}/tickers/24h?${params.toString()}`);
     if (!res.ok) return [];
     return res.json();
   },
 
   // --- WORKSPACE & WIDGETS ---
   // Оновлено на fetchAuth
-  searchExchangePairs: async (pattern: string): Promise<ExchangePair[]> => {
-    const res = await fetchAuth(`/api/exchange-pairs/search?pattern=${encodeURIComponent(pattern)}`);
+  searchExchangePairs: async (options: {
+    exchange?: Exchange;
+    tradingPair?: string;
+  }): Promise<ExchangePair[]> => {
+    const params = new URLSearchParams();
+
+    if (options.exchange) {
+      params.append('exchange', options.exchange);
+    }
+
+    if (options.tradingPair) {
+      params.append('tradingPair', options.tradingPair);
+    }
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `/api/exchange-pairs/search?${queryString}`
+      : '/api/exchange-pairs/search';
+
+    const res = await fetchAuth(url);
     if (!res.ok) {
-      console.error('Search failed:', res.status);
       return [];
     }
     return res.json();
@@ -198,7 +257,6 @@ export const api = {
   getAllExchangePairs: async (): Promise<ExchangePair[]> => {
     const res = await fetchAuth(`/api/exchange-pairs`);
     if (!res.ok) {
-      console.error('Fetch all pairs failed:', res.status);
       return [];
     }
     return res.json();
@@ -206,7 +264,7 @@ export const api = {
 
   // --- WORKSPACE & WIDGETS ---
 
-  getWorkspaces: async () => {
+  getWorkspaces: async (): Promise<Workspace[]> => {
     const res = await fetchAuth(`/api/workspaces`);
     if (!res.ok) throw new Error('Failed to fetch workspaces');
     return res.json();
@@ -218,61 +276,83 @@ export const api = {
     return res.json();
   },
 
-  createWorkspace: async (name: string) => {
+  createWorkspace: async (name: string): Promise<Workspace> => {
     const res = await fetchAuth(`/api/workspaces`, {
       method: 'POST',
-      body: JSON.stringify({name}) // fetchAuth вже має 'Content-Type': 'application/json'
+      body: JSON.stringify({ name }), // fetchAuth вже має 'Content-Type': 'application/json'
     });
-    if (!res.ok) throw new Error('Failed to create workspace');
+    if (!res.ok) {
+      let message = 'Failed to create workspace';
+      if (res.status === 409) {
+        try {
+          const data = await res.json();
+          message = data?.message || message;
+        } catch {
+          // keep generic message if JSON parsing fails
+        }
+      }
+      throw new Error(message);
+    }
     return res.json();
   },
 
-  updateWorkspace: async (id: string, name: string) => {
+  updateWorkspace: async (id: string, name: string): Promise<Workspace> => {
     const res = await fetchAuth(`/api/workspaces/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({name})
+      body: JSON.stringify({ name }),
     });
-    if (!res.ok) throw new Error('Failed to rename workspace');
+    if (!res.ok) {
+      let message = 'Failed to rename workspace';
+      if (res.status === 409) {
+        try {
+          const data = await res.json();
+          message = data?.message || message;
+        } catch {
+          // keep generic message if JSON parsing fails
+        }
+      }
+      throw new Error(message);
+    }
     return res.json();
   },
 
-  deleteWorkspace: async (id: string) => {
-    const res = await fetchAuth(`/api/workspaces/${id}`, {method: 'DELETE'});
+  deleteWorkspace: async (id: string): Promise<void> => {
+    const res = await fetchAuth(`/api/workspaces/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete workspace');
   },
 
   addChartWidget: async (workspaceId: string, exchangePairId: string): Promise<ChartWidget> => {
     const res = await fetchAuth(`/api/workspaces/${workspaceId}/widgets`, {
       method: 'POST',
-      body: JSON.stringify({exchangePairId})
+      body: JSON.stringify({ exchangePairId }),
     });
     if (!res.ok) throw new Error('Failed to add widget');
     return res.json();
   },
 
-  updateChartWidget: async (workspaceId: string, widgetId: string, chartInterval: ChartInterval) => {
+  updateChartWidget: async (workspaceId: string, widgetId: string, chartInterval: ChartInterval): Promise<ChartWidget> => {
     const res = await fetchAuth(`/api/workspaces/${workspaceId}/widgets/${widgetId}`, {
       method: 'PATCH',
-      body: JSON.stringify({chartInterval})
+      body: JSON.stringify({ chartInterval }),
     });
     if (!res.ok) throw new Error('Failed to update widget');
     return res.json();
   },
 
-  deleteChartWidget: async (workspaceId: string, widgetId: string) => {
+  deleteChartWidget: async (workspaceId: string, widgetId: string): Promise<void> => {
     const res = await fetchAuth(`/api/workspaces/${workspaceId}/widgets/${widgetId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     });
     if (!res.ok) throw new Error('Failed to delete widget');
   },
 
-  updateWidgetPositions: async (workspaceId: string, positions: WidgetPositionUpdate[]) => {
+  updateWidgetPositions: async (workspaceId: string, positions: WidgetPositionUpdate[]): Promise<void> => {
     const res = await fetchAuth(`/api/workspaces/${workspaceId}/widgets/positions`, {
       method: 'PUT',
-      body: JSON.stringify(positions)
+      body: JSON.stringify(positions),
     });
     if (!res.ok) throw new Error('Failed to update positions');
-  }
+  },
 };
 
-export {intervalToSeconds} from './types';
+export { intervalToSeconds } from './types';

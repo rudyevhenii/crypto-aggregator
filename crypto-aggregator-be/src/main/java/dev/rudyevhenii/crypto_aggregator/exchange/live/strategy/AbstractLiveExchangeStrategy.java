@@ -22,6 +22,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.function.Predicate;
 
 @Slf4j
 public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrategy {
@@ -49,15 +50,13 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     @Override
     public Flux<LivePriceDto> streamPriceByExchange(Exchange exchange) {
         return priceSink.asFlux()
-                .filter(cryptoPriceDto -> cryptoPriceDto.exchange().equals(exchange));
+                .filter(equalsToExchange(exchange));
     }
 
     @Override
     public Flux<LivePriceDto> streamSinglePair(Exchange exchange, TradingPair tradingPair) {
         return priceSink.asFlux()
-                .filter(cryptoPriceDto ->
-                        cryptoPriceDto.tradingPair().equals(tradingPair)
-                                && cryptoPriceDto.exchange().equals(exchange));
+                .filter(equalsToExchange(exchange).and(equalsToTradingPair(tradingPair)));
     }
 
     @Override
@@ -112,6 +111,14 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
         log.info("[{}] Completing price stream for all clients...", exchange.name());
         priceSink.tryEmitComplete();
         healthSink.tryEmitComplete();
+    }
+
+    private Predicate<LivePriceDto> equalsToExchange(Exchange exchange) {
+        return price -> price.exchange().equals(exchange);
+    }
+
+    private Predicate<LivePriceDto> equalsToTradingPair(TradingPair tradingPair) {
+        return price -> price.tradingPair().equals(tradingPair);
     }
 
     private void emitHealth(ConnectionStatus connectionStatus) {

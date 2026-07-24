@@ -19,6 +19,7 @@ services:
     volumes:
       - redis_data:/data
     restart: unless-stopped
+    command: redis-server --maxmemory 50mb --maxmemory-policy allkeys-lru
 
 volumes:
   postgres_data:

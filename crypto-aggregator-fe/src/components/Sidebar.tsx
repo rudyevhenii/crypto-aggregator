@@ -1,13 +1,13 @@
-import {ChartInterval, Exchange, LivePrice, TradingPair} from '../api';
-import {ChevronDown} from 'lucide-react';
+import {LivePrice, TradingPair, Exchange, ChartInterval} from '../api';
+import {Select} from './ui';
 
 type Props = {
   exchanges: Exchange[];
   pairs: TradingPair[];
   intervals: ChartInterval[];
-  selectedExchange: Exchange | null;
-  selectedPair: TradingPair | null;
-  selectedInterval: ChartInterval | null;
+  selectedExchange: string;
+  selectedPair: string;
+  selectedInterval: ChartInterval;
   livePrice: LivePrice | null;
   onExchangeChange: (e: Exchange) => void;
   onPairChange: (p: TradingPair) => void;
@@ -24,72 +24,51 @@ export default function Sidebar({
   const colorClass = isPositive ? 'text-[#0ecb81]' : 'text-[#f6465d]';
 
   return (
-    <aside className="w-[320px] bg-[#181a20] border-l border-[#2b3139] flex flex-col h-full overflow-y-auto">
+    <aside className="w-[320px] glass-surface flex flex-col h-full overflow-y-auto relative z-20">
 
       {/* Selector Block */}
-      <div className="p-4 border-b border-[#2b3139] space-y-4">
-        <div>
-          <label className="block text-xs text-[#848e9c] mb-1.5">Exchange</label>
-          <div className="relative">
-            <select
-              value={selectedExchange ?? ''}
-              onChange={(e) => onExchangeChange(e.target.value as Exchange)}
-              className="w-full appearance-none bg-[#0b0e11] border border-[#2b3139] text-[#eaecef] px-3 py-2 rounded text-sm hover:border-[#474d57] transition-colors focus:outline-none focus:border-[#fcd535]"
-            >
-              {exchanges.map((ex) => <option key={ex} value={ex}>{ex}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
-          </div>
-        </div>
+      <div className="p-4 border-b border-white/5 space-y-4">
+        <Select
+          label="Exchange"
+          value={selectedExchange}
+          onChange={(value) => onExchangeChange(value as Exchange)}
+          options={exchanges.map(ex => ({value: ex, label: ex}))}
+        />
 
-        <div>
-          <label className="block text-xs text-[#848e9c] mb-1.5">Trading Pair</label>
-          <div className="relative">
-            <select
-              value={selectedPair ?? ''}
-              onChange={(e) => onPairChange(e.target.value as TradingPair)}
-              className="w-full appearance-none bg-[#0b0e11] border border-[#2b3139] text-[#eaecef] px-3 py-2 rounded text-sm hover:border-[#474d57] transition-colors focus:outline-none focus:border-[#fcd535]"
-            >
-              {pairs.map((p) => <option key={p} value={p}>{p.replace('_', '/')}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
-          </div>
-        </div>
+        <Select
+          label="Trading Pair"
+          value={selectedPair}
+          onChange={(value) => onPairChange(value as TradingPair)}
+          options={pairs.map(p => ({value: p, label: p.replace('_', '/')}))}
+        />
 
-        <div>
-          <label className="block text-xs text-[#848e9c] mb-1.5">Time Interval</label>
-          <div className="relative">
-            <select
-              value={selectedInterval ?? ''}
-              onChange={(e) => onIntervalChange(e.target.value as ChartInterval)}
-              className="w-full appearance-none bg-[#0b0e11] border border-[#2b3139] text-[#eaecef] px-3 py-2 rounded text-sm hover:border-[#474d57] transition-colors focus:outline-none focus:border-[#fcd535]"
-            >
-              {intervals.map((i) => <option key={i} value={i}>{i.replace(/_/g, ' ')}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 text-[#848e9c] pointer-events-none"/>
-          </div>
-        </div>
+        <Select
+          label="Time Interval"
+          value={selectedInterval}
+          onChange={(value) => onIntervalChange(value as ChartInterval)}
+          options={intervals.map(i => ({value: i, label: i.replace(/_/g, ' ')}))}
+        />
       </div>
 
-      {/* Price Overview Block (From mockup) */}
-      <div className="p-4 border-b border-[#2b3139]">
-        <h3 className="text-[#eaecef] font-semibold mb-4 text-sm">Price Overview</h3>
+      {/* Price Overview Block */}
+      <div className="p-4 border-b border-white/5">
+        <h3 className="text-zinc-50 font-semibold mb-4 text-sm tracking-wider uppercase">Price Overview</h3>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-[#848e9c]">Last Price</span>
+            <span className="text-zinc-400">Last Price</span>
             <span className={`font-medium ${colorClass}`}>{livePrice?.lastPrice?.toLocaleString() ?? '—'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#848e9c]">High (24h)</span>
-            <span className="text-[#eaecef]">{livePrice?.highPrice24h?.toLocaleString() ?? '—'}</span>
+            <span className="text-zinc-400">High (24h)</span>
+            <span className="text-zinc-50">{livePrice?.highPrice24h?.toLocaleString() ?? '—'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#848e9c]">Low (24h)</span>
-            <span className="text-[#eaecef]">{livePrice?.lowPrice24h?.toLocaleString() ?? '—'}</span>
+            <span className="text-zinc-400">Low (24h)</span>
+            <span className="text-zinc-50">{livePrice?.lowPrice24h?.toLocaleString() ?? '—'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#848e9c]">Volume</span>
-            <span className="text-[#eaecef]">{livePrice?.volume24h?.toLocaleString() ?? '—'}</span>
+            <span className="text-zinc-400">Volume</span>
+            <span className="text-zinc-50">{livePrice?.volume24h?.toLocaleString() ?? '—'}</span>
           </div>
         </div>
       </div>

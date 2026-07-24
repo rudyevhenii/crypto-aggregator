@@ -12,7 +12,7 @@ public interface HistoricalExchangeService {
 
     List<HistoricalPriceDto> getHistoricalPrices(Exchange exchange, HistoricalPriceRequest request);
 
-    List<Ticker24hDto> get24hTickersByExchange(Exchange exchange);
+    List<Ticker24hDto> get24hTickersByExchange(Exchange exchange, List<TradingPair> tradingPairs);
 
     Ticker24hDto get24hTickerForPair(Exchange exchange, TradingPair pair);
 }

@@ -1,14 +1,8 @@
 package dev.rudyevhenii.crypto_aggregator.workspace;
 
-import dev.rudyevhenii.crypto_aggregator.auth.UserEntity;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
@@ -20,8 +14,6 @@ import lombok.experimental.FieldNameConstants;
 import org.springframework.data.domain.Persistable;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -41,12 +33,8 @@ public class WorkspaceEntity implements Persistable<UUID> {
     @Column(name = Fields.name)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
-
-    @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL)
-    private List<ChartWidgetEntity> chartWidgets = new ArrayList<>();
+    @Column(name = Fields.userId)
+    private UUID userId;
 
     @Column(name = Fields.createdAt)
     private Instant createdAt;
@@ -60,10 +48,5 @@ public class WorkspaceEntity implements Persistable<UUID> {
     @Override
     public boolean isNew() {
         return newEntity;
-    }
-
-    public void addChartWidget(ChartWidgetEntity chartWidgetEntity) {
-        chartWidgets.add(chartWidgetEntity);
-        chartWidgetEntity.setWorkspace(this);
     }
 }

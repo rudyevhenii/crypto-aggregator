@@ -94,9 +94,7 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
     }
 
     @Override
-    public List<Ticker24hDto> fetch24hTickers() {
-        List<TradingPair> tradingPairs = properties.tradingPair().keySet().stream().toList();
-
+    public List<Ticker24hDto> fetch24hTickers(List<TradingPair> tradingPairs) {
         String pairsParam = formatQueryParams(tradingPairs);
         URI uri = resolveTickerUri(pairsParam);
 
