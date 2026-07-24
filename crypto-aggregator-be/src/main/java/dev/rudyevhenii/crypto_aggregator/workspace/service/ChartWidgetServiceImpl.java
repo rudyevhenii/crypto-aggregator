@@ -44,10 +44,13 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     @Transactional
     public ChartWidget update(UUID workspaceId, UUID id, UpdateChartWidgetRequest request) {
         ChartWidget chartWidget = getById(workspaceId, id);
-        chartWidget.setUpdatedAt(generator.now());
-
-        log.info("User [{}] updated chart widget [{}] for workspace [{}]", userContext.getUserId(), id, workspaceId);
-        return repository.update(chartWidget);
+        if (request.chartInterval() != chartWidget.getChartInterval()) {
+            chartWidget.setChartInterval(request.chartInterval());
+            chartWidget.setUpdatedAt(generator.now());
+            log.info("User [{}] updated chart widget [{}] for workspace [{}]", userContext.getUserId(), id, workspaceId);
+            return repository.update(chartWidget);
+        }
+        return chartWidget;
     }
 
     @Override

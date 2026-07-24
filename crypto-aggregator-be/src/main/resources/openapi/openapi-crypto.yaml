@@ -1047,6 +1047,10 @@ components:
         name:
           type: string
           description: "Workspace name"
+        userId:
+          type: string
+          format: uuid
+          description: "User ID"
         createdAt:
           type: string
           format: date-time
@@ -1058,6 +1062,7 @@ components:
       example:
         id: "550e8400-e29b-41d4-a716-446655440000"
         name: "My Trading Dashboard"
+        userId: "660e8400-e29b-41d4-a716-446655440001"
         createdAt: "2024-01-15T10:00:00Z"
         updatedAt: "2024-01-15T14:30:00Z"
 
@@ -1087,12 +1092,10 @@ components:
           type: string
           format: uuid
           description: "Exchange pair ID"
-        tradingPair:
-          $ref: '#/components/schemas/TradingPair'
-          description: "Trading pair"
-        exchange:
-          $ref: '#/components/schemas/Exchange'
-          description: "Exchange name"
+        workspaceId:
+          type: string
+          format: uuid
+          description: "Workspace ID"
         position:
           type: integer
           format: int32
@@ -1109,9 +1112,8 @@ components:
         id: "660e8400-e29b-41d4-a716-446655440001"
         chartInterval: "ONE_HOUR"
         exchangePairId: "550e8400-e29b-41d4-a716-446655440000"
-        tradingPair: "BTC_USD"
-        exchange: "BINANCE"
-        position: 0
+        workspaceId: "550e8400-e29b-41d4-a716-446655440000"
+        position: 1
         createdAt: "2024-01-15T10:05:00Z"
         updatedAt: "2024-01-15T14:30:00Z"
 

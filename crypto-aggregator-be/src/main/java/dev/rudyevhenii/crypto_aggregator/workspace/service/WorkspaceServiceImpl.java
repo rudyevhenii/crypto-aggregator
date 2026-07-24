@@ -39,6 +39,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     public Workspace update(UUID workspaceId, WorkspaceRequest request) {
         validateUniqueWorkspaceName(userContext.getUserId(), request.name());
         Workspace workspace = getById(userContext.getUserId(), workspaceId);
+        workspace.setName(request.name());
         workspace.setUpdatedAt(generator.now());
 
         log.info("User [{}] updated workspace [{}]", userContext.getUserId(), workspaceId);
@@ -91,6 +92,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return Workspace.builder()
                 .id(generator.uuid())
                 .name(request.name())
+                .userId(userContext.getUserId())
                 .createdAt(generator.now())
                 .updatedAt(generator.now())
                 .build();
