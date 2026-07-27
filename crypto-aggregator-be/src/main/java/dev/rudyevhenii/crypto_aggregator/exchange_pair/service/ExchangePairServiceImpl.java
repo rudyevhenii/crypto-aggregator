@@ -19,9 +19,9 @@ public class ExchangePairServiceImpl implements ExchangePairService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ExchangePair> findAllTradingPairs() {
+    public List<ExchangePair> findAllExchangePairs() {
         log.info("Finding all trading pairs");
-        return repository.findAllTradingPairs();
+        return repository.findAllExchangePairs();
     }
 
     @Override

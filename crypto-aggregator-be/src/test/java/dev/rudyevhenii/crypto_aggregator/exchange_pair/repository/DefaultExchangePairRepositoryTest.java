@@ -42,10 +42,10 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     @Test
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
     void givenNothing_findAllTradingPairs_shouldReturnAllExchangePairs() {
-        assertThat(exchangePairRepository.findAllTradingPairs()).isNotEmpty();
+        assertThat(exchangePairRepository.findAllExchangePairs()).isNotEmpty();
         verify(repositorySpy).findAllByOrderByTradingPairAscExchange();
 
-        assertThat(exchangePairRepository.findAllTradingPairs()).isNotEmpty();
+        assertThat(exchangePairRepository.findAllExchangePairs()).isNotEmpty();
         verifyNoMoreInteractions(repositorySpy);
     }
 
@@ -62,19 +62,19 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
         assertThat(exchangePairs).isSortedAccordingTo(NATURAL_SORTING_ORDER);
     }
 
-    static Stream<Arguments> provideExchanges() {
-        return Stream.of(
-                Arguments.of(Exchange.BINANCE),
-                Arguments.of(Exchange.COINBASE),
-                Arguments.of(Exchange.KRAKEN)
-        );
+    public static Stream<Arguments> provideExchanges() {
+        Stream.Builder<Arguments> argsBuilder = Stream.builder();
+        for (Exchange exchange : Exchange.values()) {
+            argsBuilder.add(Arguments.of(exchange));
+        }
+        return argsBuilder.build();
     }
 
     @ParameterizedTest
     @MethodSource("provideTradingPairPatterns")
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
     void givenTradingPairPattern_searchByPattern_shouldReturnExchangePairsWithSpecifiedPatternForTradingPair(String tradingPair) {
-        List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(NULL_EXCHANGE, tradingPair);
+        List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(EXCHANGE_NULL_VALUE, tradingPair);
         assertThat(exchangePairs).isNotEmpty();
         assertThat(exchangePairs).allMatch(exchangePair ->
                 exchangePair.getTradingPair().name().contains(tradingPair.toUpperCase()));
@@ -83,27 +83,22 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     }
 
     public static Stream<Arguments> provideTradingPairPatterns() {
-        return Stream.of(
-                Arguments.of("ad"),
-                Arguments.of("Bt"),
-                Arguments.of("N"),
-                Arguments.of("OM"),
-                Arguments.of("oG"),
-                Arguments.of("GR"),
-                Arguments.of("tH"),
-                Arguments.of("k")
-        );
+        Stream.Builder<Arguments> argsBuilder = Stream.builder();
+        for (String tradingPairPattern : new String[]{"tC", "ET", "Do", "AV", "sh", "HI", "aT"}) {
+            argsBuilder.add(Arguments.of(tradingPairPattern));
+        }
+        return argsBuilder.build();
     }
 
     @Test
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
     void givenNonExistingTradingPairPattern_searchByPattern_shouldReturnExchangePairsForSpecifiedExchange() {
-        List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(NULL_EXCHANGE, NON_EXISTING_TRADING_PAIR_VALUE);
+        List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(EXCHANGE_NULL_VALUE, NON_EXISTING_TRADING_PAIR_PATTERN_VALUE);
         assertThat(exchangePairs).isEmpty();
     }
 
     @ParameterizedTest
-    @MethodSource("provideExchangesAndTradingPairPattern")
+    @MethodSource("provideExchangeAndTradingPairPatterns")
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
     void givenExchangeAndTradingPair_searchByPattern_shouldReturnExchangePairs(Exchange exchange, String tradingPair) {
         List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(exchange, tradingPair);
@@ -117,19 +112,21 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
         assertThat(exchangePairs).isSortedAccordingTo(NATURAL_SORTING_ORDER);
     }
 
-    public static Stream<Arguments> provideExchangesAndTradingPairPattern() {
-        return Stream.of(
-                Arguments.of(Exchange.BINANCE, "d"),
-                Arguments.of(Exchange.COINBASE, "K"),
-                Arguments.of(Exchange.KRAKEN, "l")
-        );
+    public static Stream<Arguments> provideExchangeAndTradingPairPatterns() {
+        Stream.Builder<Arguments> argsBuilder = Stream.builder();
+        for (Exchange exchange : Exchange.values()) {
+            for (String tradingPairPattern : new String[]{"tC", "ET", "Do", "AV", "sh", "HI", "aT"}) {
+                argsBuilder.add(Arguments.of(exchange, tradingPairPattern));
+            }
+        }
+        return argsBuilder.build();
     }
 
     static class TestResources {
         public static final String EMPTY_TRADING_PAIR_VALUE = "";
-        public static final String NON_EXISTING_TRADING_PAIR_VALUE = "JSDF";
+        public static final String NON_EXISTING_TRADING_PAIR_PATTERN_VALUE = "JSDF";
 
-        public static final Exchange NULL_EXCHANGE = null;
+        public static final Exchange EXCHANGE_NULL_VALUE = null;
 
         public static final Comparator<ExchangePair> NATURAL_SORTING_ORDER =
                 Comparator.comparing((ExchangePair exchangePair) -> exchangePair.getTradingPair().name())
