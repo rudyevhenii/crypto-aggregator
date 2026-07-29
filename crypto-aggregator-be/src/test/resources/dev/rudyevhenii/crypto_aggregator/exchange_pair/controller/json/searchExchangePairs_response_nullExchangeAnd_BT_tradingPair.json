@@ -1,0 +1,17 @@
+[
+  {
+    "exchange": "BINANCE",
+    "id": "4a06e0fd-8f90-4e80-a78d-cc5948315d16",
+    "tradingPair": "BTC_USD"
+  },
+  {
+    "exchange": "COINBASE",
+    "id": "74c569a1-bb42-4025-b1f1-55fc8e42c170",
+    "tradingPair": "BTC_USD"
+  },
+  {
+    "exchange": "KRAKEN",
+    "id": "c11d7b58-1e5f-4637-9b21-8144a4ce6cb7",
+    "tradingPair": "BTC_USD"
+  }
+]

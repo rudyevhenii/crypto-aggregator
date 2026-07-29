@@ -1,0 +1,12 @@
+[
+  {
+    "exchange": "COINBASE",
+    "id": "230ab207-718d-451d-a9b5-09aee71603cb",
+    "tradingPair": "ETC_USD"
+  },
+  {
+    "exchange": "COINBASE",
+    "id": "451ac52b-cdce-4204-9d74-5a5f0ec681b0",
+    "tradingPair": "ETH_USD"
+  }
+]

@@ -40,7 +40,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     private SpringDataExchangePairRepository repositorySpy;
 
     @Test
-    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenNothing_findAllTradingPairs_shouldReturnAllExchangePairs() {
         assertThat(exchangePairRepository.findAllExchangePairs()).isNotEmpty();
         verify(repositorySpy).findAllByOrderByTradingPairAscExchange();
@@ -51,7 +51,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("provideExchanges")
-    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenExchange_searchByPattern_shouldReturnExchangePairsForSpecifiedExchange(Exchange exchange) {
         List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(exchange, EMPTY_TRADING_PAIR_VALUE);
         assertThat(exchangePairs).isNotEmpty();
@@ -62,7 +62,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
         assertThat(exchangePairs).isSortedAccordingTo(NATURAL_SORTING_ORDER);
     }
 
-    public static Stream<Arguments> provideExchanges() {
+    static Stream<Arguments> provideExchanges() {
         Stream.Builder<Arguments> argsBuilder = Stream.builder();
         for (Exchange exchange : Exchange.values()) {
             argsBuilder.add(Arguments.of(exchange));
@@ -72,7 +72,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("provideTradingPairPatterns")
-    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenTradingPairPattern_searchByPattern_shouldReturnExchangePairsWithSpecifiedPatternForTradingPair(String tradingPair) {
         List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(EXCHANGE_NULL_VALUE, tradingPair);
         assertThat(exchangePairs).isNotEmpty();
@@ -82,7 +82,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
         assertThat(exchangePairs).isSortedAccordingTo(NATURAL_SORTING_ORDER);
     }
 
-    public static Stream<Arguments> provideTradingPairPatterns() {
+    static Stream<Arguments> provideTradingPairPatterns() {
         Stream.Builder<Arguments> argsBuilder = Stream.builder();
         for (String tradingPairPattern : new String[]{"tC", "ET", "Do", "AV", "sh", "HI", "aT"}) {
             argsBuilder.add(Arguments.of(tradingPairPattern));
@@ -91,7 +91,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenNonExistingTradingPairPattern_searchByPattern_shouldReturnExchangePairsForSpecifiedExchange() {
         List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(EXCHANGE_NULL_VALUE, NON_EXISTING_TRADING_PAIR_PATTERN_VALUE);
         assertThat(exchangePairs).isEmpty();
@@ -99,7 +99,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("provideExchangeAndTradingPairPatterns")
-    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/given/exchange_pairs.yml")
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenExchangeAndTradingPair_searchByPattern_shouldReturnExchangePairs(Exchange exchange, String tradingPair) {
         List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(exchange, tradingPair);
         assertThat(exchangePairs).isNotEmpty();
@@ -112,7 +112,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
         assertThat(exchangePairs).isSortedAccordingTo(NATURAL_SORTING_ORDER);
     }
 
-    public static Stream<Arguments> provideExchangeAndTradingPairPatterns() {
+    static Stream<Arguments> provideExchangeAndTradingPairPatterns() {
         Stream.Builder<Arguments> argsBuilder = Stream.builder();
         for (Exchange exchange : Exchange.values()) {
             for (String tradingPairPattern : new String[]{"tC", "ET", "Do", "AV", "sh", "HI", "aT"}) {
@@ -123,12 +123,12 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     }
 
     static class TestResources {
-        public static final String EMPTY_TRADING_PAIR_VALUE = "";
-        public static final String NON_EXISTING_TRADING_PAIR_PATTERN_VALUE = "JSDF";
+        static final String EMPTY_TRADING_PAIR_VALUE = "";
+        static final String NON_EXISTING_TRADING_PAIR_PATTERN_VALUE = "JSDF";
 
-        public static final Exchange EXCHANGE_NULL_VALUE = null;
+        static final Exchange EXCHANGE_NULL_VALUE = null;
 
-        public static final Comparator<ExchangePair> NATURAL_SORTING_ORDER =
+        static final Comparator<ExchangePair> NATURAL_SORTING_ORDER =
                 Comparator.comparing((ExchangePair exchangePair) -> exchangePair.getTradingPair().name())
                         .thenComparing(exchangePair -> exchangePair.getExchange().name());
     }

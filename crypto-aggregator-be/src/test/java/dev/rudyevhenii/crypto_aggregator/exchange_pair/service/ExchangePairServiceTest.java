@@ -63,13 +63,13 @@ class ExchangePairServiceTest {
 
     static class TestResources {
 
-        public static final Exchange EXCHANGE_BINANCE = Exchange.BINANCE;
-        public static final String TRADING_PAIR_BTC_PATTERN = "BTC";
+        static final Exchange EXCHANGE_BINANCE = Exchange.BINANCE;
+        static final String TRADING_PAIR_BTC_PATTERN = "BTC";
 
-        public static final String TRADING_PAIR_PATTERN_NULL_VALUE = null;
-        public static final Exchange EXCHANGE_NULL_VALUE = null;
+        static final String TRADING_PAIR_PATTERN_NULL_VALUE = null;
+        static final Exchange EXCHANGE_NULL_VALUE = null;
 
-        public static List<ExchangePair> buildExchangePairList() {
+        static List<ExchangePair> buildExchangePairList() {
             List<ExchangePair> exchangePairs = new ArrayList<>();
             for (TradingPair tradingPair : TradingPair.values()) {
                 for (Exchange exchange : Exchange.values()) {
@@ -79,13 +79,13 @@ class ExchangePairServiceTest {
             return exchangePairs;
         }
 
-        public static List<ExchangePair> buildExchangePairWithExchangeAnd_BTC_TradingPairList() {
+        static List<ExchangePair> buildExchangePairWithExchangeAnd_BTC_TradingPairList() {
             return List.of(
                     buildExchangePair(TradingPair.BTC_USD, EXCHANGE_BINANCE)
             );
         }
 
-        public static ExchangePair buildExchangePair(TradingPair tradingPair, Exchange exchange) {
+        static ExchangePair buildExchangePair(TradingPair tradingPair, Exchange exchange) {
             return ExchangePair.builder()
                     .id(UUID.randomUUID())
                     .tradingPair(tradingPair)

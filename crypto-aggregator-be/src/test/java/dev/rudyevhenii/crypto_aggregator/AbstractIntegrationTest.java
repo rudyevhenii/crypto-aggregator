@@ -2,6 +2,7 @@ package dev.rudyevhenii.crypto_aggregator;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -9,8 +10,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
-
-import java.util.Objects;
 
 import static dev.rudyevhenii.crypto_aggregator.AbstractIntegrationTest.TestResources.REDIS_PORT;
 
@@ -39,10 +38,10 @@ public abstract class AbstractIntegrationTest {
     }
 
     private void flushRedisCache() {
-        Objects.requireNonNull(stringRedisTemplate.getConnectionFactory())
-                .getConnection()
-                .serverCommands()
-                .flushAll();
+        stringRedisTemplate.execute((RedisCallback<?>) connection -> {
+            connection.serverCommands().flushAll();
+            return null;
+        });
     }
 
     @DynamicPropertySource
