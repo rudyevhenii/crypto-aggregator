@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -64,8 +65,8 @@ public class AuthServiceImpl implements AuthService {
         if (!jwtService.extractTokenType(token).equals(TokenType.REFRESH_TOKEN)) {
             throw new InvalidJwtTokenException("Expected REFRESH token");
         }
-        String email = jwtService.extractSubject(token);
-        User user = userRepository.findByEmail(email)
+        UUID userId = jwtService.extractSubject(token);
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User does not exist"));
 
         if (!jwtService.isTokenValid(token, user)) {

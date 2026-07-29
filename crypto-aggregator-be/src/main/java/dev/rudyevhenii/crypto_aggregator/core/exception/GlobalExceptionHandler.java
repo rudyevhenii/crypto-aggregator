@@ -121,14 +121,6 @@ public class GlobalExceptionHandler {
                 .body(buildErrorResponse(status, ex.getResponseBodyAsString()));
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponseDto> handleException(UnauthorizedException ex) {
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
-        logErrorMessage(status, ex);
-        return ResponseEntity.status(status)
-                .body(buildErrorResponse(status, ex.getMessage()));
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;

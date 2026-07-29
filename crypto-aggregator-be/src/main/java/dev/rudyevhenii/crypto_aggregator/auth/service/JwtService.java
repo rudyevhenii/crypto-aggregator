@@ -3,6 +3,7 @@ package dev.rudyevhenii.crypto_aggregator.auth.service;
 import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 
 import java.util.Date;
+import java.util.UUID;
 
 public interface JwtService {
 
@@ -10,7 +11,7 @@ public interface JwtService {
 
     String generateRefreshToken(User user);
 
-    String extractSubject(String token);
+    UUID extractSubject(String token);
 
     boolean isTokenValid(String token, User user);
 
