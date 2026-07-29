@@ -26,7 +26,7 @@ import java.util.UUID;
 @Entity
 @Table(name = ChartWidgetEntity.TABLE_NAME)
 public class ChartWidgetEntity implements Persistable<UUID> {
-    public static final String TABLE_NAME = "chart_widgets";
+    public static final String TABLE_NAME = "chartWidgets";
 
     @Id
     @Column(name = Fields.id)

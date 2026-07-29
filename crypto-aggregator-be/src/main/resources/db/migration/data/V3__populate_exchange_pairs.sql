@@ -1,4 +1,4 @@
-INSERT INTO "exchange_pairs" ("id", "trading_pair", "exchange")
+INSERT INTO "exchangePairs" ("id", "tradingPair", "exchange")
 SELECT
     gen_random_uuid(),
     pair,
@@ -14,4 +14,4 @@ CROSS JOIN (
         'BINANCE', 'COINBASE', 'KRAKEN'
     ]) AS exch
 ) AS exchanges
-ON CONFLICT ("trading_pair", "exchange") DO NOTHING;
+ON CONFLICT ("tradingPair", "exchange") DO NOTHING;

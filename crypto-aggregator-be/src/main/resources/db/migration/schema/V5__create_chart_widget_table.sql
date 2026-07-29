@@ -1,17 +1,13 @@
-CREATE TABLE IF NOT EXISTS "chart_widgets"
+CREATE TABLE IF NOT EXISTS "chartWidgets"
 (
     "id"               UUID                        NOT NULL,
-    "chart_interval"    VARCHAR(255)                NOT NULL,
-    "exchange_pair_id"   UUID                        NOT NULL,
-    "workspace_id"      UUID                        NOT NULL,
+    "chartInterval"    VARCHAR(255)                NOT NULL,
+    "exchangePairId"   UUID                        NOT NULL,
+    "workspaceId"      UUID                        NOT NULL,
     "position"         INTEGER                     NOT NULL,
-    "created_at"        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    "updated_at"        TIMESTAMP WITHOUT TIME ZONE,
-    CONSTRAINT pk_chart_widgets PRIMARY KEY ("id")
+    "createdAt"        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    "updatedAt"        TIMESTAMP WITHOUT TIME ZONE,
+    CONSTRAINT pk_chart_widgets PRIMARY KEY ("id"),
+    CONSTRAINT fk_chart_widgets_exchange_pair FOREIGN KEY ("exchangePairId") REFERENCES "exchangePairs" ("id"),
+    CONSTRAINT fk_chart_widgets_workspace FOREIGN KEY ("workspaceId") REFERENCES "workspaces" ("id") ON DELETE CASCADE
 );
-
-ALTER TABLE "chart_widgets"
-    ADD CONSTRAINT fk_chart_widgets_exchange_pair FOREIGN KEY ("exchange_pair_id") REFERENCES "exchange_pairs" ("id");
-
-ALTER TABLE "chart_widgets"
-    ADD CONSTRAINT fk_chart_widgets_workspace FOREIGN KEY ("workspace_id") REFERENCES "workspaces" ("id") ON DELETE CASCADE;

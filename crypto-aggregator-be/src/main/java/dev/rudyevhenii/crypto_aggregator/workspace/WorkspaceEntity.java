@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +21,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @FieldNameConstants
 @Entity
-@Table(name = WorkspaceEntity.TABLE_NAME, uniqueConstraints = @UniqueConstraint(columnNames = {"id", "name"}))
+@Table(name = WorkspaceEntity.TABLE_NAME)
 public class WorkspaceEntity implements Persistable<UUID> {
     public static final String TABLE_NAME = "workspaces";
 
