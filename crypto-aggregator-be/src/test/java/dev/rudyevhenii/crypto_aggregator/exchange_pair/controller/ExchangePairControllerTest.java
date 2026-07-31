@@ -155,6 +155,17 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("provideInvalidTokens")
+    void givenInvalidToken_searchExchangePairs_shouldReturnStatusUnauthorized(String token) {
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .when()
+                .get(REQUEST_SEARCH_URL)
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+    }
+
     static class TestResources {
         static final String REQUEST_URL = "/api/exchange-pairs";
         static final String REQUEST_SEARCH_URL = "/api/exchange-pairs/search";
