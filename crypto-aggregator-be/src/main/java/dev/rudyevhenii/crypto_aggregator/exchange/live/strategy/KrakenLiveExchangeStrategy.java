@@ -9,6 +9,7 @@ import dev.rudyevhenii.crypto_aggregator.exchange.live.mapper.LiveKrakenMapper;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.properties.KrakenProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -20,6 +21,7 @@ import java.net.URI;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "app.exchanges.kraken.enable", havingValue = "true")
 public class KrakenLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
     private static final Exchange EXCHANGE_TYPE = Exchange.KRAKEN;
