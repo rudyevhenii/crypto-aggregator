@@ -34,3 +34,13 @@ security:
     secret-key: ${SECRET_TOKEN:519265gRvMBWa8iSB8Qj0Za1pZM998WiGELw9L8y56yitcTLOFaEjqrJTGKbYMxr}
     access-token-expiration: ${ACCESS_TOKEN:3600000}
     refresh-token-expiration: ${REFRESH_TOKEN:604800000}
+
+app:
+  exchanges:
+    enable-all: true
+    binance:
+      enable: ${app.exchanges.enable-all}
+    coinbase:
+      enable: ${app.exchanges.enable-all}
+    kraken:
+      enable: ${app.exchanges.enable-all}

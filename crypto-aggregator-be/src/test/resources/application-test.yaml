@@ -5,3 +5,7 @@ spring:
 security:
   jwt:
     secret-key: zHj96Gp6iHQwMsXUrD7Pfue31edAvoyTkoeBsIKeU1JUlcZ1rCLTVc8Z3fmq7J6D
+
+app:
+  exchanges:
+    enable-all: false

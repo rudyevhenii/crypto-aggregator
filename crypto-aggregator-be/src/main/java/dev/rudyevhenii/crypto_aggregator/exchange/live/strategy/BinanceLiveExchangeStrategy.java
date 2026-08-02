@@ -9,6 +9,7 @@ import dev.rudyevhenii.crypto_aggregator.exchange.live.mapper.LiveBinanceMapper;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.properties.BinanceProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -20,6 +21,7 @@ import java.net.URI;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "app.exchanges.binance.enable", havingValue = "true")
 public class BinanceLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
 
     private static final Exchange EXCHANGE_TYPE = Exchange.BINANCE;

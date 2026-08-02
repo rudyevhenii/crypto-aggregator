@@ -1,6 +1,8 @@
 name: CI - Build, Test & Reports
 
 on:
+  push:
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -16,6 +18,10 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: ./crypto-aggregator-be
 
     steps:
       - name: Checkout repository
@@ -45,9 +51,9 @@ jobs:
         with:
           name: all-build-reports
           path: |
-            build/test-results/test/**/*.xml
-            build/reports/tests/test/**/*
-            build/reports/jacoco/test/jacocoTestReport.xml
-            build/reports/jacoco/test/html/**/*
+            crypto-aggregator-be/build/test-results/test/**/*.xml
+            crypto-aggregator-be/build/reports/tests/test/**/*
+            crypto-aggregator-be/build/reports/jacoco/test/jacocoTestReport.xml
+            crypto-aggregator-be/build/reports/jacoco/test/html/**/*
           if-no-files-found: warn
           retention-days: 7
