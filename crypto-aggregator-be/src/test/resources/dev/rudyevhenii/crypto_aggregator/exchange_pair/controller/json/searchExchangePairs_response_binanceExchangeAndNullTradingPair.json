@@ -1,0 +1,152 @@
+[
+  {
+    "exchange": "BINANCE",
+    "id": "15f0456f-99dc-4fa7-81fe-441388238dd0",
+    "tradingPair": "AAVE_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "583a2851-299e-4033-9ba1-73dcf46fc5a8",
+    "tradingPair": "ADA_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "8a558df6-6c22-4425-a509-c03c87d24764",
+    "tradingPair": "ALGO_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "2b684a73-8ae4-46d4-b01b-964830a608a8",
+    "tradingPair": "ARB_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "f900711f-50b8-4282-ad75-3b09e091aec7",
+    "tradingPair": "ATOM_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "b6b6148f-bfc2-40b6-902c-04f66907e155",
+    "tradingPair": "AVAX_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "cec763d6-a14c-4335-a863-d01c62bf1fec",
+    "tradingPair": "BAT_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "155386ef-ef1a-4466-9c57-0a7a06f2f921",
+    "tradingPair": "BCH_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "4a06e0fd-8f90-4e80-a78d-cc5948315d16",
+    "tradingPair": "BTC_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "da4c8262-a567-4b2b-a77c-b2003406f3fc",
+    "tradingPair": "COMP_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "5811b95c-a2fd-4a92-a7eb-ae66d809ed22",
+    "tradingPair": "CRV_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "942c047e-bbd9-4d3b-95c2-5b3f6ec6413c",
+    "tradingPair": "DOGE_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "c91cf0e5-25c9-4e5f-bf68-11fc7ebab0d5",
+    "tradingPair": "DOT_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "9b9b5679-146f-4afc-8f5f-0a3a9ca1896e",
+    "tradingPair": "ETC_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "6002d223-5b29-4b0d-8fd7-70984096c4d2",
+    "tradingPair": "ETH_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "6df52e7d-4e1f-406e-ab4c-4d8b4e79bcb9",
+    "tradingPair": "FIL_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "ef206817-2482-47f7-9c05-39f284e71da6",
+    "tradingPair": "GRT_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "d4047ca3-0b07-486a-8e33-5d346b7abd99",
+    "tradingPair": "ICP_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "637f3ba0-20c5-4590-95dc-be7676b5c4d8",
+    "tradingPair": "LINK_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "92843ea7-0cca-4044-9f47-76804dd922b9",
+    "tradingPair": "LTC_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "325dddb2-ecd0-4e74-87b0-9f79824349ac",
+    "tradingPair": "OP_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "75013c3f-03e7-438b-ae1d-d437fb3a6184",
+    "tradingPair": "SHIB_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "c5a16e69-88e6-4f94-90e4-116f5e9706d0",
+    "tradingPair": "SNX_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "5f58089e-e22b-40ec-9aaa-2cbf18996a6f",
+    "tradingPair": "SOL_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "de6894e1-ee1a-42f7-b7e0-3728ad2b329c",
+    "tradingPair": "SUSHI_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "9e1852ea-dd51-4f8f-9418-df062f259251",
+    "tradingPair": "UNI_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "c52c1ed0-150c-4f42-94fa-a4c47dfc37bf",
+    "tradingPair": "XLM_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "bba34d8b-f570-4167-9e00-fd745e6a3774",
+    "tradingPair": "XRP_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "c2d15b22-71fe-42e5-8689-b95d0972b048",
+    "tradingPair": "YFI_USD"
+  },
+  {
+    "exchange": "BINANCE",
+    "id": "9d1b9e8d-7a76-449e-90c4-5fd929bd194f",
+    "tradingPair": "ZRX_USD"
+  }
+]

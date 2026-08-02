@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ExchangePairRepository {
 
-    List<ExchangePair> findAllTradingPairs();
+    List<ExchangePair> findAllExchangePairs();
 
     List<ExchangePair> searchByPattern(Exchange exchange, String tradingPair);
 }

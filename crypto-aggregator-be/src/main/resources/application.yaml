@@ -12,6 +12,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/crypto_aggregator_db
   jpa:
     show-sql: true
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
   flyway:
     locations:
       - 'classpath:/db/migration/schema'

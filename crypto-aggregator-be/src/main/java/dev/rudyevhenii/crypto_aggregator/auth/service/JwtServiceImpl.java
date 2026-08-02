@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -43,8 +44,8 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String extractSubject(String token) {
-        return extractClaims(Claims::getSubject, token);
+    public UUID extractSubject(String token) {
+        return UUID.fromString(extractClaims(Claims::getSubject, token));
     }
 
     @Override
@@ -59,12 +60,12 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public boolean isTokenValid(String token, User user) {
-        return !isTokenExpired(token) && user.getEmail().equals(extractSubject(token));
+        return !isTokenExpired(token) && user.getId().equals(extractSubject(token));
     }
 
     private String generateToken(User user, long expiration, TokenType tokenType) {
         return Jwts.builder()
-                .subject(user.getEmail())
+                .subject(user.getId().toString())
                 .claim(TOKEN_TYPE, tokenType)
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plus(expiration, ChronoUnit.MILLIS)))

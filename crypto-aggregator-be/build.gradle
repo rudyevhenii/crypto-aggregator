@@ -1,102 +1,108 @@
 plugins {
-	id 'java'
-	id 'jacoco'
+    id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '4.0.6'
-	id 'io.spring.dependency-management' version '1.1.4'
-	id 'org.openapi.generator' version '7.4.0'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.openapi.generator' version '7.4.0'
 }
 
 group = 'dev.rudyevhenii'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '21'
+    sourceCompatibility = '21'
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-webclient'
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-webclient'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.5'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-postgresql:2.0.5'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-	implementation 'org.springframework.boot:spring-boot-starter-flyway'
-	implementation 'org.flywaydb:flyway-database-postgresql'
-	runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
 
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
-	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
 
-	implementation("io.jsonwebtoken:jjwt-api:0.13.0")
-	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
-	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
-	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
-	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    testAnnotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 
-	testImplementation 'org.springframework.boot:spring-boot-starter-webclient-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-
-	testImplementation 'com.h2database:h2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webclient-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'com.github.database-rider:rider-spring:1.43.0'
+    testImplementation 'io.rest-assured:rest-assured:6.0.1'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.3'
 }
 
 openApiGenerate {
-	generatorName = "spring"
-	inputSpec = "$rootDir/src/main/resources/openapi/openapi-crypto.yaml".replace('\\', '/')
+    generatorName = "spring"
+    inputSpec = "$rootDir/src/main/resources/openapi/openapi-crypto.yaml".replace('\\', '/')
 
-	apiPackage = "dev.rudyevhenii.crypto_aggregator.api.interfaces"
-	modelPackage = "dev.rudyevhenii.crypto_aggregator.api.dto"
-	modelNameSuffix = "RqDto"
+    apiPackage = "dev.rudyevhenii.crypto_aggregator.api.interfaces"
+    modelPackage = "dev.rudyevhenii.crypto_aggregator.api.dto"
+    modelNameSuffix = "RqDto"
 
-	configOptions = [
-			useBeanValidation     : "true",
-			performBeanValidation : "true",
-			interfaceOnly         : "true",
-			useSpringBoot3        : "true",
-			useJakartaEe          : "true",
-			skipDefaultInterface  : "true",
-			useTags               : "true"
-	]
+    configOptions = [useBeanValidation    : "true",
+                     performBeanValidation: "true",
+                     interfaceOnly        : "true",
+                     useSpringBoot3       : "true",
+                     useJakartaEe         : "true",
+                     skipDefaultInterface : "true",
+                     useTags              : "true"
+    ]
 }
 
 sourceSets {
-	main {
-		java {
-			srcDirs += layout.buildDirectory.dir("generated-openapi/src/main/java").get().asFile
-		}
-	}
+    main {
+        java {
+            srcDirs += layout.buildDirectory.dir("generated-openapi/src/main/java").get().asFile
+        }
+    }
 }
 
 tasks.named('openApiGenerate') {
-	outputDir = layout.buildDirectory.dir("generated-openapi").get().asFile.absolutePath
+    outputDir = layout.buildDirectory.dir("generated-openapi").get().asFile.absolutePath
 }
 
 tasks.named('compileJava') {
-	dependsOn tasks.named('openApiGenerate')
+    dependsOn tasks.named('openApiGenerate')
 }
 
 tasks.named('test', Test) {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 jacoco {

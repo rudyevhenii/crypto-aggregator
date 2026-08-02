@@ -26,7 +26,7 @@ import java.util.UUID;
 @Entity
 @Table(name = ExchangePairEntity.TABLE_NAME)
 public class ExchangePairEntity implements Persistable<UUID> {
-    public static final String TABLE_NAME = "exchange_pairs";
+    public static final String TABLE_NAME = "exchangePairs";
 
     @Id
     @Column(name = Fields.id)

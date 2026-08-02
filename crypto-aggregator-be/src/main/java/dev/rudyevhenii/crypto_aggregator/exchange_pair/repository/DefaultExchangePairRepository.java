@@ -26,7 +26,7 @@ public class DefaultExchangePairRepository implements ExchangePairRepository {
 
     @Override
     @Cacheable(value = EXCHANGE_PAIR_CACHE)
-    public List<ExchangePair> findAllTradingPairs() {
+    public List<ExchangePair> findAllExchangePairs() {
         return repository.findAllByOrderByTradingPairAscExchange().stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());

@@ -22,7 +22,7 @@ public class ExchangePairController implements ExchangePairApi {
 
     @Override
     public ResponseEntity<List<ExchangePairRqDto>> findAllExchangePairs() {
-        List<ExchangePair> response = exchangePairService.findAllTradingPairs();
+        List<ExchangePair> response = exchangePairService.findAllExchangePairs();
         return ResponseEntity.ok(response.stream()
                 .map(mapper::map)
                 .toList());
