@@ -15,12 +15,14 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -42,9 +44,6 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int port;
 
-    @Autowired
-    private JwtTokenUtils jwtTokenUtils;
-
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
@@ -58,7 +57,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenValidAccessToken_findAllExchangePairs_shouldReturnAllExchangePairs() {
         String actualResponse = given()
-                .header(jwtTokenUtils.buildAuthHeader(USER_ID))
+                .header(JwtTokenUtils.buildAuthHeader(USER_ID, ACCESS_TOKEN_EXP))
                 .when()
                 .get(REQUEST_URL)
                 .then()
@@ -101,7 +100,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenNullExchangeAndTradingPairPattern_searchExchangePairs_shouldReturnExchangePairs() {
         String actualResponse = given()
-                .header(jwtTokenUtils.buildAuthHeader(USER_ID))
+                .header(JwtTokenUtils.buildAuthHeader(USER_ID, ACCESS_TOKEN_EXP))
                 .when()
                 .get(REQUEST_SEARCH_URL)
                 .then()
@@ -126,7 +125,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenExchangeAndTradingPair_searchExchangePairs_shouldReturnExchangePairs(Exchange exchange, String tradingPair, String expectedResponse) {
         String actualResponse = given()
-                .header(jwtTokenUtils.buildAuthHeader(USER_ID))
+                .header(JwtTokenUtils.buildAuthHeader(USER_ID, ACCESS_TOKEN_EXP))
                 .queryParam(EXCHANGE_PARAM, exchange)
                 .queryParam(TRADING_PAIR_PARAM, tradingPair)
                 .when()
@@ -178,5 +177,13 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
         static final String CORRUPTED_ACCESS_TOKEN = buildCorruptedAccessToken();
         static final String EXPIRED_ACCESS_TOKEN = buildExpiredAccessToken();
         static final String VALID_REFRESH_TOKEN = buildValidRefreshToken();
+
+        static final long ACCESS_TOKEN_EXP_MINUTES = 60;
+        static final long REFRESH_TOKEN_EXP_DAYS = 7;
+
+        static final Instant NOW = Instant.now();
+        static final Date ACCESS_TOKEN_EXP = Date.from(NOW.plus(ACCESS_TOKEN_EXP_MINUTES, ChronoUnit.MINUTES));
+        static final Date REFRESH_TOKEN_EXP = Date.from(NOW.plus(REFRESH_TOKEN_EXP_DAYS, ChronoUnit.DAYS));
+
     }
 }

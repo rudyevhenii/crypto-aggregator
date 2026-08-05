@@ -190,9 +190,8 @@ class AuthServiceTest {
         static final String ACCESS_TOKEN = "access-token";
         static final String REFRESH_TOKEN = "refresh-token";
 
-        static final Instant NOW = Instant.parse("2026-08-01T00:00:00Z");
-
-        static final Date ACCESS_TOKEN_EXPIRATION = Date.from(Instant.parse("2026-08-01T12:00:00Z"));
+        static final Instant NOW = Instant.parse("2026-08-01T12:00:00Z");
+        static final Date ACCESS_TOKEN_EXPIRATION = Date.from(Instant.parse("2026-08-01T13:00:00Z"));
         static final Date REFRESH_TOKEN_EXPIRATION = Date.from(Instant.parse("2026-08-08T12:00:00Z"));
 
         static RegisterRequest buildRegisterRequest() {
