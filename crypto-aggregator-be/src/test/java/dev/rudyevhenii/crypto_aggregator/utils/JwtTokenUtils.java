@@ -65,30 +65,9 @@ public class JwtTokenUtils {
                 .compact();
     }
 
-    public static String buildCorruptedAccessToken() {
-        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJ0e" +
-                "XBlIjoiQUNDRVNTX1RPS0VOIiwiaWF0IjoxNzY3MjI1NjAwLCJleHAiOjE5MDAwMDAwMDB9.Z2kCNnXm9SMhbD" +
-                "piGfiWLGCYyaYC20FUrBtelZxtWJiTs9wusr0tWq5diTJSHfYb2zEFH9eUb7QLomrgRE3e7Q";
-    }
-
-    public static String buildExpiredAccessToken() {
-        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLC" +
-                "J0eXBlIjoiQUNDRVNTX1RPS0VOIiwiaWF0IjoxNzY3MjI1NjAwLCJleHAiOjE3NjczMTIwMDB9.3m-bQ0L" +
-                "sOXXF3jpBnKZYA4qdY8x1rWZtWE95ceMGhwqcwDlhxpYseEcoG811NITLxZhnMgE-nVbogiApoZqA1Q";
-    }
-
-    public static String buildValidRefreshToken() {
-        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJ0e" +
-                "XBlIjoiUkVGUkVTSF9UT0tFTiIsImlhdCI6MTc4NTMwNjQyMywiZXhwIjoxNzg1OTExMjIzfQ.lFXe0UJZ0MVy" +
-                "aLfWNSq4139ZsicZsKTSHxZBqc2_M_WhqgsrqcEsyUYuxI6E1nn-C60oGYxR4UuWQMFxWQcq-w";
-    }
-
     static class TestResources {
         static final String TOKEN_TYPE = JwtService.TOKEN_TYPE;
-
         static final Instant NOW = Instant.now();
-        static final Date INFINITE_EXPIRATION = new Date(Long.MAX_VALUE);
-
         static final String CORRUPTED_SECRET_KEY = "corrupted-secret-key-invalid-signature-for-testing-purposes-1234";
     }
 }

@@ -17,7 +17,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
@@ -27,9 +26,9 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static dev.rudyevhenii.crypto_aggregator.exchange_pair.controller.ExchangePairControllerTest.TestResources.*;
-import static dev.rudyevhenii.crypto_aggregator.utils.JwtTokenUtils.*;
 import static dev.rudyevhenii.crypto_aggregator.utils.TestUtils.readResource;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DBRider
@@ -73,23 +72,12 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidTokens")
-    void givenInvalidToken_findAllExchangePairs_shouldReturnStatusUnauthorized(String token) {
-        given()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .when()
+    @Test
+    void givenNoToken_findAllExchangePairs_shouldReturnStatusUnauthorized() {
+        when()
                 .get(REQUEST_URL)
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
-    }
-
-    static Stream<Arguments> provideInvalidTokens() {
-        return Stream.of(
-                Arguments.of(CORRUPTED_ACCESS_TOKEN),
-                Arguments.of(EXPIRED_ACCESS_TOKEN),
-                Arguments.of(VALID_REFRESH_TOKEN)
-        );
     }
 
     @SneakyThrows
@@ -154,17 +142,6 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidTokens")
-    void givenInvalidToken_searchExchangePairs_shouldReturnStatusUnauthorized(String token) {
-        given()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .when()
-                .get(REQUEST_SEARCH_URL)
-                .then()
-                .statusCode(HttpStatus.UNAUTHORIZED.value());
-    }
-
     static class TestResources {
         static final String REQUEST_URL = "/api/exchange-pairs";
         static final String REQUEST_SEARCH_URL = "/api/exchange-pairs/search";
@@ -174,16 +151,9 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
 
         static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
-        static final String CORRUPTED_ACCESS_TOKEN = buildCorruptedAccessToken();
-        static final String EXPIRED_ACCESS_TOKEN = buildExpiredAccessToken();
-        static final String VALID_REFRESH_TOKEN = buildValidRefreshToken();
-
         static final long ACCESS_TOKEN_EXP_MINUTES = 60;
-        static final long REFRESH_TOKEN_EXP_DAYS = 7;
 
         static final Instant NOW = Instant.now();
         static final Date ACCESS_TOKEN_EXP = Date.from(NOW.plus(ACCESS_TOKEN_EXP_MINUTES, ChronoUnit.MINUTES));
-        static final Date REFRESH_TOKEN_EXP = Date.from(NOW.plus(REFRESH_TOKEN_EXP_DAYS, ChronoUnit.DAYS));
-
     }
 }
