@@ -1,77 +1,97 @@
 package dev.rudyevhenii.crypto_aggregator.utils;
 
+import dev.rudyevhenii.crypto_aggregator.auth.service.JwtService;
 import dev.rudyevhenii.crypto_aggregator.auth.service.TokenType;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import io.restassured.http.Header;
+import lombok.experimental.UtilityClass;
 import org.apache.http.HttpHeaders;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.UUID;
 
-import static dev.rudyevhenii.crypto_aggregator.utils.JwtTokenUtils.TestResources.INFINITE_EXPIRATION;
-import static dev.rudyevhenii.crypto_aggregator.utils.JwtTokenUtils.TestResources.TOKEN_TYPE;
+import static dev.rudyevhenii.crypto_aggregator.utils.JwtTokenUtils.TestResources.*;
 
-@Component
+@UtilityClass
 public class JwtTokenUtils {
 
-    @Value("${security.jwt.secret-key}")
-    private String secretToken;
+    public final String SECRET_KEY = "zHj96Gp6iHQwMsXUrD7Pfue31edAvoyTkoeBsIKeU1JUlcZ1rCLTVc8Z3fmq7J6D";
 
     public Header buildAuthHeader(UUID userId) {
         return new Header(HttpHeaders.AUTHORIZATION, "Bearer " + buildAccessToken(userId));
     }
 
     public String buildAccessToken(UUID userId) {
-        return Jwts.builder()
-                .subject(userId.toString())
-                .claim(TOKEN_TYPE, TokenType.ACCESS_TOKEN)
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(INFINITE_EXPIRATION)
-                .signWith(signWithSecretKey())
-                .compact();
+        return buildToken(userId, TokenType.ACCESS_TOKEN, NOW, ACCESS_TOKEN_EXP, SECRET_KEY);
+    }
+
+    public String buildAccessToken(UUID userId, Instant expiration) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, NOW, expiration, SECRET_KEY);
+    }
+
+    public String buildAccessToken(UUID userId, Instant issuedAt, Instant expiration) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, issuedAt, expiration, SECRET_KEY);
     }
 
     public String buildRefreshToken(UUID userId) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, NOW, REFRESH_TOKEN_EXP, SECRET_KEY);
+    }
+
+    public String buildRefreshToken(UUID userId, Instant expiration) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, NOW, expiration, SECRET_KEY);
+    }
+
+    public String buildRefreshToken(UUID userId, Instant issuedAt, Instant expiration) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, issuedAt, expiration, SECRET_KEY);
+    }
+
+    public String buildExpiredAccessToken(UUID userId) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, buildExpiredDate(), buildExpiredDate(), SECRET_KEY);
+    }
+
+    public String buildExpiredRefreshToken(UUID userId) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, buildExpiredDate(), buildExpiredDate(), SECRET_KEY);
+    }
+
+    public String buildCorruptedAccessToken(UUID userId, Instant expiration) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, NOW, expiration, CORRUPTED_SECRET_KEY);
+    }
+
+    public String buildCorruptedAccessToken(UUID userId) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, NOW, ACCESS_TOKEN_EXP, CORRUPTED_SECRET_KEY);
+    }
+
+    public String buildCorruptedRefreshToken(UUID userId, Instant expiration) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, NOW, expiration, CORRUPTED_SECRET_KEY);
+    }
+
+    public String buildCorruptedRefreshToken(UUID userId) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, NOW, REFRESH_TOKEN_EXP, CORRUPTED_SECRET_KEY);
+    }
+
+    private Instant buildExpiredDate() {
+        return NOW.minus(1, ChronoUnit.HOURS);
+    }
+
+    private String buildToken(UUID userId, TokenType tokenType, Instant issuedAt, Instant expiration, String secretKey) {
         return Jwts.builder()
                 .subject(userId.toString())
-                .claim(TOKEN_TYPE, TokenType.REFRESH_TOKEN)
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(INFINITE_EXPIRATION)
-                .signWith(signWithSecretKey())
+                .claim(TOKEN_TYPE, tokenType)
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(expiration))
+                .signWith(JwtService.signWithSecretKey(secretKey))
                 .compact();
     }
 
-    public static String buildCorruptedAccessToken() {
-        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJ0e" +
-                "XBlIjoiQUNDRVNTX1RPS0VOIiwiaWF0IjoxNzY3MjI1NjAwLCJleHAiOjE5MDAwMDAwMDB9.Z2kCNnXm9SMhbD" +
-                "piGfiWLGCYyaYC20FUrBtelZxtWJiTs9wusr0tWq5diTJSHfYb2zEFH9eUb7QLomrgRE3e7Q";
-    }
-
-    public static String buildExpiredAccessToken() {
-        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLC" +
-                "J0eXBlIjoiQUNDRVNTX1RPS0VOIiwiaWF0IjoxNzY3MjI1NjAwLCJleHAiOjE3NjczMTIwMDB9.3m-bQ0L" +
-                "sOXXF3jpBnKZYA4qdY8x1rWZtWE95ceMGhwqcwDlhxpYseEcoG811NITLxZhnMgE-nVbogiApoZqA1Q";
-    }
-
-    public static String buildValidRefreshToken() {
-        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJ0e" +
-                "XBlIjoiUkVGUkVTSF9UT0tFTiIsImlhdCI6MTc4NTMwNjQyMywiZXhwIjoxNzg1OTExMjIzfQ.lFXe0UJZ0MVy" +
-                "aLfWNSq4139ZsicZsKTSHxZBqc2_M_WhqgsrqcEsyUYuxI6E1nn-C60oGYxR4UuWQMFxWQcq-w";
-    }
-
-    private SecretKey signWithSecretKey() {
-        byte[] keyBytes = secretToken.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
     static class TestResources {
-        static final String TOKEN_TYPE = "type";
-        static final Date INFINITE_EXPIRATION = new Date(Long.MAX_VALUE);
+        static final String TOKEN_TYPE = JwtService.TOKEN_TYPE;
+
+        static final Instant NOW = Instant.now();
+        static final Instant ACCESS_TOKEN_EXP = NOW.plus(60, ChronoUnit.MINUTES);
+        static final Instant REFRESH_TOKEN_EXP = NOW.plus(7, ChronoUnit.DAYS);
+
+        static final String CORRUPTED_SECRET_KEY = "corrupted-secret-key-invalid-signature-for-testing-purposes-1234";
     }
 }

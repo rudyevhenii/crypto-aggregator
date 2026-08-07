@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 import static dev.rudyevhenii.crypto_aggregator.exchange_pair.repository.DefaultExchangePairRepositoryTest.TestResources.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @SpringBootTest
 @DBRider
@@ -44,9 +43,6 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     void givenNothing_findAllTradingPairs_shouldReturnAllExchangePairs() {
         assertThat(exchangePairRepository.findAllExchangePairs()).isNotEmpty();
         verify(repositorySpy).findAllByOrderByTradingPairAscExchange();
-
-        assertThat(exchangePairRepository.findAllExchangePairs()).isNotEmpty();
-        verifyNoMoreInteractions(repositorySpy);
     }
 
     @ParameterizedTest

@@ -67,6 +67,8 @@ paths:
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
@@ -741,6 +743,7 @@ components:
         email:
           type: string
           format: email
+          minLength: 1
           description: "User email address"
         password:
           type: string
@@ -769,6 +772,7 @@ components:
         email:
           type: string
           format: email
+          minLength: 1
           description: "User email address"
         password:
           type: string

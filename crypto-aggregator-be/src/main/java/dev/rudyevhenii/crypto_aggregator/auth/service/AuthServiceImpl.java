@@ -1,6 +1,5 @@
 package dev.rudyevhenii.crypto_aggregator.auth.service;
 
-import dev.rudyevhenii.crypto_aggregator.auth.context.UserContext;
 import dev.rudyevhenii.crypto_aggregator.auth.domain.User;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LoginRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LogoutRequest;
@@ -23,7 +22,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -37,7 +35,6 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final GeneratorUtils generator;
-    private final UserContext userContext;
     private final TokenBlacklistService tokenBlacklistService;
 
     @Override
@@ -78,16 +75,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(LogoutRequest logoutRequest) {
-        log.info("Invalidating access token for user {}", userContext.getUserId());
+        log.info("Invalidating access token for user");
         invalidateToken(logoutRequest.accessToken());
-        log.info("Invalidating refresh token for user {}", userContext.getUserId());
+        log.info("Invalidating refresh token for user");
         invalidateToken(logoutRequest.refreshToken());
     }
 
     private void invalidateToken(String token) {
-        Date expiration = jwtService.extractExpiration(token);
-        Duration ttl = Duration.between(Instant.now(), expiration.toInstant());
-        tokenBlacklistService.blacklist(token, ttl);
+        try {
+            Date expiration = jwtService.extractExpiration(token);
+            Duration ttl = Duration.between(generator.now(), expiration.toInstant());
+
+            if (!ttl.isNegative()) {
+                tokenBlacklistService.blacklist(token, ttl);
+            }
+        } catch (JwtTokenExpirationException | InvalidJwtTokenException e) {
+            log.warn("Token is already invalid or expired, skipping blacklist: {}", e.getMessage());
+        }
     }
 
     private User toDomain(RegisterRequest request) {
