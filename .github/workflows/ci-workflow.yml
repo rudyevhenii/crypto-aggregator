@@ -55,5 +55,6 @@ jobs:
             crypto-aggregator-be/build/reports/tests/test/**/*
             crypto-aggregator-be/build/reports/jacoco/test/jacocoTestReport.xml
             crypto-aggregator-be/build/reports/jacoco/test/html/**/*
+            crypto-aggregator-be/build/logs/application.log
           if-no-files-found: warn
           retention-days: 7
