@@ -19,9 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -56,7 +53,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenValidAccessToken_findAllExchangePairs_shouldReturnAllExchangePairs() {
         String actualResponse = given()
-                .header(JwtTokenUtils.buildAuthHeader(USER_ID, ACCESS_TOKEN_EXP))
+                .header(JwtTokenUtils.buildAuthHeader(USER_ID))
                 .when()
                 .get(REQUEST_URL)
                 .then()
@@ -88,7 +85,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenNullExchangeAndTradingPairPattern_searchExchangePairs_shouldReturnExchangePairs() {
         String actualResponse = given()
-                .header(JwtTokenUtils.buildAuthHeader(USER_ID, ACCESS_TOKEN_EXP))
+                .header(JwtTokenUtils.buildAuthHeader(USER_ID))
                 .when()
                 .get(REQUEST_SEARCH_URL)
                 .then()
@@ -113,7 +110,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenExchangeAndTradingPair_searchExchangePairs_shouldReturnExchangePairs(Exchange exchange, String tradingPair, String expectedResponse) {
         String actualResponse = given()
-                .header(JwtTokenUtils.buildAuthHeader(USER_ID, ACCESS_TOKEN_EXP))
+                .header(JwtTokenUtils.buildAuthHeader(USER_ID))
                 .queryParam(EXCHANGE_PARAM, exchange)
                 .queryParam(TRADING_PAIR_PARAM, tradingPair)
                 .when()
@@ -150,10 +147,5 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
         static final String TRADING_PAIR_PARAM = "tradingPair";
 
         static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
-
-        static final long ACCESS_TOKEN_EXP_MINUTES = 60;
-
-        static final Instant NOW = Instant.now();
-        static final Date ACCESS_TOKEN_EXP = Date.from(NOW.plus(ACCESS_TOKEN_EXP_MINUTES, ChronoUnit.MINUTES));
     }
 }

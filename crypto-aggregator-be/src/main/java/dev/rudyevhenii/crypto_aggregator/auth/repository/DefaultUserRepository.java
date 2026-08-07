@@ -29,7 +29,7 @@ public class DefaultUserRepository implements UserRepository {
     }
 
     @Override
-    @Cacheable(value = USER_CACHE, key = "#id")
+    @Cacheable(value = USER_CACHE, key = "#id", unless = "#result == null")
     public Optional<User> findById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDomain);

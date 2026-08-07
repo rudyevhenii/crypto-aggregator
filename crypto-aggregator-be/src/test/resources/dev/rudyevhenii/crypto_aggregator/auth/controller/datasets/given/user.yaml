@@ -1,0 +1,6 @@
+users:
+  - id: "11111111-1111-1111-1111-111111111111"
+    email: "JohnDoe@gmail.com"
+    password: "{bcrypt}$2a$10$rvcSs3l8xLe8IH1FfO/OsOJP563JH.zZLDMGT3eVRxbCsD534ViLi"
+    firstName: "John"
+    lastName: "Doe"

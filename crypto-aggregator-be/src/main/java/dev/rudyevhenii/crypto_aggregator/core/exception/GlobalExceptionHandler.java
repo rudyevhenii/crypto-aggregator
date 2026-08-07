@@ -1,7 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.core.exception;
 
 import dev.rudyevhenii.crypto_aggregator.core.dto.ErrorResponseDto;
-import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
@@ -75,14 +74,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JwtTokenExpirationException.class)
     public ResponseEntity<ErrorResponseDto> handleException(JwtTokenExpirationException ex) {
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
-        logErrorMessage(status, ex);
-        return ResponseEntity.status(status)
-                .body(buildErrorResponse(status, ex.getMessage()));
-    }
-
-    @ExceptionHandler(JwtException.class)
-    public ResponseEntity<ErrorResponseDto> handleException(JwtException ex) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         logErrorMessage(status, ex);
         return ResponseEntity.status(status)

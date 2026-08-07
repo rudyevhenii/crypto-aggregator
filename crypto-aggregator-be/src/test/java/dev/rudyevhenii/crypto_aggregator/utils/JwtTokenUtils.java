@@ -19,16 +19,32 @@ public class JwtTokenUtils {
 
     public final String SECRET_KEY = "zHj96Gp6iHQwMsXUrD7Pfue31edAvoyTkoeBsIKeU1JUlcZ1rCLTVc8Z3fmq7J6D";
 
-    public Header buildAuthHeader(UUID userId, Date expiration) {
-        return new Header(HttpHeaders.AUTHORIZATION, "Bearer " + buildAccessToken(userId, expiration));
+    public Header buildAuthHeader(UUID userId) {
+        return new Header(HttpHeaders.AUTHORIZATION, "Bearer " + buildAccessToken(userId));
     }
 
-    public String buildAccessToken(UUID userId, Date expiration) {
-        return buildToken(userId, TokenType.ACCESS_TOKEN, buildDateFromNow(), expiration, SECRET_KEY);
+    public String buildAccessToken(UUID userId) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, NOW, ACCESS_TOKEN_EXP, SECRET_KEY);
     }
 
-    public String buildRefreshToken(UUID userId, Date expiration) {
-        return buildToken(userId, TokenType.REFRESH_TOKEN, buildDateFromNow(), expiration, SECRET_KEY);
+    public String buildAccessToken(UUID userId, Instant expiration) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, NOW, expiration, SECRET_KEY);
+    }
+
+    public String buildAccessToken(UUID userId, Instant issuedAt, Instant expiration) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, issuedAt, expiration, SECRET_KEY);
+    }
+
+    public String buildRefreshToken(UUID userId) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, NOW, REFRESH_TOKEN_EXP, SECRET_KEY);
+    }
+
+    public String buildRefreshToken(UUID userId, Instant expiration) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, NOW, expiration, SECRET_KEY);
+    }
+
+    public String buildRefreshToken(UUID userId, Instant issuedAt, Instant expiration) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, issuedAt, expiration, SECRET_KEY);
     }
 
     public String buildExpiredAccessToken(UUID userId) {
@@ -39,35 +55,43 @@ public class JwtTokenUtils {
         return buildToken(userId, TokenType.REFRESH_TOKEN, buildExpiredDate(), buildExpiredDate(), SECRET_KEY);
     }
 
-    public String buildCorruptedAccessToken(UUID userId, Date expiration) {
-        return buildToken(userId, TokenType.ACCESS_TOKEN, buildDateFromNow(), expiration, CORRUPTED_SECRET_KEY);
+    public String buildCorruptedAccessToken(UUID userId, Instant expiration) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, NOW, expiration, CORRUPTED_SECRET_KEY);
     }
 
-    public String buildCorruptedRefreshToken(UUID userId, Date expiration) {
-        return buildToken(userId, TokenType.REFRESH_TOKEN, buildDateFromNow(), expiration, CORRUPTED_SECRET_KEY);
+    public String buildCorruptedAccessToken(UUID userId) {
+        return buildToken(userId, TokenType.ACCESS_TOKEN, NOW, ACCESS_TOKEN_EXP, CORRUPTED_SECRET_KEY);
     }
 
-    private Date buildDateFromNow() {
-        return Date.from(NOW);
+    public String buildCorruptedRefreshToken(UUID userId, Instant expiration) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, NOW, expiration, CORRUPTED_SECRET_KEY);
     }
 
-    private Date buildExpiredDate() {
-        return Date.from(NOW.minus(1, ChronoUnit.HOURS));
+    public String buildCorruptedRefreshToken(UUID userId) {
+        return buildToken(userId, TokenType.REFRESH_TOKEN, NOW, REFRESH_TOKEN_EXP, CORRUPTED_SECRET_KEY);
     }
 
-    private String buildToken(UUID userId, TokenType tokenType, Date issuedAt, Date expiration, String secretKey) {
+    private Instant buildExpiredDate() {
+        return NOW.minus(1, ChronoUnit.HOURS);
+    }
+
+    private String buildToken(UUID userId, TokenType tokenType, Instant issuedAt, Instant expiration, String secretKey) {
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim(TOKEN_TYPE, tokenType)
-                .issuedAt(issuedAt)
-                .expiration(expiration)
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(expiration))
                 .signWith(JwtService.signWithSecretKey(secretKey))
                 .compact();
     }
 
     static class TestResources {
         static final String TOKEN_TYPE = JwtService.TOKEN_TYPE;
+
         static final Instant NOW = Instant.now();
+        static final Instant ACCESS_TOKEN_EXP = NOW.plus(60, ChronoUnit.MINUTES);
+        static final Instant REFRESH_TOKEN_EXP = NOW.plus(7, ChronoUnit.DAYS);
+
         static final String CORRUPTED_SECRET_KEY = "corrupted-secret-key-invalid-signature-for-testing-purposes-1234";
     }
 }

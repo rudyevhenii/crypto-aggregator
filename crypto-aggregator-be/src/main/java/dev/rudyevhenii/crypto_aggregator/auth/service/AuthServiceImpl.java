@@ -82,9 +82,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void invalidateToken(String token) {
-        Date expiration = jwtService.extractExpiration(token);
-        Duration ttl = Duration.between(generator.now(), expiration.toInstant());
-        tokenBlacklistService.blacklist(token, ttl);
+        try {
+            Date expiration = jwtService.extractExpiration(token);
+            Duration ttl = Duration.between(generator.now(), expiration.toInstant());
+
+            if (!ttl.isNegative()) {
+                tokenBlacklistService.blacklist(token, ttl);
+            }
+        } catch (JwtTokenExpirationException | InvalidJwtTokenException e) {
+            log.warn("Token is already invalid or expired, skipping blacklist: {}", e.getMessage());
+        }
     }
 
     private User toDomain(RegisterRequest request) {

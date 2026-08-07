@@ -210,13 +210,13 @@ class JwtServiceTest {
 
         static final UUID ID_1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
         static final String EMAIL_1 = "JohnDoe@gmail.com";
-        static final String HASHED_PASSWORD_1 = "$2a$10$vFJRivCqsolXJT//0mqpkeClTSfr0JcyscC07atrqewjljUVTGET.";
+        static final String HASHED_PASSWORD_1 = "{bcrypt}$2a$10$vFJRivCqsolXJT//0mqpkeClTSfr0JcyscC07atrqewjljUVTGET.";
         static final String FIRST_NAME_1 = "John";
         static final String LAST_NAME_1 = "Doe";
 
         static final UUID ID_2 = UUID.fromString("22222222-2222-2222-2222-222222222222");
         static final String EMAIL_2 = "JamesSmith@gmail.com";
-        static final String HASHED_PASSWORD_2 = "$2a$10$UAAKL7SVwwBjv9yDhXt1WOadQRM5XvSw7ls9YBbamrpF0GPpVjrda";
+        static final String HASHED_PASSWORD_2 = "{bcrypt}$2a$10$UAAKL7SVwwBjv9yDhXt1WOadQRM5XvSw7ls9YBbamrpF0GPpVjrda";
         static final String FIRST_NAME_2 = "James";
         static final String LAST_NAME_2 = "Smith";
 
@@ -224,8 +224,8 @@ class JwtServiceTest {
         static final long REFRESH_TOKEN_EXP_MS = 604800000;
 
         static final Instant NOW = Instant.now();
-        static final Date ACCESS_TOKEN_EXP = Date.from(NOW.plusMillis(ACCESS_TOKEN_EXP_MS));
-        static final Date REFRESH_TOKEN_EXP = Date.from(NOW.plusMillis(REFRESH_TOKEN_EXP_MS));
+        static final Instant ACCESS_TOKEN_EXP = NOW.plusMillis(ACCESS_TOKEN_EXP_MS);
+        static final Instant REFRESH_TOKEN_EXP = NOW.plusMillis(REFRESH_TOKEN_EXP_MS);
 
         static User buildFirstUser() {
             return User.builder()

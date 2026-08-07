@@ -185,7 +185,7 @@ class AuthServiceTest {
 
         static final UUID NON_EXISTENT_ID = UUID.fromString("1aaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1");
 
-        static final String HASHED_PASSWORD = "$2a$10$vFJRivCqsolXJT//0mqpkeClTSfr0JcyscC07atrqewjljUVTGET.";
+        static final String HASHED_PASSWORD = "{bcrypt}$2a$10$vFJRivCqsolXJT//0mqpkeClTSfr0JcyscC07atrqewjljUVTGET.";
 
         static final String ACCESS_TOKEN = "access-token";
         static final String REFRESH_TOKEN = "refresh-token";
