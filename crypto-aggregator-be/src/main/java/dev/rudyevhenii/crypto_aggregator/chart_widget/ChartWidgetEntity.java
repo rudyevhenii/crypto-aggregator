@@ -1,4 +1,4 @@
-package dev.rudyevhenii.crypto_aggregator.workspace;
+package dev.rudyevhenii.crypto_aggregator.chart_widget;
 
 import dev.rudyevhenii.crypto_aggregator.core.enums.ChartInterval;
 import jakarta.persistence.Column;

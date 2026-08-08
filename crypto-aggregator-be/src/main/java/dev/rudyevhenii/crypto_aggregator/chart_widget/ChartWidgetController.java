@@ -1,14 +1,14 @@
-package dev.rudyevhenii.crypto_aggregator.workspace;
+package dev.rudyevhenii.crypto_aggregator.chart_widget;
 
 import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetPositionsRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.api.interfaces.ChartWidgetApi;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
-import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetPositionsRequest;
-import dev.rudyevhenii.crypto_aggregator.workspace.mapper.ChartWidgetMapper;
-import dev.rudyevhenii.crypto_aggregator.workspace.service.ChartWidgetService;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.domain.ChartWidget;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetPositionsRequest;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.mapper.ChartWidgetMapper;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.service.ChartWidgetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

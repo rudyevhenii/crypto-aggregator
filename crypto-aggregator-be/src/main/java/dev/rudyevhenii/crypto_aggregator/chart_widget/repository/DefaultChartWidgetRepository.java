@@ -1,8 +1,8 @@
-package dev.rudyevhenii.crypto_aggregator.workspace.repository;
+package dev.rudyevhenii.crypto_aggregator.chart_widget.repository;
 
-import dev.rudyevhenii.crypto_aggregator.workspace.ChartWidgetEntity;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
-import dev.rudyevhenii.crypto_aggregator.workspace.mapper.ChartWidgetEntityMapper;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.ChartWidgetEntity;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.domain.ChartWidget;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.mapper.ChartWidgetEntityMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;

@@ -1,13 +1,13 @@
-package dev.rudyevhenii.crypto_aggregator.workspace.service;
+package dev.rudyevhenii.crypto_aggregator.chart_widget.service;
 
 import dev.rudyevhenii.crypto_aggregator.auth.context.UserContext;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.domain.ChartWidget;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.ChartWidgetRequest;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetPositionsRequest;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetRequest;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.repository.ChartWidgetRepository;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
-import dev.rudyevhenii.crypto_aggregator.workspace.dto.ChartWidgetRequest;
-import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetPositionsRequest;
-import dev.rudyevhenii.crypto_aggregator.workspace.dto.UpdateChartWidgetRequest;
-import dev.rudyevhenii.crypto_aggregator.workspace.repository.ChartWidgetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

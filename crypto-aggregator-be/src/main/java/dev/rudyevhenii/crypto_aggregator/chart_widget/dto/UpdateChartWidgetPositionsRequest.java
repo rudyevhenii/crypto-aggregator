@@ -1,4 +1,4 @@
-package dev.rudyevhenii.crypto_aggregator.workspace.dto;
+package dev.rudyevhenii.crypto_aggregator.chart_widget.dto;
 
 import java.util.UUID;
 

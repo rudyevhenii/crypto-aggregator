@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {ChartWidgetEntityMapper.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface WorkspaceEntityMapper {
 
     @Mapping(target = WorkspaceEntity.Fields.newEntity, constant = "true")

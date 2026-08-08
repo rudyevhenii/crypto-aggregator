@@ -1,7 +1,7 @@
-package dev.rudyevhenii.crypto_aggregator.workspace.mapper;
+package dev.rudyevhenii.crypto_aggregator.chart_widget.mapper;
 
-import dev.rudyevhenii.crypto_aggregator.workspace.ChartWidgetEntity;
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.ChartWidgetEntity;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.domain.ChartWidget;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

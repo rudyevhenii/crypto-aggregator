@@ -1,6 +1,6 @@
-package dev.rudyevhenii.crypto_aggregator.workspace.repository;
+package dev.rudyevhenii.crypto_aggregator.chart_widget.repository;
 
-import dev.rudyevhenii.crypto_aggregator.workspace.ChartWidgetEntity;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.ChartWidgetEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

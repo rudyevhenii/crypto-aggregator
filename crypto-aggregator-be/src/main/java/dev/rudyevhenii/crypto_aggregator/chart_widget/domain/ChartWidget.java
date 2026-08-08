@@ -1,4 +1,4 @@
-package dev.rudyevhenii.crypto_aggregator.workspace.domain;
+package dev.rudyevhenii.crypto_aggregator.chart_widget.domain;
 
 import dev.rudyevhenii.crypto_aggregator.core.enums.ChartInterval;
 import lombok.AllArgsConstructor;

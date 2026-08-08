@@ -1,6 +1,6 @@
-package dev.rudyevhenii.crypto_aggregator.workspace.repository;
+package dev.rudyevhenii.crypto_aggregator.chart_widget.repository;
 
-import dev.rudyevhenii.crypto_aggregator.workspace.domain.ChartWidget;
+import dev.rudyevhenii.crypto_aggregator.chart_widget.domain.ChartWidget;
 
 import java.util.List;
 import java.util.Optional;
