@@ -43,7 +43,7 @@ public class DefaultWorkspaceRepository implements WorkspaceRepository {
     }
 
     @Override
-    @Cacheable(value = WORKSPACE_CACHE, key = "{#userId, #id}")
+    @Cacheable(value = WORKSPACE_CACHE, key = "{#userId, #id}", unless = "#result == null")
     public Optional<Workspace> findByUserIdAndId(UUID userId, UUID id) {
         return repository.findByUserIdAndId(userId, id)
                 .map(mapper::toDomain);
