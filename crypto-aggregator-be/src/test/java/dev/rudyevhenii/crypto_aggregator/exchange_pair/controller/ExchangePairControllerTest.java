@@ -7,6 +7,7 @@ import dev.rudyevhenii.crypto_aggregator.AbstractIntegrationTest;
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.utils.JwtTokenUtils;
 import io.restassured.RestAssured;
+import io.restassured.http.Header;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenValidAccessToken_findAllExchangePairs_shouldReturnAllExchangePairs() {
         String actualResponse = given()
-                .header(JwtTokenUtils.buildAuthHeader(USER_ID))
+                .header(AUTH_HEADER)
                 .when()
                 .get(REQUEST_URL)
                 .then()
@@ -85,7 +86,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenNullExchangeAndTradingPairPattern_searchExchangePairs_shouldReturnExchangePairs() {
         String actualResponse = given()
-                .header(JwtTokenUtils.buildAuthHeader(USER_ID))
+                .header(AUTH_HEADER)
                 .when()
                 .get(REQUEST_SEARCH_URL)
                 .then()
@@ -110,7 +111,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
     })
     void givenExchangeAndTradingPair_searchExchangePairs_shouldReturnExchangePairs(Exchange exchange, String tradingPair, String expectedResponse) {
         String actualResponse = given()
-                .header(JwtTokenUtils.buildAuthHeader(USER_ID))
+                .header(AUTH_HEADER)
                 .queryParam(EXCHANGE_PARAM, exchange)
                 .queryParam(TRADING_PAIR_PARAM, tradingPair)
                 .when()
@@ -147,5 +148,7 @@ class ExchangePairControllerTest extends AbstractIntegrationTest {
         static final String TRADING_PAIR_PARAM = "tradingPair";
 
         static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+        static final Header AUTH_HEADER = JwtTokenUtils.buildAuthHeader(USER_ID);
     }
 }
