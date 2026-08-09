@@ -75,6 +75,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: '%s'"
                         .formatted(workspaceId)));
     }
+
     private void validateWorkspaceExists(UUID userId, UUID workspaceId) {
         if (!repository.existsByUserIdAndId(userId, workspaceId)) {
             throw new ResourceNotFoundException("Workspace not found with id: '%s'".formatted(workspaceId));

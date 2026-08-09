@@ -1,0 +1,16 @@
+[
+  {
+    "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "name": "New Workspace",
+    "userId": "11111111-1111-1111-1111-111111111111",
+    "createdAt": "2026-08-08T12:00:00Z",
+    "updatedAt": "2026-08-08T12:00:00Z"
+  },
+  {
+    "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "name": "Second Workspace",
+    "userId": "11111111-1111-1111-1111-111111111111",
+    "createdAt": "2026-08-09T12:00:00Z",
+    "updatedAt": "2026-08-09T12:00:00Z"
+  }
+]

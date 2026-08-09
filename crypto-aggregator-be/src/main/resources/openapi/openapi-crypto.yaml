@@ -486,6 +486,8 @@ paths:
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
         "409":
           $ref: 'common-components.yaml#/components/responses/Conflict'
         "500":
@@ -509,6 +511,8 @@ paths:
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
@@ -522,6 +526,8 @@ paths:
       responses:
         "204":
           description: "Workspace deleted"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
         "404":
           $ref: 'common-components.yaml#/components/responses/NotFoundError'
         "500":
