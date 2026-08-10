@@ -11,6 +11,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.EXCHANGE_PAIR_CACHE;
@@ -42,5 +44,12 @@ public class DefaultExchangePairRepository implements ExchangePairRepository {
         return repository.findAll(spec, sort).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Cacheable(value = EXCHANGE_PAIR_CACHE, key = "#id")
+    public Optional<ExchangePair> findById(UUID id) {
+        return repository.findById(id)
+                .map(mapper::toDomain);
     }
 }

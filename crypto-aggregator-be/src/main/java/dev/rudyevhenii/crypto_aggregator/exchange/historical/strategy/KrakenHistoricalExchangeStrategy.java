@@ -10,6 +10,7 @@ import dev.rudyevhenii.crypto_aggregator.exchange.historical.mapper.HistoricalKr
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPriceDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
+import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.KrakenSupportedIntervalsStrategy;
 import dev.rudyevhenii.crypto_aggregator.exchange.properties.KrakenProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -33,11 +34,14 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
 
     private final KrakenProperties properties;
     private final HistoricalKrakenMapper mapper;
+    private final KrakenSupportedIntervalsStrategy supportedIntervals;
 
-    public KrakenHistoricalExchangeStrategy(KrakenProperties properties, HistoricalKrakenMapper mapper) {
+    public KrakenHistoricalExchangeStrategy(KrakenProperties properties, HistoricalKrakenMapper mapper,
+                                            KrakenSupportedIntervalsStrategy supportedIntervals) {
         super(EXCHANGE_TYPE);
         this.properties = properties;
         this.mapper = mapper;
+        this.supportedIntervals = supportedIntervals;
     }
 
     @Override
@@ -83,9 +87,9 @@ public class KrakenHistoricalExchangeStrategy extends AbstractHistoricalExchange
 
     @Override
     protected String getExchangeInterval(ChartInterval chartInterval) {
-        String intervalCode = properties.chartInterval().get(chartInterval);
-        validateExchangeInterval(chartInterval, intervalCode);
-        return intervalCode;
+        boolean isSupported = supportedIntervals.isSupportedInterval(chartInterval);
+        validateExchangeInterval(isSupported, chartInterval);
+        return properties.chartInterval().get(chartInterval);
     }
 
     @Override
