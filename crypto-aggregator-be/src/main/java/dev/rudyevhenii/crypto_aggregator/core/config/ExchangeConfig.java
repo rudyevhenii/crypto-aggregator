@@ -2,6 +2,7 @@ package dev.rudyevhenii.crypto_aggregator.core.config;
 
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.strategy.HistoricalExchangeStrategy;
+import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.SupportedExchangeIntervalsStrategy;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.strategy.LiveExchangeStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,5 +25,12 @@ public class ExchangeConfig {
     public Map<Exchange, LiveExchangeStrategy> liveExchangeStrategies(List<LiveExchangeStrategy> strategies) {
         return strategies.stream()
                 .collect(Collectors.toMap(LiveExchangeStrategy::getExchangeType, Function.identity()));
+    }
+
+    @Bean
+    public Map<Exchange, SupportedExchangeIntervalsStrategy> supportedExchangeIntervals(
+            List<SupportedExchangeIntervalsStrategy> strategies) {
+        return strategies.stream()
+                .collect(Collectors.toMap(SupportedExchangeIntervalsStrategy::getExchangeType, Function.identity()));
     }
 }

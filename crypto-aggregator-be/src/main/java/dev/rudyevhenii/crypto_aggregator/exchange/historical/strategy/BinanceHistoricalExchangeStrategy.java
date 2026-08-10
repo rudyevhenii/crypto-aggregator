@@ -9,6 +9,7 @@ import dev.rudyevhenii.crypto_aggregator.exchange.historical.mapper.HistoricalBi
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPriceDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.HistoricalPriceRequest;
 import dev.rudyevhenii.crypto_aggregator.exchange.historical.model.Ticker24hDto;
+import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.BinanceSupportedIntervalsStrategy;
 import dev.rudyevhenii.crypto_aggregator.exchange.properties.BinanceProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -37,11 +38,14 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
 
     private final BinanceProperties properties;
     private final HistoricalBinanceMapper mapper;
+    private final BinanceSupportedIntervalsStrategy supportedIntervals;
 
-    public BinanceHistoricalExchangeStrategy(BinanceProperties properties, HistoricalBinanceMapper mapper) {
+    public BinanceHistoricalExchangeStrategy(BinanceProperties properties, HistoricalBinanceMapper mapper,
+                                             BinanceSupportedIntervalsStrategy supportedIntervals) {
         super(EXCHANGE_TYPE);
         this.properties = properties;
         this.mapper = mapper;
+        this.supportedIntervals = supportedIntervals;
     }
 
     @Override
@@ -85,9 +89,9 @@ public class BinanceHistoricalExchangeStrategy extends AbstractHistoricalExchang
 
     @Override
     protected String getExchangeInterval(ChartInterval chartInterval) {
-        String intervalCode = properties.chartInterval().get(chartInterval);
-        validateExchangeInterval(chartInterval, intervalCode);
-        return intervalCode;
+        boolean isSupported = supportedIntervals.isSupportedInterval(chartInterval);
+        validateExchangeInterval(isSupported, chartInterval);
+        return properties.chartInterval().get(chartInterval);
     }
 
     @Override

@@ -103,8 +103,8 @@ public abstract class AbstractHistoricalExchangeStrategy implements HistoricalEx
         }
     }
 
-    protected void validateExchangeInterval(ChartInterval chartInterval, String intervalCode) {
-        if (intervalCode == null) {
+    protected void validateExchangeInterval(boolean isSupported, ChartInterval chartInterval) {
+        if (!isSupported) {
             throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'"
                     .formatted(exchange.name(), chartInterval));
         }
