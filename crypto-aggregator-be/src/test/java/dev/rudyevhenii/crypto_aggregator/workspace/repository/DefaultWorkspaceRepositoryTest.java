@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DefaultWorkspaceRepositoryTest extends AbstractIntegrationTest {
 
     @Autowired
-    private DefaultWorkspaceRepository repository;
+    private WorkspaceRepository repository;
 
     @Test
     @DataSet("dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml")

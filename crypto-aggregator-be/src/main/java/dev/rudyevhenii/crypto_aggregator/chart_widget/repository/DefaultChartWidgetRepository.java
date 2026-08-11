@@ -52,7 +52,7 @@ public class DefaultChartWidgetRepository implements ChartWidgetRepository {
     }
 
     @Override
-    @Cacheable(value = CHART_WIDGET_CACHE, key = "#id")
+    @Cacheable(value = CHART_WIDGET_CACHE, key = "#id", unless = "#result == null")
     public Optional<ChartWidget> findByWorkspaceIdAndId(UUID workspaceId, UUID id) {
         return repository.findByWorkspaceIdAndId(workspaceId, id)
                 .map(mapper::toDomain);
