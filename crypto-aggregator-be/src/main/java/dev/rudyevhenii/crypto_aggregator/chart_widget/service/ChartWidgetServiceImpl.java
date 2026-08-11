@@ -82,6 +82,7 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     @Override
     @Transactional
     public void delete(UUID workspaceId, UUID id) {
+        // TODO: default implementation of deleteById method already checks if entity exists
         validateChartWidgetExists(workspaceId, id);
         log.info("User [{}] deleted chart widget [{}] from workspace [{}]", userContext.getUserId(), id, workspaceId);
         repository.deleteById(workspaceId, id);
