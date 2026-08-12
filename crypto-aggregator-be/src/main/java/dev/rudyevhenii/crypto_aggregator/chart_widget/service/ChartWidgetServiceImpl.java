@@ -6,8 +6,13 @@ import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.ChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetPositionsRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.repository.ChartWidgetRepository;
+import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
+import dev.rudyevhenii.crypto_aggregator.core.exception.UnsupportedIntervalException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
+import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.SupportedExchangeIntervalsStrategy;
+import dev.rudyevhenii.crypto_aggregator.exchange_pair.domain.ExchangePair;
+import dev.rudyevhenii.crypto_aggregator.exchange_pair.repository.ExchangePairRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,29 +31,40 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChartWidgetServiceImpl implements ChartWidgetService {
 
-    private final ChartWidgetRepository repository;
+    private final ChartWidgetRepository chartWidgetRepository;
     private final UserContext userContext;
     private final GeneratorUtils generator;
+    private final ExchangePairRepository exchangePairRepository;
+    private final Map<Exchange, SupportedExchangeIntervalsStrategy> supportedExchangeIntervalsStrategies;
 
     @Override
     @Transactional
     public ChartWidget create(UUID workspaceId, ChartWidgetRequest request) {
-        int nextPosition = repository.findMaxPositionByWorkspaceId(workspaceId) + 1;
+        int nextPosition = chartWidgetRepository.findMaxPositionByWorkspaceId(workspaceId) + 1;
         ChartWidget chartWidget = toDomain(nextPosition, workspaceId, request.exchangePairId());
 
         log.info("User [{}] created chart widget for workspace [{}]", userContext.getUserId(), workspaceId);
-        return repository.create(chartWidget);
+        return chartWidgetRepository.create(chartWidget);
     }
 
     @Override
     @Transactional
     public ChartWidget update(UUID workspaceId, UUID id, UpdateChartWidgetRequest request) {
         ChartWidget chartWidget = getById(workspaceId, id);
+        ExchangePair exchangePair = getExchangePair(chartWidget.getExchangePairId());
+
+        SupportedExchangeIntervalsStrategy supportedExchangeIntervals =
+                supportedExchangeIntervalsStrategies.get(exchangePair.getExchange());
+        if (!supportedExchangeIntervals.isSupportedInterval(request.chartInterval())) {
+            throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'"
+                    .formatted(exchangePair.getExchange(), request.chartInterval()));
+        }
+
         if (request.chartInterval() != chartWidget.getChartInterval()) {
             chartWidget.setChartInterval(request.chartInterval());
             chartWidget.setUpdatedAt(generator.now());
             log.info("User [{}] updated chart widget [{}] for workspace [{}]", userContext.getUserId(), id, workspaceId);
-            return repository.update(chartWidget);
+            return chartWidgetRepository.update(chartWidget);
         }
         return chartWidget;
     }
@@ -57,7 +73,7 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     @Transactional
     public void updatePositions(UUID workspaceId,
                                 List<UpdateChartWidgetPositionsRequest> requests) {
-        Map<UUID, ChartWidget> chartWidgetMap = repository.findAllByWorkspaceId(workspaceId).stream()
+        Map<UUID, ChartWidget> chartWidgetMap = chartWidgetRepository.findAllByWorkspaceId(workspaceId).stream()
                 .collect(Collectors.toMap(ChartWidget::getId, Function.identity()));
 
         List<ChartWidget> chartWidgets = new ArrayList<>();
@@ -69,14 +85,14 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
             }
         }
         if (!CollectionUtils.isEmpty(chartWidgets)) {
-            repository.updatePositions(workspaceId, chartWidgets);
+            chartWidgetRepository.updatePositions(workspaceId, chartWidgets);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ChartWidget> getAllByWorkspaceId(UUID workspaceId) {
-        return repository.findAllByWorkspaceId(workspaceId);
+        return chartWidgetRepository.findAllByWorkspaceId(workspaceId);
     }
 
     @Override
@@ -85,16 +101,21 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
         // TODO: default implementation of deleteById method already checks if entity exists
         validateChartWidgetExists(workspaceId, id);
         log.info("User [{}] deleted chart widget [{}] from workspace [{}]", userContext.getUserId(), id, workspaceId);
-        repository.deleteById(workspaceId, id);
+        chartWidgetRepository.deleteById(workspaceId, id);
     }
 
     private ChartWidget getById(UUID workspaceId, UUID id) {
-        return repository.findByWorkspaceIdAndId(workspaceId, id)
+        return chartWidgetRepository.findByWorkspaceIdAndId(workspaceId, id)
                 .orElseThrow(() -> new ResourceNotFoundException("Chart widget not found with id: '%s'".formatted(id)));
     }
 
+    private ExchangePair getExchangePair(UUID exchangePairId) {
+        return exchangePairRepository.findById(exchangePairId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exchange pair not found with id: '%s'".formatted(exchangePairId)));
+    }
+
     private void validateChartWidgetExists(UUID workspaceId, UUID id) {
-        if (!repository.existsByWorkspaceIdAndId(workspaceId, id)) {
+        if (!chartWidgetRepository.existsByWorkspaceIdAndId(workspaceId, id)) {
             throw new ResourceNotFoundException("Chart widget not found with id: '%s'".formatted(id));
         }
     }

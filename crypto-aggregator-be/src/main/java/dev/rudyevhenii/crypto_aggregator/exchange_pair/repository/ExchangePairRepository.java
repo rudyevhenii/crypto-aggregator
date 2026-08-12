@@ -4,10 +4,14 @@ import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.domain.ExchangePair;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface ExchangePairRepository {
 
     List<ExchangePair> findAllExchangePairs();
 
     List<ExchangePair> searchByPattern(Exchange exchange, String tradingPair);
+
+    Optional<ExchangePair> findById(UUID id);
 }
