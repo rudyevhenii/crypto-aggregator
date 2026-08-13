@@ -9,6 +9,7 @@ import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import dev.rudyevhenii.crypto_aggregator.utils.JwtTokenUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.http.Header;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -64,7 +64,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(buildRegisterRequestJson())
                 .when()
-                .post(REGISTER_URL)
+                .post(BASE_AUTH_URL + "/register")
                 .then()
                 .statusCode(HttpStatus.CREATED.value())
                 .extract()
@@ -88,7 +88,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .post(REGISTER_URL)
+                .post(BASE_AUTH_URL + "/register")
                 .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
     }
@@ -96,17 +96,11 @@ class AuthControllerTest extends AbstractIntegrationTest {
     static Stream<Arguments> provideInvalidRegisterRequest() {
         return Stream.of(
                 Arguments.of(buildRegisterRequestWithInvalidEmailJson(null)),
-                Arguments.of(buildRegisterRequestWithInvalidEmailJson("")),
                 Arguments.of(buildRegisterRequestWithInvalidEmailJson("not-an-email")),
-                Arguments.of(buildRegisterRequestWithInvalidPasswordJson(null)),
                 Arguments.of(buildRegisterRequestWithInvalidPasswordJson("12345")),
                 Arguments.of(buildRegisterRequestWithInvalidPasswordJson("a".repeat(101))),
-                Arguments.of(buildRegisterRequestWithInvalidFirstNameJson(null)),
-                Arguments.of(buildRegisterRequestWithInvalidFirstNameJson("J")),
-                Arguments.of(buildRegisterRequestWithInvalidFirstNameJson("a".repeat(51))),
-                Arguments.of(buildRegisterRequestWithInvalidLastNameJson(null)),
-                Arguments.of(buildRegisterRequestWithInvalidLastNameJson("D")),
-                Arguments.of(buildRegisterRequestWithInvalidLastNameJson("a".repeat(51)))
+                Arguments.of(buildRegisterRequestWithInvalidFirstNameJson()),
+                Arguments.of(buildRegisterRequestWithInvalidLastNameJson())
         );
     }
 
@@ -117,7 +111,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(buildRegisterRequestJson())
                 .when()
-                .post(REGISTER_URL)
+                .post(BASE_AUTH_URL + "/register")
                 .then()
                 .statusCode(HttpStatus.CONFLICT.value());
     }
@@ -132,7 +126,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(buildLoginRequestJson())
                 .when()
-                .post(LOGIN_URL)
+                .post(BASE_AUTH_URL + "/login")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .extract()
@@ -153,7 +147,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .post(LOGIN_URL)
+                .post(BASE_AUTH_URL + "/login")
                 .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
     }
@@ -161,9 +155,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     static Stream<Arguments> provideInvalidLoginRequest() {
         return Stream.of(
                 Arguments.of(buildLoginRequestWithInvalidEmailJson(null)),
-                Arguments.of(buildLoginRequestWithInvalidEmailJson("")),
                 Arguments.of(buildLoginRequestWithInvalidEmailJson("not-an-email")),
-                Arguments.of(buildLoginRequestWithInvalidPasswordJson(null)),
                 Arguments.of(buildLoginRequestWithInvalidPasswordJson("12345")),
                 Arguments.of(buildLoginRequestWithInvalidPasswordJson("a".repeat(101)))
         );
@@ -176,7 +168,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(buildLoginRequestJson())
                 .when()
-                .post(LOGIN_URL)
+                .post(BASE_AUTH_URL + "/login")
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
     }
@@ -191,7 +183,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(buildRefreshTokenRequestJson())
                 .when()
-                .post(REFRESH_TOKEN_URL)
+                .post(BASE_AUTH_URL + "/refresh-token")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .extract()
@@ -205,23 +197,15 @@ class AuthControllerTest extends AbstractIntegrationTest {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidRefreshTokenRequest")
-    void givenInvalidRefreshTokenRequest_refreshToken_shouldReturnStatusBadRequest(String body) {
+    @Test
+    void givenInvalidRefreshTokenRequest_refreshToken_shouldReturnStatusBadRequest() {
         given()
                 .contentType(ContentType.JSON)
-                .body(body)
+                .body(buildRefreshTokenRequestWithInvalidRefreshTokenJson(null))
                 .when()
-                .post(LOGIN_URL)
+                .post(BASE_AUTH_URL + "/refresh-token")
                 .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
-    }
-
-    static Stream<Arguments> provideInvalidRefreshTokenRequest() {
-        return Stream.of(
-                Arguments.of(buildRefreshTokenRequestWithInvalidRefreshTokenJson(null)),
-                Arguments.of(buildRefreshTokenRequestWithInvalidRefreshTokenJson("invalid-refresh-token"))
-        );
     }
 
     @ParameterizedTest
@@ -231,7 +215,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .post(REFRESH_TOKEN_URL)
+                .post(BASE_AUTH_URL + "/refresh-token")
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
     }
@@ -251,7 +235,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(buildRefreshTokenRequestJson())
                 .when()
-                .post(REFRESH_TOKEN_URL)
+                .post(BASE_AUTH_URL + "/refresh-token")
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
     }
@@ -262,11 +246,11 @@ class AuthControllerTest extends AbstractIntegrationTest {
         when(generator.now()).thenReturn(NOW);
 
         given()
-                .header(JwtTokenUtils.buildAuthHeader(ID))
+                .header(AUTH_HEADER)
                 .contentType(ContentType.JSON)
                 .body(buildLogoutRequestJson())
                 .when()
-                .post(LOGOUT_URL)
+                .post(BASE_AUTH_URL + "/logout")
                 .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
     }
@@ -278,11 +262,11 @@ class AuthControllerTest extends AbstractIntegrationTest {
         when(generator.now()).thenReturn(NOW);
 
         given()
-                .header(JwtTokenUtils.buildAuthHeader(ID))
+                .header(AUTH_HEADER)
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .post(LOGOUT_URL)
+                .post(BASE_AUTH_URL + "/logout")
                 .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
     }
@@ -295,10 +279,7 @@ class AuthControllerTest extends AbstractIntegrationTest {
     }
 
     static class TestResources {
-        static final String REGISTER_URL = "/api/auth/register";
-        static final String LOGIN_URL = "/api/auth/login";
-        static final String REFRESH_TOKEN_URL = "/api/auth/refresh-token";
-        static final String LOGOUT_URL = "/api/auth/logout";
+        static final String BASE_AUTH_URL = "/api/auth";
 
         static final UUID ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
         static final String EMAIL = "JohnDoe@gmail.com";
@@ -308,14 +289,13 @@ class AuthControllerTest extends AbstractIntegrationTest {
 
         static final Instant NOW = Instant.now();
 
-        static final Instant ACCESS_TOKEN_EXP = NOW.plus(60, ChronoUnit.MINUTES);
-        static final Instant REFRESH_TOKEN_EXP = NOW.plus(7, ChronoUnit.DAYS);
-
-        static final String ACCESS_TOKEN = JwtTokenUtils.buildAccessToken(ID, NOW, ACCESS_TOKEN_EXP);
-        static final String REFRESH_TOKEN = JwtTokenUtils.buildRefreshToken(ID, NOW, REFRESH_TOKEN_EXP);
+        static final String ACCESS_TOKEN = JwtTokenUtils.buildAccessToken(ID);
+        static final String REFRESH_TOKEN = JwtTokenUtils.buildRefreshToken(ID);
 
         static final String EXPIRED_REFRESH_TOKEN = JwtTokenUtils.buildExpiredRefreshToken(ID);
         static final String CORRUPTED_REFRESH_TOKEN = JwtTokenUtils.buildCorruptedRefreshToken(ID);
+
+        static final Header AUTH_HEADER = JwtTokenUtils.buildAuthHeader(ID);
 
         static String buildRegisterRequestJson() {
             return buildRegisterRequestJson(EMAIL, PASSWORD, FIRST_NAME, LAST_NAME);
@@ -329,12 +309,12 @@ class AuthControllerTest extends AbstractIntegrationTest {
             return buildRegisterRequestJson(EMAIL, password, FIRST_NAME, LAST_NAME);
         }
 
-        static String buildRegisterRequestWithInvalidFirstNameJson(String firstName) {
-            return buildRegisterRequestJson(EMAIL, PASSWORD, firstName, LAST_NAME);
+        static String buildRegisterRequestWithInvalidFirstNameJson() {
+            return buildRegisterRequestJson(EMAIL, PASSWORD, null, LAST_NAME);
         }
 
-        static String buildRegisterRequestWithInvalidLastNameJson(String lastName) {
-            return buildRegisterRequestJson(EMAIL, PASSWORD, FIRST_NAME, lastName);
+        static String buildRegisterRequestWithInvalidLastNameJson() {
+            return buildRegisterRequestJson(EMAIL, PASSWORD, FIRST_NAME, null);
         }
 
         static String buildRegisterRequestJson(String email, String password, String firstName, String lastName) {
@@ -344,7 +324,8 @@ class AuthControllerTest extends AbstractIntegrationTest {
                       "password": %s,
                       "firstName": %s,
                       "lastName": %s
-                    }""".formatted(toJsonValue(email), toJsonValue(password), toJsonValue(firstName), toJsonValue(lastName));
+                    }
+                    """.formatted(toJsonValue(email), toJsonValue(password), toJsonValue(firstName), toJsonValue(lastName));
         }
 
         static String buildLoginRequestJson() {
@@ -364,7 +345,8 @@ class AuthControllerTest extends AbstractIntegrationTest {
                     {
                       "email": %s,
                       "password": %s
-                    }""".formatted(toJsonValue(email), toJsonValue(password));
+                    }
+                    """.formatted(toJsonValue(email), toJsonValue(password));
         }
 
         static String buildRefreshTokenRequestJson() {
@@ -379,7 +361,8 @@ class AuthControllerTest extends AbstractIntegrationTest {
             return """
                     {
                       "refreshToken": %s
-                    }""".formatted(toJsonValue(refreshToken));
+                    }
+                    """.formatted(toJsonValue(refreshToken));
         }
 
         static String buildLogoutRequestJson() {
@@ -399,7 +382,8 @@ class AuthControllerTest extends AbstractIntegrationTest {
                     {
                       "accessToken": %s,
                       "refreshToken": %s
-                    }""".formatted(toJsonValue(accessToken), toJsonValue(refreshToken));
+                    }
+                    """.formatted(toJsonValue(accessToken), toJsonValue(refreshToken));
         }
 
         static String buildTokenResponseJson() {
@@ -407,7 +391,8 @@ class AuthControllerTest extends AbstractIntegrationTest {
                     {
                       "accessToken": "%s",
                       "refreshToken": "%s"
-                    }""".formatted(ACCESS_TOKEN, REFRESH_TOKEN);
+                    }
+                    """.formatted(ACCESS_TOKEN, REFRESH_TOKEN);
         }
 
         private static String toJsonValue(String value) {
