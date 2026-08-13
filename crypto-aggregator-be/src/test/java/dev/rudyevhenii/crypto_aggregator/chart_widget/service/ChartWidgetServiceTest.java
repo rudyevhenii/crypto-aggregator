@@ -18,6 +18,7 @@ import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.KrakenSuppor
 import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.SupportedExchangeIntervalsStrategy;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.domain.ExchangePair;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.repository.ExchangePairRepository;
+import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +57,9 @@ class ChartWidgetServiceTest {
     private GeneratorUtils generator;
 
     @Mock
+    private WorkspaceRepository workspaceRepository;
+
+    @Mock
     private ExchangePairRepository exchangePairRepository;
 
     @Spy
@@ -84,6 +88,8 @@ class ChartWidgetServiceTest {
     void givenChartWidgetRequest_create_shouldCreateChartWidget() {
         when(repository.findMaxPositionByWorkspaceId(WORKSPACE_ID)).thenReturn(POSITION_0);
         when(userContext.getUserId()).thenReturn(USER_ID);
+        when(workspaceRepository.existsById(WORKSPACE_ID)).thenReturn(true);
+        when(exchangePairRepository.existsById(EXCHANGE_PAIR_ID)).thenReturn(true);
         when(generator.uuid()).thenReturn(CHART_WIDGET_ID_1);
         when(generator.now()).thenReturn(CREATED_AT, CREATED_AT);
         when(repository.create(buildChartWidget()))
@@ -92,6 +98,29 @@ class ChartWidgetServiceTest {
         ChartWidget result = service.create(WORKSPACE_ID, buildChartWidgetRequest());
 
         assertThat(result).isEqualTo(buildChartWidget());
+    }
+
+    @Test
+    void givenChartWidgetRequestWithNonExistentWorkspace_create_shouldThrowException() {
+        when(workspaceRepository.existsById(WORKSPACE_ID)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.create(WORKSPACE_ID, buildChartWidgetRequest()))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(repository, never()).findMaxPositionByWorkspaceId(WORKSPACE_ID);
+        verify(repository, never()).create(any(ChartWidget.class));
+    }
+
+    @Test
+    void givenChartWidgetRequestWithNonExistentExchangePairId_create_shouldThrowException() {
+        when(workspaceRepository.existsById(WORKSPACE_ID)).thenReturn(true);
+        when(exchangePairRepository.existsById(EXCHANGE_PAIR_ID)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.create(WORKSPACE_ID, buildChartWidgetRequest()))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(repository, never()).findMaxPositionByWorkspaceId(WORKSPACE_ID);
+        verify(repository, never()).create(any(ChartWidget.class));
     }
 
     @ParameterizedTest

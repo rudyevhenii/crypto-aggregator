@@ -14,6 +14,7 @@ import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.SupportedExchangeIntervalsStrategy;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.domain.ExchangePair;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.repository.ExchangePairRepository;
+import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,11 +37,14 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     private final UserContext userContext;
     private final GeneratorUtils generator;
     private final ExchangePairRepository exchangePairRepository;
+    private final WorkspaceRepository workspaceRepository;
     private final Map<Exchange, SupportedExchangeIntervalsStrategy> supportedExchangeIntervalsStrategies;
 
     @Override
     @Transactional
     public ChartWidget create(UUID workspaceId, ChartWidgetRequest request) {
+        validateWorkspaceExists(workspaceId);
+        validateExchangePairExists(request.exchangePairId());
         int nextPosition = chartWidgetRepository.findMaxPositionByWorkspaceId(workspaceId) + 1;
         ChartWidget chartWidget = toDomain(nextPosition, workspaceId, request.exchangePairId());
 
@@ -115,6 +119,18 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
         if (!supportedExchangeIntervals.isSupportedInterval(chartInterval)) {
             throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'"
                     .formatted(exchange, chartInterval));
+        }
+    }
+
+    private void validateExchangePairExists(UUID exchangePairId) {
+        if (!exchangePairRepository.existsById(exchangePairId)) {
+            throw new ResourceNotFoundException("Exchange pair not found with id: '%s'".formatted(exchangePairId));
+        }
+    }
+
+    private void validateWorkspaceExists(UUID workspaceId) {
+        if (!workspaceRepository.existsById(workspaceId)) {
+            throw new ResourceNotFoundException("Workspace not found with id: '%s'".formatted(workspaceId));
         }
     }
 

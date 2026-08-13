@@ -21,4 +21,6 @@ public interface WorkspaceRepository {
     boolean existsByUserIdAndName(UUID userId, String name);
 
     boolean existsByUserIdAndId(UUID userId, UUID id);
+
+    boolean existsById(UUID workspaceId);
 }

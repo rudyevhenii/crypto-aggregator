@@ -162,6 +162,26 @@ class DefaultWorkspaceRepositoryTest extends AbstractIntegrationTest {
         );
     }
 
+    @Test
+    @DataSet({
+            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml",
+            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/workspace.yaml"
+    })
+    void givenWorkspaceId_existsByWorkspaceId_shouldReturnTrue() {
+        boolean result = repository.existsById(ID_1);
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DataSet({
+            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml",
+            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/empty_workspace.yaml"
+    })
+    void givenEmptyWorkspace_existsByWorkspaceId_shouldReturnFalse() {
+        boolean result = repository.existsById(ID_1);
+        assertThat(result).isFalse();
+    }
+
     static class TestResources {
 
         static final UUID ID_1 = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");

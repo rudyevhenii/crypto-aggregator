@@ -14,4 +14,6 @@ public interface ExchangePairRepository {
     List<ExchangePair> searchByPattern(Exchange exchange, String tradingPair);
 
     Optional<ExchangePair> findById(UUID id);
+
+    boolean existsById(UUID id);
 }

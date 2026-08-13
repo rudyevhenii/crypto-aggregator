@@ -16,6 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static dev.rudyevhenii.crypto_aggregator.exchange_pair.repository.DefaultExchangePairRepositoryTest.TestResources.*;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.verify;
 class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
 
     @Autowired
-    private ExchangePairRepository exchangePairRepository;
+    private ExchangePairRepository repository;
 
     @MockitoSpyBean
     private SpringDataExchangePairRepository repositorySpy;
@@ -41,7 +42,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     @Test
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenNothing_findAllTradingPairs_shouldReturnAllExchangePairs() {
-        assertThat(exchangePairRepository.findAllExchangePairs()).isNotEmpty();
+        assertThat(repository.findAllExchangePairs()).isNotEmpty();
         verify(repositorySpy).findAllByOrderByTradingPairAscExchange();
     }
 
@@ -49,7 +50,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     @MethodSource("provideExchanges")
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenExchange_searchByPattern_shouldReturnExchangePairsForSpecifiedExchange(Exchange exchange) {
-        List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(exchange, EMPTY_TRADING_PAIR_VALUE);
+        List<ExchangePair> exchangePairs = repository.searchByPattern(exchange, EMPTY_TRADING_PAIR_VALUE);
         assertThat(exchangePairs).isNotEmpty();
         assertThat(exchangePairs)
                 .extracting(ExchangePair::getExchange)
@@ -70,7 +71,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     @MethodSource("provideTradingPairPatterns")
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenTradingPairPattern_searchByPattern_shouldReturnExchangePairsWithSpecifiedPatternForTradingPair(String tradingPair) {
-        List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(EXCHANGE_NULL_VALUE, tradingPair);
+        List<ExchangePair> exchangePairs = repository.searchByPattern(EXCHANGE_NULL_VALUE, tradingPair);
         assertThat(exchangePairs).isNotEmpty();
         assertThat(exchangePairs).allMatch(exchangePair ->
                 exchangePair.getTradingPair().name().contains(tradingPair.toUpperCase()));
@@ -89,7 +90,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     @Test
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenNonExistingTradingPairPattern_searchByPattern_shouldReturnExchangePairsForSpecifiedExchange() {
-        List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(EXCHANGE_NULL_VALUE, NON_EXISTING_TRADING_PAIR_PATTERN_VALUE);
+        List<ExchangePair> exchangePairs = repository.searchByPattern(EXCHANGE_NULL_VALUE, NON_EXISTING_TRADING_PAIR_PATTERN_VALUE);
         assertThat(exchangePairs).isEmpty();
     }
 
@@ -97,7 +98,7 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
     @MethodSource("provideExchangeAndTradingPairPatterns")
     @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
     void givenExchangeAndTradingPair_searchByPattern_shouldReturnExchangePairs(Exchange exchange, String tradingPair) {
-        List<ExchangePair> exchangePairs = exchangePairRepository.searchByPattern(exchange, tradingPair);
+        List<ExchangePair> exchangePairs = repository.searchByPattern(exchange, tradingPair);
         assertThat(exchangePairs).isNotEmpty();
         assertThat(exchangePairs).allMatch(exchangePair ->
                 exchangePair.getTradingPair().name().contains(tradingPair.toUpperCase()));
@@ -118,7 +119,23 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
         return argsBuilder.build();
     }
 
+    @Test
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
+    void givenId_existsById_shouldReturnTrue() {
+        boolean result = repository.existsById(ID);
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/empty_exchange_pairs.yaml")
+    void givenEmptyExchangePairs_existsById_shouldReturnFalse() {
+        boolean result = repository.existsById(ID);
+        assertThat(result).isFalse();
+    }
+
     static class TestResources {
+        static final UUID ID = UUID.fromString("4a06e0fd-8f90-4e80-a78d-cc5948315d16");
+
         static final String EMPTY_TRADING_PAIR_VALUE = "";
         static final String NON_EXISTING_TRADING_PAIR_PATTERN_VALUE = "JSDF";
 

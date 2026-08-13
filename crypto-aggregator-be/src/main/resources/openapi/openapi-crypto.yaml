@@ -659,8 +659,6 @@ paths:
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
-        "404":
-          $ref: 'common-components.yaml#/components/responses/NotFoundError'
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
@@ -1150,6 +1148,7 @@ components:
           description: "Widget ID to update"
         position:
           type: integer
+          minimum: 1
           description: "New position value"
 
   parameters:

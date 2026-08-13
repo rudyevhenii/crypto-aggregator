@@ -1,0 +1,24 @@
+chartWidgets:
+  - id: "10000000-0000-0000-0000-000000000001"
+    chartInterval: "THIRTY_MINUTES"
+    exchangePairId: "30000000-0000-0000-0000-000000000003"
+    workspaceId: "20000000-0000-0000-0000-000000000002"
+    position: 1
+    createdAt: "2026-08-08 12:00:00"
+    updatedAt: "2026-08-10 12:00:00"
+
+  - id: "11111111-1111-1111-1111-111111111111"
+    chartInterval: "ONE_HOUR"
+    exchangePairId: "33333333-3333-3333-3333-333333333333"
+    workspaceId: "21111111-1111-1111-1111-111111111112"
+    position: 1
+    createdAt: "2026-08-08 12:00:00"
+    updatedAt: "2026-08-08 12:00:00"
+
+  - id: "12222222-2222-2222-2222-222222222221"
+    chartInterval: "FIVE_MINUTES"
+    exchangePairId: "37777777-7777-7777-7777-777777777773"
+    workspaceId: "21111111-1111-1111-1111-111111111112"
+    position: 2
+    createdAt: "2026-08-08 12:00:00"
+    updatedAt: "2026-08-08 12:00:00"
