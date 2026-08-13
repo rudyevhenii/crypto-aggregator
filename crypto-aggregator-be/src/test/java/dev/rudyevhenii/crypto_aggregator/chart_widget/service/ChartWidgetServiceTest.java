@@ -7,19 +7,36 @@ import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetPosit
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.repository.ChartWidgetRepository;
 import dev.rudyevhenii.crypto_aggregator.core.enums.ChartInterval;
+import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
+import dev.rudyevhenii.crypto_aggregator.core.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
+import dev.rudyevhenii.crypto_aggregator.core.exception.UnsupportedIntervalException;
 import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
+import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.BinanceSupportedIntervalsStrategy;
+import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.CoinbaseSupportedIntervalsStrategy;
+import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.KrakenSupportedIntervalsStrategy;
+import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.SupportedExchangeIntervalsStrategy;
+import dev.rudyevhenii.crypto_aggregator.exchange_pair.domain.ExchangePair;
+import dev.rudyevhenii.crypto_aggregator.exchange_pair.repository.ExchangePairRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static dev.rudyevhenii.crypto_aggregator.chart_widget.service.ChartWidgetServiceTest.TestResources.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,8 +55,30 @@ class ChartWidgetServiceTest {
     @Mock
     private GeneratorUtils generator;
 
+    @Mock
+    private ExchangePairRepository exchangePairRepository;
+
+    @Spy
+    private BinanceSupportedIntervalsStrategy binanceSupportedIntervalsStrategy;
+
+    @Spy
+    private CoinbaseSupportedIntervalsStrategy coinbaseSupportedIntervalsStrategy;
+
+    @Spy
+    private KrakenSupportedIntervalsStrategy krakenSupportedIntervalsStrategy;
+
+    @Spy
+    private Map<Exchange, SupportedExchangeIntervalsStrategy> strategies = new HashMap<>();
+
     @InjectMocks
     private ChartWidgetServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        strategies.put(Exchange.BINANCE, binanceSupportedIntervalsStrategy);
+        strategies.put(Exchange.COINBASE, coinbaseSupportedIntervalsStrategy);
+        strategies.put(Exchange.KRAKEN, krakenSupportedIntervalsStrategy);
+    }
 
     @Test
     void givenChartWidgetRequest_create_shouldCreateChartWidget() {
@@ -47,40 +86,117 @@ class ChartWidgetServiceTest {
         when(userContext.getUserId()).thenReturn(USER_ID);
         when(generator.uuid()).thenReturn(CHART_WIDGET_ID_1);
         when(generator.now()).thenReturn(CREATED_AT, CREATED_AT);
-        when(repository.create(buildChartWidget(ChartInterval.FIFTEEN_MINUTES)))
+        when(repository.create(buildChartWidget()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         ChartWidget result = service.create(WORKSPACE_ID, buildChartWidgetRequest());
 
-        assertThat(result).isEqualTo(buildChartWidget(ChartInterval.FIFTEEN_MINUTES));
+        assertThat(result).isEqualTo(buildChartWidget());
     }
 
-    @Test
-    void givenIdAndUpdateRequest_update_shouldUpdateChartWidget() {
-        ChartInterval chartInterval = ChartInterval.THIRTY_MINUTES;
-        when(userContext.getUserId()).thenReturn(USER_ID);
-        when(generator.now()).thenReturn(UPDATED_AT);
+    @ParameterizedTest
+    @MethodSource("provideSupportedChartIntervals")
+    void givenIdAndUpdateRequestWithSupportedChartIntervals_update_shouldUpdateChartWidget(Exchange exchange, ChartInterval chartInterval) {
+        ChartInterval updatedChartInterval = chartInterval == ChartInterval.FIFTEEN_MINUTES
+                ? ChartInterval.FIVE_MINUTES
+                : chartInterval;
         when(repository.findByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1))
                 .thenReturn(Optional.of(buildChartWidget(ChartInterval.FIFTEEN_MINUTES)));
-        when(repository.update(buildUpdatedChartWidget(chartInterval)))
+        when(exchangePairRepository.findById(EXCHANGE_PAIR_ID)).thenReturn(Optional.of(buildExchangePair(exchange)));
+        when(generator.now()).thenReturn(UPDATED_AT);
+        when(userContext.getUserId()).thenReturn(USER_ID);
+        when(repository.update(buildUpdatedChartWidget(updatedChartInterval)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         ChartWidget result = service.update(WORKSPACE_ID, CHART_WIDGET_ID_1,
-                buildUpdateChartWidgetRequest(chartInterval));
+                buildUpdateChartWidgetRequest(updatedChartInterval));
 
-        assertThat(result).isEqualTo(buildUpdatedChartWidget(chartInterval));
+        assertThat(result).isEqualTo(buildUpdatedChartWidget(updatedChartInterval));
+    }
+
+    static Stream<Arguments> provideSupportedChartIntervals() {
+        return Stream.of(
+                Arguments.of(Exchange.BINANCE, ChartInterval.ONE_SECOND),
+                Arguments.of(Exchange.BINANCE, ChartInterval.ONE_MINUTE),
+                Arguments.of(Exchange.BINANCE, ChartInterval.THREE_MINUTES),
+                Arguments.of(Exchange.BINANCE, ChartInterval.FIVE_MINUTES),
+                Arguments.of(Exchange.BINANCE, ChartInterval.FIFTEEN_MINUTES),
+                Arguments.of(Exchange.BINANCE, ChartInterval.THIRTY_MINUTES),
+                Arguments.of(Exchange.BINANCE, ChartInterval.ONE_HOUR),
+                Arguments.of(Exchange.BINANCE, ChartInterval.TWO_HOURS),
+                Arguments.of(Exchange.BINANCE, ChartInterval.FOUR_HOURS),
+                Arguments.of(Exchange.BINANCE, ChartInterval.SIX_HOURS),
+                Arguments.of(Exchange.BINANCE, ChartInterval.EIGHT_HOURS),
+                Arguments.of(Exchange.BINANCE, ChartInterval.TWELVE_HOURS),
+                Arguments.of(Exchange.BINANCE, ChartInterval.ONE_DAY),
+                Arguments.of(Exchange.BINANCE, ChartInterval.THREE_DAYS),
+                Arguments.of(Exchange.BINANCE, ChartInterval.ONE_WEEK),
+                Arguments.of(Exchange.BINANCE, ChartInterval.ONE_MONTH),
+                Arguments.of(Exchange.COINBASE, ChartInterval.ONE_MINUTE),
+                Arguments.of(Exchange.COINBASE, ChartInterval.FIVE_MINUTES),
+                Arguments.of(Exchange.COINBASE, ChartInterval.FIFTEEN_MINUTES),
+                Arguments.of(Exchange.COINBASE, ChartInterval.ONE_HOUR),
+                Arguments.of(Exchange.COINBASE, ChartInterval.SIX_HOURS),
+                Arguments.of(Exchange.COINBASE, ChartInterval.ONE_DAY),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.ONE_MINUTE),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.FIVE_MINUTES),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.FIFTEEN_MINUTES),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.THIRTY_MINUTES),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.ONE_HOUR),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.FOUR_HOURS),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.ONE_DAY),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.ONE_WEEK),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.FIFTEEN_DAYS)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideUnsupportedChartIntervals")
+    void givenIdAndUpdateRequestWithUnsupportedChartIntervals_update_shouldUpdateChartWidget(Exchange exchange, ChartInterval chartInterval) {
+        when(repository.findByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1)).thenReturn(Optional.of(buildChartWidget()));
+        when(exchangePairRepository.findById(EXCHANGE_PAIR_ID)).thenReturn(Optional.of(buildExchangePair(exchange)));
+
+        assertThatThrownBy(() -> service.update(WORKSPACE_ID, CHART_WIDGET_ID_1, buildUpdateChartWidgetRequest(chartInterval)))
+                .isInstanceOf(UnsupportedIntervalException.class);
+
+        verify(generator, never()).now();
+        verify(repository, never()).update(any(ChartWidget.class));
+    }
+
+    static Stream<Arguments> provideUnsupportedChartIntervals() {
+        return Stream.of(
+                Arguments.of(Exchange.BINANCE, ChartInterval.FIFTEEN_DAYS),
+                Arguments.of(Exchange.COINBASE, ChartInterval.ONE_SECOND),
+                Arguments.of(Exchange.COINBASE, ChartInterval.THREE_MINUTES),
+                Arguments.of(Exchange.COINBASE, ChartInterval.THIRTY_MINUTES),
+                Arguments.of(Exchange.COINBASE, ChartInterval.TWO_HOURS),
+                Arguments.of(Exchange.COINBASE, ChartInterval.FOUR_HOURS),
+                Arguments.of(Exchange.COINBASE, ChartInterval.EIGHT_HOURS),
+                Arguments.of(Exchange.COINBASE, ChartInterval.TWELVE_HOURS),
+                Arguments.of(Exchange.COINBASE, ChartInterval.THREE_DAYS),
+                Arguments.of(Exchange.COINBASE, ChartInterval.FIFTEEN_DAYS),
+                Arguments.of(Exchange.COINBASE, ChartInterval.ONE_WEEK),
+                Arguments.of(Exchange.COINBASE, ChartInterval.ONE_MONTH),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.ONE_SECOND),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.THREE_MINUTES),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.TWO_HOURS),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.SIX_HOURS),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.EIGHT_HOURS),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.TWELVE_HOURS),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.THREE_DAYS),
+                Arguments.of(Exchange.KRAKEN, ChartInterval.ONE_MONTH)
+        );
     }
 
     @Test
     void givenIdAndUpdateRequestWithSameChartInterval_update_shouldNotUpdateChartWidget() {
-        ChartInterval chartInterval = ChartInterval.FIFTEEN_MINUTES;
         when(repository.findByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1))
-                .thenReturn(Optional.of(buildChartWidget(chartInterval)));
+                .thenReturn(Optional.of(buildChartWidget()));
 
         ChartWidget result = service.update(WORKSPACE_ID, CHART_WIDGET_ID_1,
-                buildUpdateChartWidgetRequest(chartInterval));
+                buildUpdateChartWidgetRequest());
 
-        assertThat(result).isEqualTo(buildChartWidget(chartInterval));
+        assertThat(result).isEqualTo(buildChartWidget());
         verify(generator, never()).now();
         verify(repository, never()).update(any(ChartWidget.class));
     }
@@ -98,7 +214,20 @@ class ChartWidgetServiceTest {
     }
 
     @Test
-    void givenWorkspaceIdAndUpdatePositionsRequest_updatePositions_shouldUpdateChartWidgetPositions() {
+    void givenIdAndUpdateRequestWithNonExistentExchangePair_update_shouldThrowException() {
+        when(repository.findByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1))
+                .thenReturn(Optional.of(buildChartWidget(ChartInterval.ONE_HOUR)));
+        when(exchangePairRepository.findById(EXCHANGE_PAIR_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(WORKSPACE_ID, CHART_WIDGET_ID_1, buildUpdateChartWidgetRequest()))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(generator, never()).now();
+        verify(repository, never()).update(any(ChartWidget.class));
+    }
+
+    @Test
+    void givenUpdatePositionsRequest_updatePositions_shouldUpdateChartWidgetPositions() {
         when(generator.now()).thenReturn(UPDATED_AT);
         when(repository.findAllByWorkspaceId(WORKSPACE_ID)).thenReturn(buildChartWidgetList());
 
@@ -124,7 +253,7 @@ class ChartWidgetServiceTest {
     }
 
     @Test
-    void givenUpdatePositionsRequestWithNonExistentWidget_updatePositions_shouldUpdateOnlyExisting() {
+    void givenUpdatePositionsRequestForNonExistentWidget_updatePositions_shouldUpdateOnlyExisting() {
         when(generator.now()).thenReturn(UPDATED_AT);
         when(repository.findAllByWorkspaceId(WORKSPACE_ID)).thenReturn(List.of(buildChartWidget()));
 
@@ -169,7 +298,7 @@ class ChartWidgetServiceTest {
     }
 
     @Test
-    void givenWorkspaceIdAndId_delete_shouldDeleteChartWidget() {
+    void givenId_delete_shouldDeleteChartWidget() {
         when(userContext.getUserId()).thenReturn(USER_ID);
         when(repository.existsByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1)).thenReturn(true);
 
@@ -179,7 +308,7 @@ class ChartWidgetServiceTest {
     }
 
     @Test
-    void givenNonExistentWorkspaceIdAndId_delete_shouldThrowException() {
+    void givenNonExistentId_delete_shouldThrowException() {
         when(repository.existsByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1)).thenReturn(false);
 
         assertThatThrownBy(() -> service.delete(WORKSPACE_ID, CHART_WIDGET_ID_1))
@@ -246,6 +375,10 @@ class ChartWidgetServiceTest {
                     .build();
         }
 
+        static ChartWidget buildUpdatedChartWidget() {
+            return buildUpdatedChartWidget(ChartInterval.FIFTEEN_MINUTES);
+        }
+
         static ChartWidget buildUpdatedChartWidget(ChartInterval chartInterval) {
             return ChartWidget.builder()
                     .id(CHART_WIDGET_ID_1)
@@ -260,8 +393,8 @@ class ChartWidgetServiceTest {
 
         static List<ChartWidget> buildExpectedChartWidgetUpdatedPositionsList() {
             return List.of(
-                buildExpectedChartWidgetUpdatedPositions(CHART_WIDGET_ID_1, EXCHANGE_PAIR_ID, POSITION_2),
-                buildExpectedChartWidgetUpdatedPositions(CHART_WIDGET_ID_2, EXCHANGE_PAIR_ID_2, POSITION_1)
+                    buildExpectedChartWidgetUpdatedPositions(CHART_WIDGET_ID_1, EXCHANGE_PAIR_ID, POSITION_2),
+                    buildExpectedChartWidgetUpdatedPositions(CHART_WIDGET_ID_2, EXCHANGE_PAIR_ID_2, POSITION_1)
             );
         }
 
@@ -295,9 +428,25 @@ class ChartWidgetServiceTest {
                     .build();
         }
 
+        static UpdateChartWidgetRequest buildUpdateChartWidgetRequest() {
+            return buildUpdateChartWidgetRequest(ChartInterval.FIFTEEN_MINUTES);
+        }
+
         static UpdateChartWidgetRequest buildUpdateChartWidgetRequest(ChartInterval chartInterval) {
             return UpdateChartWidgetRequest.builder()
                     .chartInterval(chartInterval)
+                    .build();
+        }
+
+        static ExchangePair buildExchangePair() {
+            return buildExchangePair(Exchange.BINANCE);
+        }
+
+        static ExchangePair buildExchangePair(Exchange exchange) {
+            return ExchangePair.builder()
+                    .id(EXCHANGE_PAIR_ID)
+                    .tradingPair(TradingPair.BTC_USD)
+                    .exchange(exchange)
                     .build();
         }
     }

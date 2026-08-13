@@ -6,6 +6,7 @@ import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.ChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetPositionsRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.repository.ChartWidgetRepository;
+import dev.rudyevhenii.crypto_aggregator.core.enums.ChartInterval;
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.UnsupportedIntervalException;
@@ -51,16 +52,11 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     @Transactional
     public ChartWidget update(UUID workspaceId, UUID id, UpdateChartWidgetRequest request) {
         ChartWidget chartWidget = getById(workspaceId, id);
-        ExchangePair exchangePair = getExchangePair(chartWidget.getExchangePairId());
-
-        SupportedExchangeIntervalsStrategy supportedExchangeIntervals =
-                supportedExchangeIntervalsStrategies.get(exchangePair.getExchange());
-        if (!supportedExchangeIntervals.isSupportedInterval(request.chartInterval())) {
-            throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'"
-                    .formatted(exchangePair.getExchange(), request.chartInterval()));
-        }
 
         if (request.chartInterval() != chartWidget.getChartInterval()) {
+            ExchangePair exchangePair = getExchangePair(chartWidget.getExchangePairId());
+            validateExchangeIntervalSupport(exchangePair.getExchange(), request.chartInterval());
+
             chartWidget.setChartInterval(request.chartInterval());
             chartWidget.setUpdatedAt(generator.now());
             log.info("User [{}] updated chart widget [{}] for workspace [{}]", userContext.getUserId(), id, workspaceId);
@@ -112,6 +108,14 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     private ExchangePair getExchangePair(UUID exchangePairId) {
         return exchangePairRepository.findById(exchangePairId)
                 .orElseThrow(() -> new ResourceNotFoundException("Exchange pair not found with id: '%s'".formatted(exchangePairId)));
+    }
+
+    private void validateExchangeIntervalSupport(Exchange exchange, ChartInterval chartInterval) {
+        SupportedExchangeIntervalsStrategy supportedExchangeIntervals = supportedExchangeIntervalsStrategies.get(exchange);
+        if (!supportedExchangeIntervals.isSupportedInterval(chartInterval)) {
+            throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'"
+                    .formatted(exchange, chartInterval));
+        }
     }
 
     private void validateChartWidgetExists(UUID workspaceId, UUID id) {
