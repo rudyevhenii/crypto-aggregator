@@ -6,12 +6,11 @@ spring:
       - 'classpath:exchanges.yaml'
       - 'optional:file:.env'
   datasource:
-    username: postgres
-    password: postgres
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/crypto_aggregator_db
+    url: jdbc:postgresql://${POSTGRES_HOST:postgres}:${POSTGRES_PORT:5432}/crypto_aggregator_db
   jpa:
-    show-sql: true
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
@@ -26,7 +25,7 @@ spring:
     type: redis
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
 
 security:
