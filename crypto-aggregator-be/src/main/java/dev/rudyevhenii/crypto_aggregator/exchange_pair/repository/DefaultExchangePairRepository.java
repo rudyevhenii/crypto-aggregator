@@ -47,7 +47,7 @@ public class DefaultExchangePairRepository implements ExchangePairRepository {
     }
 
     @Override
-    @Cacheable(value = EXCHANGE_PAIR_CACHE, key = "#id")
+    @Cacheable(value = EXCHANGE_PAIR_CACHE, key = "#id", unless = "#result == null")
     public Optional<ExchangePair> findById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDomain);
