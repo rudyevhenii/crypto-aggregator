@@ -329,21 +329,10 @@ class ChartWidgetServiceTest {
     @Test
     void givenId_delete_shouldDeleteChartWidget() {
         when(userContext.getUserId()).thenReturn(USER_ID);
-        when(repository.existsByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1)).thenReturn(true);
 
         service.delete(WORKSPACE_ID, CHART_WIDGET_ID_1);
 
         verify(repository).deleteById(WORKSPACE_ID, CHART_WIDGET_ID_1);
-    }
-
-    @Test
-    void givenNonExistentId_delete_shouldThrowException() {
-        when(repository.existsByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1)).thenReturn(false);
-
-        assertThatThrownBy(() -> service.delete(WORKSPACE_ID, CHART_WIDGET_ID_1))
-                .isInstanceOf(ResourceNotFoundException.class);
-
-        verify(repository, never()).deleteById(WORKSPACE_ID, CHART_WIDGET_ID_1);
     }
 
     static class TestResources {

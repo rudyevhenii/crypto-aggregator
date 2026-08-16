@@ -21,6 +21,4 @@ public interface ChartWidgetRepository {
     void deleteById(UUID workspaceId, UUID id);
 
     int findMaxPositionByWorkspaceId(UUID workspaceId);
-
-    boolean existsByWorkspaceIdAndId(UUID workspaceId, UUID id);
 }

@@ -138,35 +138,6 @@ class DefaultWorkspaceRepositoryTest extends AbstractIntegrationTest {
             "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml",
             "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/workspace.yaml"
     })
-    void givenUserIdAndId_existsByUserIdAndId_shouldReturnTrue() {
-        boolean result = repository.existsByUserIdAndId(USER_ID, ID_1);
-        assertThat(result).isTrue();
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideNonExistentUserIdAndId")
-    @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/workspace.yaml"
-    })
-    void givenNonExistentUserIdAndId_existsByUserIdAndId_shouldReturnFalse(UUID userId, UUID id) {
-        boolean result = repository.existsByUserIdAndId(userId, id);
-        assertThat(result).isFalse();
-    }
-
-    static Stream<Arguments> provideNonExistentUserIdAndId() {
-        return Stream.of(
-                Arguments.of(NON_EXISTENT_USER_ID, NON_EXISTENT_ID),
-                Arguments.of(USER_ID, NON_EXISTENT_ID),
-                Arguments.of(NON_EXISTENT_USER_ID, ID_1)
-        );
-    }
-
-    @Test
-    @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/workspace.yaml"
-    })
     void givenWorkspaceId_existsByWorkspaceId_shouldReturnTrue() {
         boolean result = repository.existsById(ID_1);
         assertThat(result).isTrue();

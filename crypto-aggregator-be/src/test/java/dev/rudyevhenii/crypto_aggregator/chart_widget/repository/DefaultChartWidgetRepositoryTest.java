@@ -169,31 +169,6 @@ class DefaultChartWidgetRepositoryTest extends AbstractIntegrationTest {
         assertThat(result).isEqualTo(POSITION_0);
     }
 
-    @Test
-    @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/repository/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/repository/datasets/given/workspace.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/repository/datasets/given/exchangePair.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/repository/datasets/given/chartWidget.yaml"
-    })
-    void givenWorkspaceIdAndId_existsByWorkspaceIdAndId_shouldReturnTrue() {
-        boolean result = repository.existsByWorkspaceIdAndId(WORKSPACE_ID, CHART_WIDGET_ID_1);
-        assertThat(result).isTrue();
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideNonExistentIds")
-    @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/repository/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/repository/datasets/given/workspace.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/repository/datasets/given/exchangePair.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/repository/datasets/given/chartWidget.yaml"
-    })
-    void givenNonExistentWorkspaceIdAndId_existsByWorkspaceIdAndId_shouldReturnFalse(UUID workspaceId, UUID id) {
-        boolean result = repository.existsByWorkspaceIdAndId(workspaceId, id);
-        assertThat(result).isFalse();
-    }
-
     static class TestResources {
         static final UUID CHART_WIDGET_ID = UUID.fromString("13333333-3333-3333-3333-333333333331");
         static final UUID EXCHANGE_PAIR_ID = UUID.fromString("31111111-1111-1111-1111-111111111113");

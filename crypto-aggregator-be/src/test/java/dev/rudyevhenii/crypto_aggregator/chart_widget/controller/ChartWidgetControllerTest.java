@@ -323,24 +323,6 @@ class ChartWidgetControllerTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
     }
 
-    @Test
-    @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/controller/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/controller/datasets/given/workspace.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/controller/datasets/given/exchangePair.yaml",
-            "dev/rudyevhenii/crypto_aggregator/chart_widget/controller/datasets/given/empty_chartWidget.yaml",
-    })
-    void givenEmptyChartWidgets_deleteChartWidget_shouldReturnStatusNotFound() {
-        when(generator.now()).thenReturn(NOW);
-
-        given()
-                .header(AUTH_HEADER)
-                .when()
-                .delete(BASE_CHART_WIDGET_URL + "/{chartWidgetId}", WORKSPACE_ID_1, ID_1)
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
-    }
-
     static class TestResources {
         static final String BASE_CHART_WIDGET_URL = "/api/workspaces/{workspaceId}/widgets";
 

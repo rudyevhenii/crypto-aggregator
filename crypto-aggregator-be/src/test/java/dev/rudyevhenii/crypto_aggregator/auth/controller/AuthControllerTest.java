@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -289,8 +290,11 @@ class AuthControllerTest extends AbstractIntegrationTest {
 
         static final Instant NOW = Instant.now();
 
-        static final String ACCESS_TOKEN = JwtTokenUtils.buildAccessToken(ID);
-        static final String REFRESH_TOKEN = JwtTokenUtils.buildRefreshToken(ID);
+        static final Instant ACCESS_TOKEN_EXP = NOW.plus(60, ChronoUnit.MINUTES);
+        static final Instant REFRESH_TOKEN_EXP = NOW.plus(7, ChronoUnit.DAYS);
+
+        static final String ACCESS_TOKEN = JwtTokenUtils.buildAccessToken(ID, NOW, ACCESS_TOKEN_EXP);
+        static final String REFRESH_TOKEN = JwtTokenUtils.buildRefreshToken(ID, NOW, REFRESH_TOKEN_EXP);
 
         static final String EXPIRED_REFRESH_TOKEN = JwtTokenUtils.buildExpiredRefreshToken(ID);
         static final String CORRUPTED_REFRESH_TOKEN = JwtTokenUtils.buildCorruptedRefreshToken(ID);

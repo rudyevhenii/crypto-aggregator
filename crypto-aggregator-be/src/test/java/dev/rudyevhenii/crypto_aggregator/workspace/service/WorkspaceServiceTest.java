@@ -116,21 +116,12 @@ class WorkspaceServiceTest {
     @Test
     void givenId_deleteById_shouldDeleteWorkspace() {
         when(userContext.getUserId()).thenReturn(USER_ID);
-        when(repository.existsByUserIdAndId(USER_ID, ID_1)).thenReturn(true);
 
         service.deleteById(ID_1);
+
         verify(repository).deleteById(USER_ID, ID_1);
     }
 
-    @Test
-    void givenNonExistentWorkspaceId_deleteById_shouldThrowException() {
-        when(userContext.getUserId()).thenReturn(USER_ID);
-        when(repository.existsByUserIdAndId(USER_ID, ID_1)).thenReturn(false);
-
-        assertThatThrownBy(() -> service.deleteById(ID_1))
-                .isInstanceOf(ResourceNotFoundException.class);
-    }
-    
     static class TestResources {
         static final UUID ID_1 = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         static final String NAME_1 = "New Workspace";

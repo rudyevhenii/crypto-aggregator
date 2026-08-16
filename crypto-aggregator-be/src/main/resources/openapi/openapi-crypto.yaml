@@ -528,10 +528,14 @@ paths:
           description: "Workspace deleted"
         "400":
           $ref: 'common-components.yaml#/components/responses/BadRequest'
-        "404":
-          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  # ════════════════════════════════════════════════════════════════
+  #  Chart Widget
+  # ════════════════════════════════════════════════════════════════
 
   /api/workspaces/{workspaceId}/widgets:
     post:
@@ -632,8 +636,6 @@ paths:
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
           $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
-        "404":
-          $ref: 'common-components.yaml#/components/responses/NotFoundError'
         "500":
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 

@@ -20,5 +20,4 @@ public interface SpringDataChartWidgetRepository extends JpaRepository<ChartWidg
 
     Optional<ChartWidgetEntity> findByWorkspaceIdAndId(UUID workspaceId, UUID id);
 
-    boolean existsByWorkspaceIdAndId(UUID workspaceId, UUID id);
 }
