@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: crypto_aggregator_db
     volumes:
-      - postgres_data:/var/lib/postgres/data
+      - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7.2-alpine

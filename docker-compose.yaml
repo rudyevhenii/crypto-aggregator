@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: crypto-agg-db
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: crypto_aggregator_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - crypto-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: crypto-agg-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --maxmemory 50mb --maxmemory-policy allkeys-lru
+    networks:
+      - crypto-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./crypto-aggregator-be
+      dockerfile: Dockerfile
+    container_name: crypto-agg-backend
+    ports:
+      - '8080:8080'
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SECRET_TOKEN: ${SECRET_TOKEN:-519265gRvMBWa8iSB8Qj0Za1pZM998WiGELw9L8y56yitcTLOFaEjqrJTGKbYMxr}
+      ACCESS_TOKEN: ${ACCESS_TOKEN:-3600000}
+      REFRESH_TOKEN: ${REFRESH_TOKEN:-604800000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - crypto-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./crypto-aggregator-fe
+      dockerfile: Dockerfile
+    container_name: crypto-agg-frontend
+    ports:
+      - '80:80'
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-}
+    depends_on:
+      - backend
+    networks:
+      - crypto-network
+    restart: unless-stopped
+
+networks:
+  crypto-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
