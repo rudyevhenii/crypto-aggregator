@@ -6,6 +6,7 @@ import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.ChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetPositionsRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.repository.ChartWidgetRepository;
+import dev.rudyevhenii.crypto_aggregator.core.enums.ChartInterval;
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.core.exception.ResourceNotFoundException;
 import dev.rudyevhenii.crypto_aggregator.core.exception.UnsupportedIntervalException;
@@ -13,6 +14,7 @@ import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import dev.rudyevhenii.crypto_aggregator.exchange.intervals.support.SupportedExchangeIntervalsStrategy;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.domain.ExchangePair;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.repository.ExchangePairRepository;
+import dev.rudyevhenii.crypto_aggregator.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,11 +37,14 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     private final UserContext userContext;
     private final GeneratorUtils generator;
     private final ExchangePairRepository exchangePairRepository;
+    private final WorkspaceRepository workspaceRepository;
     private final Map<Exchange, SupportedExchangeIntervalsStrategy> supportedExchangeIntervalsStrategies;
 
     @Override
     @Transactional
     public ChartWidget create(UUID workspaceId, ChartWidgetRequest request) {
+        validateWorkspaceExists(workspaceId);
+        validateExchangePairExists(request.exchangePairId());
         int nextPosition = chartWidgetRepository.findMaxPositionByWorkspaceId(workspaceId) + 1;
         ChartWidget chartWidget = toDomain(nextPosition, workspaceId, request.exchangePairId());
 
@@ -51,16 +56,11 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     @Transactional
     public ChartWidget update(UUID workspaceId, UUID id, UpdateChartWidgetRequest request) {
         ChartWidget chartWidget = getById(workspaceId, id);
-        ExchangePair exchangePair = getExchangePair(chartWidget.getExchangePairId());
-
-        SupportedExchangeIntervalsStrategy supportedExchangeIntervals =
-                supportedExchangeIntervalsStrategies.get(exchangePair.getExchange());
-        if (!supportedExchangeIntervals.isSupportedInterval(request.chartInterval())) {
-            throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'"
-                    .formatted(exchangePair.getExchange(), request.chartInterval()));
-        }
 
         if (request.chartInterval() != chartWidget.getChartInterval()) {
+            ExchangePair exchangePair = getExchangePair(chartWidget.getExchangePairId());
+            validateExchangeIntervalSupport(exchangePair.getExchange(), request.chartInterval());
+
             chartWidget.setChartInterval(request.chartInterval());
             chartWidget.setUpdatedAt(generator.now());
             log.info("User [{}] updated chart widget [{}] for workspace [{}]", userContext.getUserId(), id, workspaceId);
@@ -98,7 +98,6 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
     @Override
     @Transactional
     public void delete(UUID workspaceId, UUID id) {
-        validateChartWidgetExists(workspaceId, id);
         log.info("User [{}] deleted chart widget [{}] from workspace [{}]", userContext.getUserId(), id, workspaceId);
         chartWidgetRepository.deleteById(workspaceId, id);
     }
@@ -113,9 +112,23 @@ public class ChartWidgetServiceImpl implements ChartWidgetService {
                 .orElseThrow(() -> new ResourceNotFoundException("Exchange pair not found with id: '%s'".formatted(exchangePairId)));
     }
 
-    private void validateChartWidgetExists(UUID workspaceId, UUID id) {
-        if (!chartWidgetRepository.existsByWorkspaceIdAndId(workspaceId, id)) {
-            throw new ResourceNotFoundException("Chart widget not found with id: '%s'".formatted(id));
+    private void validateExchangeIntervalSupport(Exchange exchange, ChartInterval chartInterval) {
+        SupportedExchangeIntervalsStrategy supportedExchangeIntervals = supportedExchangeIntervalsStrategies.get(exchange);
+        if (!supportedExchangeIntervals.isSupportedInterval(chartInterval)) {
+            throw new UnsupportedIntervalException("Exchange '%s' does not support timeframe '%s'"
+                    .formatted(exchange, chartInterval));
+        }
+    }
+
+    private void validateExchangePairExists(UUID exchangePairId) {
+        if (!exchangePairRepository.existsById(exchangePairId)) {
+            throw new ResourceNotFoundException("Exchange pair not found with id: '%s'".formatted(exchangePairId));
+        }
+    }
+
+    private void validateWorkspaceExists(UUID workspaceId) {
+        if (!workspaceRepository.existsById(workspaceId)) {
+            throw new ResourceNotFoundException("Workspace not found with id: '%s'".formatted(workspaceId));
         }
     }
 

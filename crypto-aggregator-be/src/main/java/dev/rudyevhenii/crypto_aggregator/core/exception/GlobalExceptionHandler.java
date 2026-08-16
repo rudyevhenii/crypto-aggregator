@@ -7,6 +7,7 @@ import org.apache.catalina.connector.ClientAbortException;
 import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -110,6 +111,14 @@ public class GlobalExceptionHandler {
         log.warn("External Exchange API failed with status {}: {}", ex.getStatusCode(), ex.getResponseBodyAsString());
         return ResponseEntity.status(status)
                 .body(buildErrorResponse(status, ex.getResponseBodyAsString()));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(HttpMessageNotReadableException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        log.warn("Malformed JSON request: {}", ex.getMessage());
+        return ResponseEntity.status(status)
+                .body(buildErrorResponse(status, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

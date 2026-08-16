@@ -72,7 +72,7 @@ public class DefaultWorkspaceRepository implements WorkspaceRepository {
     }
 
     @Override
-    public boolean existsByUserIdAndId(UUID userId, UUID id) {
-        return repository.existsByUserIdAndId(userId, id);
+    public boolean existsById(UUID workspaceId) {
+        return repository.existsById(workspaceId);
     }
 }

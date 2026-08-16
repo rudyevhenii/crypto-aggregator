@@ -52,7 +52,7 @@ public class DefaultChartWidgetRepository implements ChartWidgetRepository {
     }
 
     @Override
-    @Cacheable(value = CHART_WIDGET_CACHE, key = "#id")
+    @Cacheable(value = CHART_WIDGET_CACHE, key = "#id", unless = "#result == null")
     public Optional<ChartWidget> findByWorkspaceIdAndId(UUID workspaceId, UUID id) {
         return repository.findByWorkspaceIdAndId(workspaceId, id)
                 .map(mapper::toDomain);
@@ -78,10 +78,5 @@ public class DefaultChartWidgetRepository implements ChartWidgetRepository {
     @Override
     public int findMaxPositionByWorkspaceId(UUID workspaceId) {
         return repository.findMaxPositionByWorkspaceId(workspaceId);
-    }
-
-    @Override
-    public boolean existsByWorkspaceIdAndId(UUID workspaceId, UUID id) {
-        return repository.existsByWorkspaceIdAndId(workspaceId, id);
     }
 }

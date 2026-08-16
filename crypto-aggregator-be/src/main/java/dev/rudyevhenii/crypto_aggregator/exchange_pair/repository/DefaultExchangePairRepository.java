@@ -52,4 +52,9 @@ public class DefaultExchangePairRepository implements ExchangePairRepository {
         return repository.findById(id)
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return repository.existsById(id);
+    }
 }

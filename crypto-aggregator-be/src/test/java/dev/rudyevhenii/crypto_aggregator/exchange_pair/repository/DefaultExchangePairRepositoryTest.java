@@ -129,8 +129,23 @@ class DefaultExchangePairRepositoryTest extends AbstractIntegrationTest {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/exchange_pairs.yaml")
+    void givenId_existsById_shouldReturnTrue() {
+        boolean result = repository.existsById(ID);
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DataSet("dev/rudyevhenii/crypto_aggregator/exchange_pair/repository/datasets/given/empty_exchange_pairs.yaml")
+    void givenEmptyExchangePairs_existsById_shouldReturnFalse() {
+        boolean result = repository.existsById(ID);
+        assertThat(result).isFalse();
+    }
+
     static class TestResources {
         static final UUID ID = UUID.fromString("4a06e0fd-8f90-4e80-a78d-cc5948315d16");
+
         static final UUID NON_EXISTENT_ID = UUID.fromString("a234b234-a234-a234-a234-a234b234c234");
 
         static final String EMPTY_TRADING_PAIR_VALUE = "";

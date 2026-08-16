@@ -317,23 +317,6 @@ class WorkspaceControllerTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
     }
 
-    @Test
-    @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/workspace/controller/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/workspace/controller/datasets/given/empty_workspace.yaml"
-    })
-    void givenWorkspaceId_deleteWorkspace_shouldReturnStatusNotFound() {
-        when(userContext.getUserId()).thenReturn(USER_ID);
-        when(generator.now()).thenReturn(NOW);
-
-        given()
-                .header(AUTH_HEADER)
-                .when()
-                .delete(BASE_WORKSPACE_URL + "/{workspaceId}", ID)
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
-    }
-
     static class TestResources {
         static final String BASE_WORKSPACE_URL = "/api/workspaces";
 

@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DefaultWorkspaceRepositoryTest extends AbstractIntegrationTest {
 
     @Autowired
-    private DefaultWorkspaceRepository repository;
+    private WorkspaceRepository repository;
 
     @Test
     @DataSet("dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml")
@@ -138,28 +138,19 @@ class DefaultWorkspaceRepositoryTest extends AbstractIntegrationTest {
             "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml",
             "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/workspace.yaml"
     })
-    void givenUserIdAndId_existsByUserIdAndId_shouldReturnTrue() {
-        boolean result = repository.existsByUserIdAndId(USER_ID, ID_1);
+    void givenWorkspaceId_existsByWorkspaceId_shouldReturnTrue() {
+        boolean result = repository.existsById(ID_1);
         assertThat(result).isTrue();
     }
 
-    @ParameterizedTest
-    @MethodSource("provideNonExistentUserIdAndId")
+    @Test
     @DataSet({
             "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/workspace.yaml"
+            "dev/rudyevhenii/crypto_aggregator/workspace/repository/datasets/given/empty_workspace.yaml"
     })
-    void givenNonExistentUserIdAndId_existsByUserIdAndId_shouldReturnFalse(UUID userId, UUID id) {
-        boolean result = repository.existsByUserIdAndId(userId, id);
+    void givenEmptyWorkspace_existsByWorkspaceId_shouldReturnFalse() {
+        boolean result = repository.existsById(ID_1);
         assertThat(result).isFalse();
-    }
-
-    static Stream<Arguments> provideNonExistentUserIdAndId() {
-        return Stream.of(
-                Arguments.of(NON_EXISTENT_USER_ID, NON_EXISTENT_ID),
-                Arguments.of(USER_ID, NON_EXISTENT_ID),
-                Arguments.of(NON_EXISTENT_USER_ID, ID_1)
-        );
     }
 
     static class TestResources {

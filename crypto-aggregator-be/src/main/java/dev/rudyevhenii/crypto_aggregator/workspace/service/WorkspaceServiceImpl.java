@@ -65,7 +65,6 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     @Transactional
     public void deleteById(UUID workspaceId) {
-        validateWorkspaceExists(userContext.getUserId(), workspaceId);
         log.info("User [{}] deleting workspace [{}]", userContext.getUserId(), workspaceId);
         repository.deleteById(userContext.getUserId(), workspaceId);
     }
@@ -74,12 +73,6 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return repository.findByUserIdAndId(userId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: '%s'"
                         .formatted(workspaceId)));
-    }
-
-    private void validateWorkspaceExists(UUID userId, UUID workspaceId) {
-        if (!repository.existsByUserIdAndId(userId, workspaceId)) {
-            throw new ResourceNotFoundException("Workspace not found with id: '%s'".formatted(workspaceId));
-        }
     }
 
     private void validateUniqueWorkspaceName(UUID userId, String name) {
