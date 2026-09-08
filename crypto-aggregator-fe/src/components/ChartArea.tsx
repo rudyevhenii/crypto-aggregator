@@ -2,6 +2,83 @@ import {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useCallback
 import {CandlestickData, CandlestickSeries, createChart, IChartApi, ISeriesApi, UTCTimestamp} from 'lightweight-charts';
 import {ChartInterval, HistoricalPrice, intervalToSeconds, LivePrice} from '../api';
 
+const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+const createLocalFormatter = (options: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat('en', {
+    ...options,
+    timeZone: browserTimeZone,
+    hour12: false,
+  });
+
+const timeFormatter = createLocalFormatter({
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+});
+
+const dateTimeFormatter = createLocalFormatter({
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+});
+
+const formatTime = (timestamp: number) => timeFormatter.format(new Date(timestamp * 1000));
+
+const formatDateTime = (timestamp: number) => {
+  const date = new Date(timestamp * 1000);
+  const parts = dateTimeFormatter.formatToParts(date);
+  const get = (type: string) => parts.find(part => part.type === type)?.value || '';
+  const day = get('day');
+  const month = get('month');
+  const year = get('year');
+  const hour = get('hour');
+  const minute = get('minute');
+  const second = get('second');
+  return `${day} ${month} '${year}, ${hour}:${minute}:${second}`;
+};
+
+const formatBusinessDay = (businessDay: {day: number; month: number; year: number}) => {
+  const date = new Date(businessDay.year, businessDay.month - 1, businessDay.day);
+  return timeFormatter.format(date);
+};
+
+const localTimeFormatter = (time: number | {day: number; month: number; year: number} | string) => {
+  if (typeof time === 'number') {
+    return formatTime(time);
+  }
+  if (typeof time === 'object' && time !== null && 'day' in time && 'month' in time && 'year' in time) {
+    return formatBusinessDay(time as {day: number; month: number; year: number});
+  }
+  if (typeof time === 'string') {
+    const parsed = new Date(time);
+    if (!isNaN(parsed.getTime())) {
+      return formatTime(Math.floor(parsed.getTime() / 1000));
+    }
+  }
+  return '';
+};
+
+const localDateTimeFormatter = (time: number | {day: number; month: number; year: number} | string) => {
+  if (typeof time === 'number') {
+    return formatDateTime(time);
+  }
+  if (typeof time === 'object' && time !== null && 'day' in time && 'month' in time && 'year' in time) {
+    const {day, month, year} = time as {day: number; month: number; year: number};
+    return formatDateTime(new Date(year, month - 1, day).getTime() / 1000);
+  }
+  if (typeof time === 'string') {
+    const parsed = new Date(time);
+    if (!isNaN(parsed.getTime())) {
+      return formatDateTime(Math.floor(parsed.getTime() / 1000));
+    }
+  }
+  return '';
+};
+
 export type ChartHandle = {
   applyLivePrice: (p: LivePrice) => void;
 };
@@ -192,8 +269,12 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
         layout: {background: {color: isWidget ? 'transparent' : '#181a20'}, textColor: '#a1a1aa'},
         grid: {vertLines: {color: '#27272a', style: 1}, horzLines: {color: '#27272a', style: 1}},
         rightPriceScale: {borderColor: '#27272a'},
-        timeScale: {borderColor: '#27272a', timeVisible: true},
-        localization: {locale: 'en'},
+        timeScale: {
+          borderColor: '#27272a',
+          timeVisible: true,
+          tickMarkFormatter: localTimeFormatter,
+        },
+        localization: {locale: 'en', timeFormatter: localDateTimeFormatter},
         crosshair: {
           vertLine: {color: '#52525b', labelBackgroundColor: '#181a20'},
           horzLine: {color: '#52525b', labelBackgroundColor: '#181a20'}
