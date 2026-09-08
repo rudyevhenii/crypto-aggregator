@@ -20,6 +20,8 @@ type WorkspaceContextType = {
   livePrices: Record<string, LivePrice>;
   activeWsId: string | null;
   sensors: ReturnType<typeof useSensors>;
+  focusedWidgetId: string | null;
+  setFocusedWidgetId: (id: string | null) => void;
   setIsSearchOpen: (open: boolean) => void;
   handleCreateWorkspace: (name: string) => Promise<void>;
   isRenameModalOpen: boolean;
@@ -60,6 +62,7 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>({});
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [focusedWidgetId, setFocusedWidgetId] = useState<string | null>(null);
 
   const initializedRef = useRef(false);
   const activeWsId = searchParams.get('workspace');
@@ -238,6 +241,8 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
       livePrices,
       activeWsId,
       sensors,
+      focusedWidgetId,
+      setFocusedWidgetId,
       setIsSearchOpen,
       handleCreateWorkspace,
       isRenameModalOpen,

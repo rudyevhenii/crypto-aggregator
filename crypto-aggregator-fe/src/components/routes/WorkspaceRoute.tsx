@@ -20,6 +20,8 @@ function WorkspaceRouteInner() {
     livePrices,
     activeWsId,
     sensors,
+    focusedWidgetId,
+    setFocusedWidgetId,
     setIsSearchOpen,
     handleCreateWorkspace,
     isRenameModalOpen,
@@ -95,6 +97,27 @@ function WorkspaceRouteInner() {
           </Card>
         ) : (() => {
           const cfg = getGridConfig();
+          const focusedWidget = focusedWidgetId ? widgets.find(w => w.id === focusedWidgetId) : null;
+
+          if (focusedWidget) {
+            const pair = exchangePairs[focusedWidget.exchangePairId];
+            const livePrice = pair ? livePrices[pair.tradingPair] : undefined;
+            return (
+              <div className="h-full">
+                <ChartWidgetCard
+                  widget={focusedWidget}
+                  livePrice={livePrice}
+                  onDelete={handleDeleteWidget}
+                  onUpdateInterval={handleUpdateInterval}
+                  fillHeight={true}
+                  isFocused={true}
+                  onFocus={setFocusedWidgetId}
+                  onUnfocus={() => setFocusedWidgetId(null)}
+                />
+              </div>
+            );
+          }
+
           return (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
@@ -110,6 +133,9 @@ function WorkspaceRouteInner() {
                         onDelete={handleDeleteWidget}
                         onUpdateInterval={handleUpdateInterval}
                         fillHeight={cfg.fillHeight}
+                        isFocused={focusedWidgetId === widget.id}
+                        onFocus={setFocusedWidgetId}
+                        onUnfocus={() => setFocusedWidgetId(null)}
                       />
                     );
                   })}
