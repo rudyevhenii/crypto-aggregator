@@ -7,11 +7,12 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (pairId: string) => void;
+  isMaxWidgetsReached?: boolean;
 };
 
 const EXCHANGES: Exchange[] = ['BINANCE', 'COINBASE', 'KRAKEN'];
 
-export default function SearchModal({isOpen, onClose, onAdd}: Props) {
+export default function SearchModal({isOpen, onClose, onAdd, isMaxWidgetsReached = false}: Props) {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedExchange, setSelectedExchange] = useState<Exchange | null>(null);
@@ -63,6 +64,7 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
   };
 
   const handleAdd = (pairId: string) => {
+    if (isMaxWidgetsReached) return;
     onAdd(pairId);
     onClose();
     setQuery('');
@@ -121,20 +123,26 @@ export default function SearchModal({isOpen, onClose, onAdd}: Props) {
             <div
               key={pair.id}
               onClick={() => handleAdd(pair.id)}
-              className="flex justify-between items-center p-3 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group"
+              className={`flex justify-between items-center p-3 rounded-lg transition-colors group ${isMaxWidgetsReached ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 cursor-pointer'}`}
             >
               <div className="flex flex-col">
-                <span className="text-zinc-50 font-bold group-hover:text-[#fcd535] transition-colors">
+                <span className={`font-bold transition-colors ${isMaxWidgetsReached ? 'text-zinc-400' : 'text-zinc-50 group-hover:text-[#fcd535]'}`}>
                   {pair.tradingPair.replace('_', '/')}
                 </span>
                 <span className="text-zinc-400 text-xs mt-0.5">{pair.exchange}</span>
               </div>
-              <Badge variant="neutral" className="group-hover:border-[#fcd535]/30">
-                Add Chart
+              <Badge variant="neutral" className={`${isMaxWidgetsReached ? 'opacity-70' : 'group-hover:border-[#fcd535]/30'}`}>
+                {isMaxWidgetsReached ? 'Limit Reached' : 'Add Chart'}
               </Badge>
             </div>
           ))}
         </div>
+
+        {isMaxWidgetsReached && (
+          <div className="p-3 border-t border-white/5 text-center text-xs text-zinc-400">
+            Maximum of 6 charts per workspace reached. Remove a chart to add a new one.
+          </div>
+        )}
 
       </Card>
     </div>

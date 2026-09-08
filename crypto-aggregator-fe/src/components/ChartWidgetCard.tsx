@@ -7,15 +7,27 @@ import {useExchangePairs} from '../contexts/ExchangePairsContext';
 import {Select} from './ui';
 import ChartArea, {ChartHandle} from './ChartArea';
 
+const MaximizeIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 6V3C2 2.44772 2.44772 2 3 2H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M10 2H13C13.5523 2 14 2.44772 14 3V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M14 10V13C14 13.5523 13.5523 14 13 14H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M6 14H3C2.44772 14 2 13.5523 2 13V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
 type Props = {
   widget: ChartWidget;
   livePrice?: LivePrice;
   onDelete: (id: string) => void;
   onUpdateInterval: (id: string, interval: ChartInterval) => void;
   fillHeight?: boolean;
+  isFocused?: boolean;
+  onFocus?: (id: string) => void;
+  onUnfocus?: () => void;
 };
 
-export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateInterval, fillHeight = false}: Props) {
+export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateInterval, fillHeight = false, isFocused = false, onFocus, onUnfocus}: Props) {
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
   const [intervals, setIntervals] = useState<ChartInterval[]>([]);
@@ -123,6 +135,10 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
           />
         </div>
         <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+          <button onClick={() => isFocused ? onUnfocus?.() : onFocus?.(widget.id)}
+                  className="text-zinc-400 hover:text-zinc-50 transition-colors p-1 rounded hover:bg-white/5">
+            <MaximizeIcon/>
+          </button>
           <button {...attributes} {...listeners}
                   className="text-zinc-400 hover:text-zinc-50 cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/5 transition-colors">
             <GripHorizontal size={14}/>

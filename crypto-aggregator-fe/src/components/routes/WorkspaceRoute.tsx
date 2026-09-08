@@ -20,6 +20,8 @@ function WorkspaceRouteInner() {
     livePrices,
     activeWsId,
     sensors,
+    focusedWidgetId,
+    setFocusedWidgetId,
     setIsSearchOpen,
     handleCreateWorkspace,
     isRenameModalOpen,
@@ -33,6 +35,7 @@ function WorkspaceRouteInner() {
     handleUpdateInterval,
     handleDragEnd,
     getGridConfig,
+    isMaxWidgetsReached,
   } = useWorkspaceContext();
   const {exchangePairs} = useExchangePairs();
 
@@ -72,8 +75,8 @@ function WorkspaceRouteInner() {
         </button>
       </div>
 
-      {/* Scrollable Grid Wrapper */}
-      <div className={`flex-1 min-h-0 relative z-10 pr-8 ${(() => { const cfg = getGridConfig(); return cfg.scrollable ? 'overflow-y-auto' : 'overflow-hidden'; })()}`}>
+      {/* Grid Wrapper */}
+      <div className="flex-1 min-h-0 relative z-10 overflow-hidden">
         {!activeWsId ? (
           <Card className="h-full flex flex-col items-center justify-center border-dashed border-white/10">
             <p className="mb-3 text-sm text-zinc-400">You don't have any workspaces yet.</p>
@@ -94,10 +97,31 @@ function WorkspaceRouteInner() {
           </Card>
         ) : (() => {
           const cfg = getGridConfig();
+          const focusedWidget = focusedWidgetId ? widgets.find(w => w.id === focusedWidgetId) : null;
+
+          if (focusedWidget) {
+            const pair = exchangePairs[focusedWidget.exchangePairId];
+            const livePrice = pair ? livePrices[pair.tradingPair] : undefined;
+            return (
+              <div className="h-full">
+                <ChartWidgetCard
+                  widget={focusedWidget}
+                  livePrice={livePrice}
+                  onDelete={handleDeleteWidget}
+                  onUpdateInterval={handleUpdateInterval}
+                  fillHeight={true}
+                  isFocused={true}
+                  onFocus={setFocusedWidgetId}
+                  onUnfocus={() => setFocusedWidgetId(null)}
+                />
+              </div>
+            );
+          }
+
           return (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-                <div className={`grid gap-2 ${cfg.scrollable ? '' : 'h-full'} ${cfg.gridClass} ${cfg.rows}`}>
+                <div className={`grid gap-2 h-full ${cfg.gridClass} ${cfg.rows}`}>
                   {widgets.map(widget => {
                     const pair = exchangePairs[widget.exchangePairId];
                     const livePrice = pair ? livePrices[pair.tradingPair] : undefined;
@@ -109,6 +133,9 @@ function WorkspaceRouteInner() {
                         onDelete={handleDeleteWidget}
                         onUpdateInterval={handleUpdateInterval}
                         fillHeight={cfg.fillHeight}
+                        isFocused={focusedWidgetId === widget.id}
+                        onFocus={setFocusedWidgetId}
+                        onUnfocus={() => setFocusedWidgetId(null)}
                       />
                     );
                   })}
@@ -139,7 +166,7 @@ function WorkspaceRouteInner() {
         onConfirm={handleCreateWorkspace}
       />
 
-      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={handleAddWidget}/>
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={handleAddWidget} isMaxWidgetsReached={isMaxWidgetsReached}/>
     </div>
   );
 }
