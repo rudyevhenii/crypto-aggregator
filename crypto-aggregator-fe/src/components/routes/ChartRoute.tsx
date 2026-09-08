@@ -183,7 +183,7 @@ export default function ChartRoute() {
   }
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full gap-0.5">
       <TopBar
         exchange={exchange}
         pair={symbol}
@@ -192,7 +192,7 @@ export default function ChartRoute() {
         onBack={() => navigate('/app/overview')}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden gap-0.5">
         <main className="flex-1 flex flex-col">
           <ChartArea
             ref={setChartHandle}
@@ -211,7 +211,6 @@ export default function ChartRoute() {
           selectedExchange={exchange}
           selectedPair={symbol}
           selectedInterval={effectiveInterval}
-          livePrice={livePrice}
           onExchangeChange={handleExchangeChange}
           onPairChange={handlePairChange}
           onIntervalChange={handleIntervalChange}

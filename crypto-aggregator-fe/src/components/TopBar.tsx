@@ -1,6 +1,7 @@
 import {ExchangeHealthDto, LivePrice} from '../api';
-import {ArrowLeft} from 'lucide-react';
+import {ArrowLeft, Info} from 'lucide-react';
 import {Badge} from './ui';
+import {formatPrice, formatVolume} from '../utils/format';
 
 type Props = {
   exchange: string | null | undefined;
@@ -17,6 +18,7 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
   const isPositive = (livePrice?.priceChangePercent24h ?? 0) >= 0;
   const colorClass = isPositive ? 'text-[#0ecb81]' : 'text-[#f6465d]';
   const sign = isPositive ? '+' : '';
+  const pillClass = isPositive ? 'bg-[#0ecb81]/10 text-[#0ecb81]' : 'bg-[#f6465d]/10 text-[#f6465d]';
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -32,29 +34,14 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
     }
   };
 
-  const formatPrice = (price?: number) => {
-    if (price == null) return '—';
-    let precision = 2;
-    if (price > 1000) precision = 2;
-    else if (price > 10) precision = 3;
-    else if (price > 1) precision = 4;
-    else if (price > 0.01) precision = 5;
-    else precision = 6;
-
-    return price.toLocaleString(undefined, {
-      minimumFractionDigits: precision,
-      maximumFractionDigits: precision,
-    });
-  };
-
   return (
-    <div className="flex items-center px-6 h-20 border-b border-white/5 glass-surface shrink-0 relative z-30">
+    <div className="flex items-center px-4 h-16 border-b border-white/5 glass-surface shrink-0 relative z-30">
 
       {/* Back Button */}
       {onBack && (
         <button
           onClick={onBack}
-          className="mr-6 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition-all rounded-full p-2 flex items-center justify-center group relative"
+          className="mr-4 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition-all rounded-full p-2 flex items-center justify-center group relative"
           title="Back to Overview"
         >
           <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white transition-colors"/>
@@ -65,37 +52,61 @@ export default function TopBar({exchange, pair, livePrice, health, onBack}: Prop
       )}
 
       {/* Pair Info */}
-      <div className="flex flex-col mr-8">
-        <h1 className="text-2xl font-bold text-zinc-50 tracking-tight">{displayPair}</h1>
-        <span className="text-xs text-zinc-400 underline decoration-dashed underline-offset-4 cursor-pointer hover:text-zinc-50 transition-colors">
+      <div className="flex flex-col mr-6">
+        <h1 className="text-lg font-bold text-zinc-50 tracking-tight">{displayPair}</h1>
+        <span className="text-[11px] text-zinc-400 underline decoration-dashed underline-offset-4 cursor-pointer hover:text-zinc-50 transition-colors">
           Bitcoin
         </span>
       </div>
 
       {/* Live Price */}
-      <div className="flex flex-col mr-10">
-        <div className={`text-2xl font-bold ${colorClass} tracking-tight`}>
+      <div className="flex flex-col mr-6">
+        <div className={`text-2xl font-bold ${colorClass} tracking-tight leading-none`}>
           {formatPrice(livePrice?.lastPrice)}
         </div>
-        <div className={`text-xs ${colorClass}`}>
+        <div className={`mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${pillClass}`}>
           {livePrice?.priceChangePercent24h != null ? `${sign}${livePrice.priceChangePercent24h.toFixed(2)}%` : '—'}
         </div>
       </div>
 
       {/* 24h Stats */}
-      <div className="flex space-x-8 text-xs">
+      <div className="flex items-center gap-8 text-sm">
         <div className="flex flex-col">
-          <span className="text-zinc-400 mb-1">24h High</span>
-          <span className="text-zinc-50 font-medium">{formatPrice(livePrice?.highPrice24h)}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wider">24h High</span>
+            <span className="relative group">
+              <Info size={14} className="text-zinc-500"/>
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 p-2 rounded bg-[#181a20] border border-white/10 text-[11px] text-zinc-300 leading-snug opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                Highest trading price reached over the last rolling 24-hour window.
+              </span>
+            </span>
+          </div>
+          <span className="text-zinc-100 font-semibold tabular-nums">{formatPrice(livePrice?.highPrice24h)}</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-zinc-400 mb-1">24h Low</span>
-          <span className="text-zinc-50 font-medium">{formatPrice(livePrice?.lowPrice24h)}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wider">24h Low</span>
+            <span className="relative group">
+              <Info size={14} className="text-zinc-500"/>
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 p-2 rounded bg-[#181a20] border border-white/10 text-[11px] text-zinc-300 leading-snug opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                Lowest trading price reached over the last rolling 24-hour window.
+              </span>
+            </span>
+          </div>
+          <span className="text-zinc-100 font-semibold tabular-nums">{formatPrice(livePrice?.lowPrice24h)}</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-zinc-400 mb-1">24h Volume</span>
-          <span className="text-zinc-50 font-medium">
-            {livePrice?.volume24h ? livePrice.volume24h.toLocaleString(undefined, {maximumFractionDigits: 0}) : '—'}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wider">24h Volume</span>
+            <span className="relative group">
+              <Info size={14} className="text-zinc-500"/>
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 p-2 rounded bg-[#181a20] border border-white/10 text-[11px] text-zinc-300 leading-snug opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                Total trading volume of the base asset over the last 24 hours.
+              </span>
+            </span>
+          </div>
+          <span className="text-zinc-100 font-semibold tabular-nums">
+            {formatVolume(livePrice?.volume24h)}
           </span>
         </div>
       </div>

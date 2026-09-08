@@ -24,7 +24,7 @@ export const Select = ({label, value, onChange, options, className = ''}: Select
             px-3 py-2 pr-8 rounded-lg text-sm
             transition-all duration-200 ease-out
             hover:border-zinc-600
-            focus:outline-none focus:border-[#fcd535] focus:shadow-[0_0_0_3px_rgba(252,213,53,0.1)]
+            focus:outline-none focus:border-gray-500 focus:shadow-[0_0_0_3px_rgba(75,85,99,0.15)]
             ${className}
           `}
         >

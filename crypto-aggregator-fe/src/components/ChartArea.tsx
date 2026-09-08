@@ -14,7 +14,6 @@ const createLocalFormatter = (options: Intl.DateTimeFormatOptions) =>
 const timeFormatter = createLocalFormatter({
   hour: '2-digit',
   minute: '2-digit',
-  second: '2-digit',
 });
 
 const dateTimeFormatter = createLocalFormatter({
@@ -23,7 +22,6 @@ const dateTimeFormatter = createLocalFormatter({
   year: 'numeric',
   hour: '2-digit',
   minute: '2-digit',
-  second: '2-digit',
 });
 
 const formatTime = (timestamp: number) => timeFormatter.format(new Date(timestamp * 1000));
@@ -37,8 +35,7 @@ const formatDateTime = (timestamp: number) => {
   const year = get('year');
   const hour = get('hour');
   const minute = get('minute');
-  const second = get('second');
-  return `${day} ${month} '${year}, ${hour}:${minute}:${second}`;
+  return `${day} ${month} '${year}, ${hour}:${minute}`;
 };
 
 const formatBusinessDay = (businessDay: {day: number; month: number; year: number}) => {
@@ -359,12 +356,12 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
   }, [isWidget]);
 
   return (
-    <div className={`w-full h-full ${isWidget ? '' : 'p-4 bg-[#0b0e14]'}`}>
+    <div className={`w-full h-full ${isWidget ? '' : 'pt-2 px-2 pb-2 bg-[#0b0e14]'}`}>
       <div
         className={`w-full h-full ${isWidget ? '' : 'bg-[#181a20] rounded-sm border border-[#2b3139]'} relative flex flex-col`}>
         {!isWidget && (
-          <div className="flex items-center px-4 h-10 border-b border-[#2b3139] text-sm flex-shrink-0">
-            <div className="text-[#eaecef] font-medium border-b-2 border-[#fcd535] py-2 mr-6">Chart</div>
+          <div className="flex items-center px-3 h-8 border-b border-[#2b3139] text-sm flex-shrink-0">
+            <div className="text-[#eaecef] font-medium border-b-2 border-[#fcd535] py-1.5 mr-4 text-xs">Chart</div>
           </div>
         )}
         <div ref={containerRef} className="flex-1 w-full"/>
