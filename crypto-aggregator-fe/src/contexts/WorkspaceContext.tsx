@@ -7,9 +7,10 @@ import {useSensors, useSensor, PointerSensor, KeyboardSensor, type DragEndEvent}
 type GridConfig = {
   gridClass: string;
   rows: string;
-  scrollable: boolean;
   fillHeight: boolean;
 };
+
+const MAX_WIDGETS = 6;
 
 type WorkspaceContextType = {
   workspaces: Workspace[];
@@ -34,6 +35,7 @@ type WorkspaceContextType = {
   handleUpdateInterval: (widgetId: string, interval: ChartInterval) => Promise<void>;
   handleDragEnd: (event: DragEndEvent) => Promise<void>;
   getGridConfig: () => GridConfig;
+  isMaxWidgetsReached: boolean;
 };
 
 const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
@@ -181,9 +183,10 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
 
   const handleAddWidget = useCallback(async (exchangePairId: string) => {
     if (!activeWsId) return;
+    if (widgets.length >= MAX_WIDGETS) return;
     const newWidget = await api.addChartWidget(activeWsId, exchangePairId);
     setWidgets(prev => [...prev, newWidget]);
-  }, [activeWsId]);
+  }, [activeWsId, widgets.length]);
 
   const handleDeleteWidget = useCallback(async (widgetId: string) => {
     if (!activeWsId) return;
@@ -214,13 +217,17 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
 
   const getGridConfig = useCallback((): GridConfig => {
     const count = widgets.length;
-    if (count === 0) return {gridClass: 'flex items-center justify-center', rows: '', scrollable: false, fillHeight: false};
-    if (count === 1) return {gridClass: 'grid-cols-1', rows: 'grid-rows-1', scrollable: false, fillHeight: true};
-    if (count === 2) return {gridClass: 'grid-cols-2', rows: 'grid-rows-1', scrollable: false, fillHeight: true};
-    if (count === 4) return {gridClass: 'grid-cols-2', rows: 'grid-rows-2', scrollable: false, fillHeight: true};
-    if (count <= 6) return {gridClass: 'grid-cols-3', rows: 'grid-rows-2', scrollable: false, fillHeight: true};
-    return {gridClass: 'grid-cols-3', rows: '', scrollable: true, fillHeight: false};
+    if (count === 0) return {gridClass: 'flex items-center justify-center', rows: '', fillHeight: false};
+    if (count === 1) return {gridClass: 'grid-cols-1', rows: 'grid-rows-1', fillHeight: true};
+    if (count === 2) return {gridClass: 'grid-cols-2', rows: 'grid-rows-1', fillHeight: true};
+    if (count === 3) return {gridClass: 'grid-cols-3', rows: 'grid-rows-1', fillHeight: true};
+    if (count === 4) return {gridClass: 'grid-cols-2', rows: 'grid-rows-2', fillHeight: true};
+    if (count === 5) return {gridClass: 'grid-cols-3', rows: 'grid-rows-2', fillHeight: true};
+    if (count === 6) return {gridClass: 'grid-cols-3', rows: 'grid-rows-2', fillHeight: true};
+    return {gridClass: 'grid-cols-3', rows: 'grid-rows-2', fillHeight: true};
   }, [widgets.length]);
+
+  const isMaxWidgetsReached = widgets.length >= MAX_WIDGETS;
 
   return (
     <WorkspaceContext.Provider value={{
@@ -246,6 +253,7 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
       handleUpdateInterval,
       handleDragEnd,
       getGridConfig,
+      isMaxWidgetsReached,
     }}>
       {children}
     </WorkspaceContext.Provider>
