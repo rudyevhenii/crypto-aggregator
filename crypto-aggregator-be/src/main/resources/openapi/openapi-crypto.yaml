@@ -224,9 +224,7 @@ paths:
           content:
             text/event-stream:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/LivePrice'
+                $ref: '#/components/schemas/LivePrice'
 
   /api/stream/exchanges/{exchange}/prices:
     get:

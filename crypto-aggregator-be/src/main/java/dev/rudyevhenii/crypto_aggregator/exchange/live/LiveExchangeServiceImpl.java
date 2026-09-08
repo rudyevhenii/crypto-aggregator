@@ -25,17 +25,17 @@ public class LiveExchangeServiceImpl implements LiveExchangeService {
     private final Map<Exchange, LiveExchangeStrategy> liveExchangeStrategies;
 
     @Override
-    public Flux<List<LivePriceDto>> streamAllPrices() {
+    public Flux<LivePriceDto> streamAllPrices() {
         return Flux.merge(liveExchangeStrategies.entrySet().stream()
                         .map(entry -> entry.getValue().streamPriceByExchange(entry.getKey()))
                         .toList())
                 .buffer(Duration.ofMillis(BUFFER_DELAY_MILLIS))
                 .filter(list -> !list.isEmpty())
-                .map(bufferedTicks -> bufferedTicks.stream()
-                        .collect(Collectors.groupingBy(dto -> Tuples.of(dto.exchange(), dto.tradingPair())))
+                .flatMap(bufferedPrices -> Flux.fromStream(bufferedPrices.stream()
+                        .collect(Collectors.groupingBy(livePrice ->
+                                Tuples.of(livePrice.exchange(), livePrice.tradingPair())))
                         .values().stream()
-                        .map(this::aggregateTicks)
-                        .toList()
+                        .map(this::aggregateTicks))
                 );
     }
 

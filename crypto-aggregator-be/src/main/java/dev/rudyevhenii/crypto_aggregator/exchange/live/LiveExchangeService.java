@@ -6,11 +6,9 @@ import dev.rudyevhenii.crypto_aggregator.exchange.live.model.ExchangeHealthDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
-
 public interface LiveExchangeService {
 
-    Flux<List<LivePriceDto>> streamAllPrices();
+    Flux<LivePriceDto> streamAllPrices();
 
     Flux<LivePriceDto> streamPriceByExchange(Exchange exchange);
 

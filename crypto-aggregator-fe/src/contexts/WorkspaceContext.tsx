@@ -127,15 +127,13 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
 
     source.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
-        const updates: LivePrice[] = Array.isArray(data) ? data : [data];
+        const price: LivePrice = JSON.parse(event.data);
 
         setLivePrices(prev => {
-          const next = {...prev};
-          updates.forEach(p => {
-            if (p.tradingPair) next[p.tradingPair] = p;
-          });
-          return next;
+          if (price.tradingPair) {
+            return {...prev, [price.tradingPair]: price};
+          }
+          return prev;
         });
       } catch {
         // SSE parse error handled silently
