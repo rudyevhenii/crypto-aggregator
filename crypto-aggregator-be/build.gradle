@@ -1,3 +1,5 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
     id 'java'
     id 'jacoco'
@@ -67,22 +69,46 @@ dependencies {
     testImplementation 'org.skyscreamer:jsonassert:1.5.3'
 }
 
-openApiGenerate {
-    generatorName = "spring"
-    inputSpec = "$rootDir/src/main/resources/openapi/openapi-crypto.yaml".replace('\\', '/')
+def apiDomains = [
+        "auth"        : "openapi-auth.yaml",
+        "historical"  : "openapi-exchange-historical.yaml",
+        "stream"      : "openapi-exchange-live.yaml",
+        "metadata"    : "openapi-metadata.yaml",
+        "exchangePair": "openapi-exchange-pair.yaml",
+        "workspace"   : "openapi-workspace.yaml",
+        "chartWidget" : "openapi-chart-widget.yaml",
+        "priceAlert"  : "openapi-price-alert.yaml"
+]
 
-    apiPackage = "dev.rudyevhenii.crypto_aggregator.api.interfaces"
-    modelPackage = "dev.rudyevhenii.crypto_aggregator.api.dto"
-    modelNameSuffix = "RqDto"
+apiDomains.each { domainName, fileName ->
+    tasks.register("generate${domainName.capitalize()}Api", GenerateTask) {
+        generatorName = "spring"
+        inputSpec = "$rootDir/src/main/resources/openapi/${fileName}".replace('\\', '/')
 
-    configOptions = [useBeanValidation    : "true",
-                     performBeanValidation: "true",
-                     interfaceOnly        : "true",
-                     useSpringBoot3       : "true",
-                     useJakartaEe         : "true",
-                     skipDefaultInterface : "true",
-                     useTags              : "true"
-    ]
+        outputDir = layout.buildDirectory.dir("generated-openapi").get().asFile.absolutePath
+
+        apiPackage = "dev.rudyevhenii.crypto_aggregator.api.interfaces.${domainName}"
+        modelPackage = "dev.rudyevhenii.crypto_aggregator.api.dto.${domainName}"
+        modelNameSuffix = "RqDto"
+
+        configOptions = [
+                useBeanValidation    : "true",
+                performBeanValidation: "true",
+                interfaceOnly        : "true",
+                useSpringBoot3       : "true",
+                useJakartaEe         : "true",
+                skipDefaultInterface : "true",
+                useTags              : "true"
+        ]
+    }
+}
+
+tasks.register("generateAllApis") {
+    dependsOn tasks.withType(GenerateTask)
+}
+
+tasks.named("compileJava") {
+    dependsOn tasks.withType(GenerateTask)
 }
 
 sourceSets {
@@ -91,14 +117,6 @@ sourceSets {
             srcDirs += layout.buildDirectory.dir("generated-openapi/src/main/java").get().asFile
         }
     }
-}
-
-tasks.named('openApiGenerate') {
-    outputDir = layout.buildDirectory.dir("generated-openapi").get().asFile.absolutePath
-}
-
-tasks.named('compileJava') {
-    dependsOn tasks.named('openApiGenerate')
 }
 
 tasks.named('test', Test) {

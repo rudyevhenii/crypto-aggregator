@@ -1,0 +1,176 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator API
+  description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/workspaces:
+    post:
+      summary: "Create a new workspace"
+      operationId: "createWorkspace"
+      tags:
+        - "Workspace"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+      responses:
+        "201":
+          description: "Workspace created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "409":
+          $ref: 'common-components.yaml#/components/responses/Conflict'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      summary: "Get all workspaces for the current user"
+      operationId: "getAllWorkspaces"
+      tags:
+        - "Workspace"
+      responses:
+        "200":
+          description: "Returns all workspaces"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workspace'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/workspaces/{workspaceId}:
+    patch:
+      summary: "Update a workspace"
+      operationId: "updateWorkspace"
+      tags:
+        - "Workspace"
+      parameters:
+        - $ref: 'common-components.yaml#/components/parameters/WorkspaceParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+      responses:
+        "200":
+          description: "Returns updated workspace"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "409":
+          $ref: 'common-components.yaml#/components/responses/Conflict'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      summary: "Get a workspace by ID"
+      operationId: "getWorkspaceById"
+      tags:
+        - "Workspace"
+      parameters:
+        - $ref: 'common-components.yaml#/components/parameters/WorkspaceParam'
+      responses:
+        "200":
+          description: "Returns the requested workspace"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    delete:
+      summary: "Delete a workspace"
+      operationId: "deleteWorkspace"
+      tags:
+        - "Workspace"
+      parameters:
+        - $ref: 'common-components.yaml#/components/parameters/WorkspaceParam'
+      responses:
+        "204":
+          description: "Workspace deleted"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    WorkspaceRequest:
+      type: object
+      description: "Workspace creation/update request"
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: "Workspace name"
+
+    Workspace:
+      type: object
+      description: "User workspace"
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Unique identifier"
+        name:
+          type: string
+          description: "Workspace name"
+        userId:
+          type: string
+          format: uuid
+          description: "User ID"
+        createdAt:
+          type: string
+          format: date-time
+          description: "Creation timestamp"
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Last update timestamp"
+      example:
+        id: "550e8400-e29b-41d4-a716-446655440000"
+        name: "My Trading Dashboard"
+        userId: "660e8400-e29b-41d4-a716-446655440001"
+        createdAt: "2024-01-15T10:00:00Z"
+        updatedAt: "2024-01-15T14:30:00Z"
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'

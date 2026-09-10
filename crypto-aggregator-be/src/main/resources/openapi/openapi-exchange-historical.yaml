@@ -1,0 +1,185 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator API
+  description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/historical/exchanges/{exchange}/klines:
+    get:
+      summary: "Get historical klines for a trading pair"
+      operationId: "getHistoricalPrices"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - name: request
+          in: query
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/HistoricalPriceRequest'
+      responses:
+        "200":
+          description: "Returns historical OHLCV data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricalPrice'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/historical/exchanges/{exchange}/tickers/24h:
+    get:
+      summary: "Get 24h tickers for multiple trading pairs"
+      operationId: "get24hTickersByExchange"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - name: tradingPairs
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: 'common-components.yaml#/components/schemas/TradingPair'
+      responses:
+        "200":
+          description: "Returns 24h ticker data for requested pairs"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticker24h'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/historical/exchanges/{exchange}/tickers/24h/{pair}:
+    get:
+      summary: "Get 24h ticker for a single trading pair"
+      operationId: "get24hTickerForPair"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - $ref: 'common-components.yaml#/components/parameters/TradingPairParam'
+      responses:
+        "200":
+          description: "Returns 24h ticker data for the requested pair"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticker24h'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    HistoricalPriceRequest:
+      type: object
+      description: "Historical price request parameters"
+      required:
+        - tradingPair
+        - chartInterval
+      properties:
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair to fetch"
+        chartInterval:
+          $ref: 'common-components.yaml#/components/schemas/ChartInterval'
+          description: "Chart interval for OHLCV data"
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 100
+          maximum: 200
+          description: "Maximum number of results"
+        endTimeCursor:
+          type: string
+          format: date-time
+          description: "End time cursor for pagination"
+
+    HistoricalPrice:
+      type: object
+      description: "Historical OHLCV price data point"
+      properties:
+        openTime:
+          type: string
+          format: date-time
+          description: "Candle open time"
+        open:
+          type: number
+          description: "Opening price"
+        high:
+          type: number
+          description: "Highest price"
+        low:
+          type: number
+          description: "Lowest price"
+        close:
+          type: number
+          description: "Closing price"
+        volume:
+          type: number
+          description: "Trading volume"
+      example:
+        openTime: "2024-01-15T00:00:00Z"
+        open: 42150.50
+        high: 42380.25
+        low: 41980.00
+        close: 42250.75
+        volume: 1250.45
+
+    Ticker24h:
+      type: object
+      description: "24-hour ticker statistics"
+      properties:
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name"
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair"
+        lastPrice:
+          type: number
+          description: "Last traded price"
+        priceChangePercent24h:
+          type: number
+          description: "24-hour price change percentage"
+        high24h:
+          type: number
+          description: "24-hour highest price"
+        low24h:
+          type: number
+          description: "24-hour lowest price"
+        volume24h:
+          type: number
+          description: "24-hour trading volume"
+      example:
+        exchange: "BINANCE"
+        tradingPair: "BTC_USD"
+        lastPrice: 42300.0
+        priceChangePercent24h: 2.5
+        high24h: 42500.0
+        low24h: 41800.0
+        volume24h: 12345.67
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'
