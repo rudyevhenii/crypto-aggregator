@@ -21,7 +21,7 @@ import java.util.Map;
 
 @Configuration
 @EnableCaching
-public class RedisConfig {
+public class RedisCacheConfig {
 
     public static final String USER_CACHE = "users";
     public static final String EXCHANGE_PAIR_CACHE = "exchangePairs";

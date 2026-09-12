@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.HISTORICAL_PRICES_ARCHIVE_CACHE;
-import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.HISTORICAL_PRICES_LIVE_CACHE;
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisCacheConfig.HISTORICAL_PRICES_ARCHIVE_CACHE;
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisCacheConfig.HISTORICAL_PRICES_LIVE_CACHE;
 
 @Slf4j
 @Service

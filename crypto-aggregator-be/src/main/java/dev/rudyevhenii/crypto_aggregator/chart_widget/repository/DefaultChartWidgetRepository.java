@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.CHART_WIDGET_CACHE;
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisCacheConfig.CHART_WIDGET_CACHE;
 
 @Repository
 @RequiredArgsConstructor
