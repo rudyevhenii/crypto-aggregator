@@ -1,8 +1,8 @@
 package dev.rudyevhenii.crypto_aggregator.workspace;
 
-import dev.rudyevhenii.crypto_aggregator.api.dto.WorkspaceRequestRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.WorkspaceRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.interfaces.WorkspaceApi;
+import dev.rudyevhenii.crypto_aggregator.api.dto.workspace.WorkspaceRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.workspace.WorkspaceRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.interfaces.workspace.WorkspaceApi;
 import dev.rudyevhenii.crypto_aggregator.workspace.domain.Workspace;
 import dev.rudyevhenii.crypto_aggregator.workspace.mapper.WorkspaceMapper;
 import dev.rudyevhenii.crypto_aggregator.workspace.service.WorkspaceService;

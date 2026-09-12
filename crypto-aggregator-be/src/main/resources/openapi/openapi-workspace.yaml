@@ -64,7 +64,7 @@ paths:
       tags:
         - "Workspace"
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/WorkspaceParam'
+        - $ref: '#/components/parameters/WorkspaceParam'
       requestBody:
         required: true
         content:
@@ -95,7 +95,7 @@ paths:
       tags:
         - "Workspace"
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/WorkspaceParam'
+        - $ref: '#/components/parameters/WorkspaceParam'
       responses:
         "200":
           description: "Returns the requested workspace"
@@ -118,7 +118,7 @@ paths:
       tags:
         - "Workspace"
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/WorkspaceParam'
+        - $ref: '#/components/parameters/WorkspaceParam'
       responses:
         "204":
           description: "Workspace deleted"
@@ -170,6 +170,15 @@ components:
         userId: "660e8400-e29b-41d4-a716-446655440001"
         createdAt: "2024-01-15T10:00:00Z"
         updatedAt: "2024-01-15T14:30:00Z"
+  
+  parameters: 
+    WorkspaceParam:
+      in: path
+      name: workspaceId
+      required: true
+      schema:
+        type: string
+        format: uuid
 
   securitySchemes:
     bearerAuth:

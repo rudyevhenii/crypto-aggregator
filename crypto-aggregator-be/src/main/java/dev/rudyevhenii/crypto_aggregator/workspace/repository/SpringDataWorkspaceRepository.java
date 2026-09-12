@@ -14,6 +14,4 @@ public interface SpringDataWorkspaceRepository extends JpaRepository<WorkspaceEn
     List<WorkspaceEntity> findAllByUserId(UUID userId);
 
     boolean existsByUserIdAndName(UUID userId, String name);
-
-    boolean existsByUserIdAndId(UUID userId, UUID id);
 }

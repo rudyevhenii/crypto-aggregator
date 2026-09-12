@@ -41,7 +41,7 @@ paths:
           in: query
           required: false
           schema:
-            $ref: 'common-components.yaml#/components/schemas/Exchange'
+            $ref: '#/components/schemas/Exchange'
         - name: tradingPair
           in: query
           required: false
@@ -63,6 +63,12 @@ paths:
 
 components:
   schemas:
+    Exchange:
+      $ref: 'common-components.yaml#/components/schemas/Exchange'
+
+    TradingPair:
+      $ref: 'common-components.yaml#/components/schemas/TradingPair'
+
     ExchangePair:
       type: object
       description: "Exchange-trading pair mapping"

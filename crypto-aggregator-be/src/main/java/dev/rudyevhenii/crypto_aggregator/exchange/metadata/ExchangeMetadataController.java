@@ -1,12 +1,12 @@
 package dev.rudyevhenii.crypto_aggregator.exchange.metadata;
 
-import dev.rudyevhenii.crypto_aggregator.api.dto.ChartIntervalRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeMetadataRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.TradingPairRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.interfaces.ExchangeMetadataApi;
+import dev.rudyevhenii.crypto_aggregator.api.dto.metadata.ChartIntervalRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.metadata.ExchangeMetadataRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.metadata.ExchangeRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.metadata.TradingPairRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.interfaces.metadata.ExchangeMetadataApi;
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
-import dev.rudyevhenii.crypto_aggregator.exchange.mapper.ExchangeMapper;
+import dev.rudyevhenii.crypto_aggregator.exchange.metadata.mapper.ExchangeMetadataMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,36 +17,36 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExchangeMetadataController implements ExchangeMetadataApi {
 
-    private final ExchangeMetadataService metadataService;
-    private final ExchangeMapper metadataMapper;
+    private final ExchangeMetadataService service;
+    private final ExchangeMetadataMapper mapper;
 
     @Override
     public ResponseEntity<List<ExchangeRqDto>> getSupportedExchanges() {
-        return ResponseEntity.ok(metadataService.getSupportedExchanges().stream()
-                .map(metadataMapper::map)
+        return ResponseEntity.ok(service.getSupportedExchanges().stream()
+                .map(mapper::map)
                 .toList());
     }
 
     @Override
     public ResponseEntity<List<TradingPairRqDto>> getSupportedPairs(ExchangeRqDto exchange) {
-        Exchange domain = metadataMapper.map(exchange);
-        return ResponseEntity.ok(metadataService.getSupportedPairs(domain).stream()
-                .map(metadataMapper::map)
+        Exchange domain = mapper.map(exchange);
+        return ResponseEntity.ok(service.getSupportedPairs(domain).stream()
+                .map(mapper::map)
                 .toList());
     }
 
     @Override
     public ResponseEntity<List<ChartIntervalRqDto>> getSupportedIntervals(ExchangeRqDto exchange) {
-        Exchange domain = metadataMapper.map(exchange);
-        return ResponseEntity.ok(metadataService.getSupportedIntervals(domain).stream()
-                .map(metadataMapper::map)
+        Exchange domain = mapper.map(exchange);
+        return ResponseEntity.ok(service.getSupportedIntervals(domain).stream()
+                .map(mapper::map)
                 .toList());
     }
 
     @Override
     public ResponseEntity<List<ExchangeMetadataRqDto>> getAllMetadata() {
-        return ResponseEntity.ok(metadataService.getAllMetadata().stream()
-                .map(metadataMapper::map)
+        return ResponseEntity.ok(service.getAllMetadata().stream()
+                .map(mapper::map)
                 .toList());
     }
 }

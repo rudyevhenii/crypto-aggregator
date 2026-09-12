@@ -1,7 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.exchange_pair.mapper;
 
-import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangePairRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.exchangePair.ExchangePairRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.exchangePair.ExchangeRqDto;
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.exchange_pair.domain.ExchangePair;
 import org.mapstruct.Mapper;

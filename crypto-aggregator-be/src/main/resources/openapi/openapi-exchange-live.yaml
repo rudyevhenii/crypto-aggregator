@@ -35,7 +35,11 @@ paths:
       security:
         - {}
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
       responses:
         "200":
           description: "Continuous SSE stream of live prices for the exchange"
@@ -53,8 +57,16 @@ paths:
       security:
         - {}
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
-        - $ref: 'common-components.yaml#/components/parameters/TradingPairParam'
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+        - name: pair
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TradingPair'
       responses:
         "200":
           description: "Continuous SSE stream of live prices for the trading pair"
@@ -72,7 +84,11 @@ paths:
       security:
         - {}
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
       responses:
         "200":
           description: "Continuous SSE stream of exchange health status"
@@ -83,6 +99,12 @@ paths:
 
 components:
   schemas:
+    Exchange:
+      $ref: 'common-components.yaml#/components/schemas/Exchange'
+
+    TradingPair:
+      $ref: 'common-components.yaml#/components/schemas/TradingPair'
+
     LivePrice:
       type: object
       description: "Live price update"

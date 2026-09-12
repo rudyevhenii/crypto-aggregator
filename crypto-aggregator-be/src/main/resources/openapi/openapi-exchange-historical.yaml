@@ -17,7 +17,11 @@ paths:
       tags:
         - "HistoricalExchange"
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
         - name: request
           in: query
           style: form
@@ -45,14 +49,18 @@ paths:
       tags:
         - "HistoricalExchange"
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
         - name: tradingPairs
           in: query
           required: true
           schema:
             type: array
             items:
-              $ref: 'common-components.yaml#/components/schemas/TradingPair'
+              $ref: '#/components/schemas/TradingPair'
       responses:
         "200":
           description: "Returns 24h ticker data for requested pairs"
@@ -74,8 +82,16 @@ paths:
       tags:
         - "HistoricalExchange"
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
-        - $ref: 'common-components.yaml#/components/parameters/TradingPairParam'
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+        - name: pair
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TradingPair'
       responses:
         "200":
           description: "Returns 24h ticker data for the requested pair"
@@ -90,6 +106,12 @@ paths:
 
 components:
   schemas:
+    Exchange:
+      $ref: 'common-components.yaml#/components/schemas/Exchange'
+
+    TradingPair:
+      $ref: 'common-components.yaml#/components/schemas/TradingPair'
+
     HistoricalPriceRequest:
       type: object
       description: "Historical price request parameters"

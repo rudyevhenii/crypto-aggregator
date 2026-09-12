@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.5'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -72,7 +73,7 @@ dependencies {
 def apiDomains = [
         "auth"        : "openapi-auth.yaml",
         "historical"  : "openapi-exchange-historical.yaml",
-        "stream"      : "openapi-exchange-live.yaml",
+        "live"        : "openapi-exchange-live.yaml",
         "metadata"    : "openapi-metadata.yaml",
         "exchangePair": "openapi-exchange-pair.yaml",
         "workspace"   : "openapi-workspace.yaml",
@@ -104,11 +105,11 @@ apiDomains.each { domainName, fileName ->
 }
 
 tasks.register("generateAllApis") {
-    dependsOn tasks.withType(GenerateTask)
+    dependsOn apiDomains.collect { domainName, fileName -> "generate${domainName.capitalize()}Api" }
 }
 
 tasks.named("compileJava") {
-    dependsOn tasks.withType(GenerateTask)
+    dependsOn apiDomains.collect { domainName, fileName -> "generate${domainName.capitalize()}Api" }
 }
 
 sourceSets {

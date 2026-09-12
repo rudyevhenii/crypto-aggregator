@@ -1,10 +1,10 @@
 package dev.rudyevhenii.crypto_aggregator.auth.mapper;
 
-import dev.rudyevhenii.crypto_aggregator.api.dto.LoginRequestRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.LogoutRequestRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.RefreshTokenRequestRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.RegisterRequestRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.TokenResponseRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.auth.LoginRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.auth.LogoutRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.auth.RefreshTokenRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.auth.RegisterRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.auth.TokenResponseRqDto;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LoginRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.LogoutRequest;
 import dev.rudyevhenii.crypto_aggregator.auth.dto.RefreshTokenRequest;

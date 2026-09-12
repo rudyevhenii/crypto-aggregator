@@ -24,7 +24,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: 'common-components.yaml#/components/schemas/Exchange'
+                  $ref: '#/components/schemas/Exchange'
 
   /api/exchanges/{exchange}/pairs:
     get:
@@ -33,7 +33,11 @@ paths:
       tags:
         - "ExchangeMetadata"
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
       responses:
         "200":
           description: "Returns supported trading pairs"
@@ -42,7 +46,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: 'common-components.yaml#/components/schemas/TradingPair'
+                  $ref: '#/components/schemas/TradingPair'
 
   /api/exchanges/{exchange}/intervals:
     get:
@@ -51,7 +55,11 @@ paths:
       tags:
         - "ExchangeMetadata"
       parameters:
-        - $ref: 'common-components.yaml#/components/parameters/ExchangeParam'
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
       responses:
         "200":
           description: "Returns supported chart intervals"
@@ -60,7 +68,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: 'common-components.yaml#/components/schemas/ChartInterval'
+                  $ref: '#/components/schemas/ChartInterval'
 
   /api/exchanges/metadata:
     get:
@@ -80,6 +88,15 @@ paths:
 
 components:
   schemas:
+    Exchange:
+      $ref: 'common-components.yaml#/components/schemas/Exchange'
+
+    ChartInterval:
+      $ref: 'common-components.yaml#/components/schemas/ChartInterval'
+
+    TradingPair:
+      $ref: 'common-components.yaml#/components/schemas/TradingPair'
+
     ExchangeMetadata:
       type: object
       description: "Exchange metadata including supported pairs and intervals"
