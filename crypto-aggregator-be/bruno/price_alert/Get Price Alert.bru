@@ -1,0 +1,39 @@
+meta {
+  name: Get Price Alert
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/price-alerts/:priceAlertId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  priceAlertId: {{PRICE_ALERT_ID}}
+}
+
+body:json {
+  {
+    "targetPrice": 82000.50,
+    "conditionType": "LESS_THAN",
+    "isRecurring": false,
+    "cooldownMinutes": 2,
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "expiresAt": "2026-11-01T10:00:00Z"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("PRICE_ALERT_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

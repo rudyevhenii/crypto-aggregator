@@ -1,0 +1,38 @@
+meta {
+  name: Get All Price Alerts
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/price-alerts
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "targetPrice": 82000.50,
+    "conditionType": "LESS_THAN",
+    "isRecurring": false,
+    "cooldownMinutes": 2,
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "expiresAt": "2026-11-01T10:00:00Z"
+  }
+}
+
+script:post-response {
+  const responseData = res.getBody();
+  
+  if (Array.isArray(responseData) && responseData.length > 0) {
+      const firstPriceAlertId = responseData[0].id;
+      bru.setVar("PRICE_ALERT_ID", firstPriceAlertId);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

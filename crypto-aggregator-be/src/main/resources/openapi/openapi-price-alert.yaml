@@ -1,0 +1,294 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator API
+  description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/price-alerts:
+    post:
+      summary: "Create a new Price Alert"
+      operationId: "createPriceAlert"
+      tags:
+        - "PriceAlert"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceAlertRequest'
+      responses:
+        "201":
+          description: "Price Alert created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceAlert'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      summary: "Get all Price Alerts"
+      operationId: "getAllPriceAlerts"
+      tags:
+        - "PriceAlert"
+      responses:
+        "200":
+          description: "Returns all Price Alerts"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriceAlert'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/price-alerts/{priceAlertId}:
+    patch:
+      summary: "Update Price Alert"
+      operationId: "updatePriceAlert"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceAlertUpdateRequest'
+      responses:
+        "201":
+          description: "Updated Price Alert"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceAlert'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      summary: "Get Price Alert by id"
+      operationId: "getPriceAlertById"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      responses:
+        "200":
+          description: "Return Price Alert"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceAlert'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    delete:
+      summary: "Delete Price Alert"
+      operationId: "deletePriceAlert"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      responses:
+        "204":
+          description: "Delete Price Alert"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/price-alerts/{priceAlertId}/activate:
+    patch:
+      summary: "Activate Price Alert"
+      operationId: "activatePriceAlert"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      responses:
+        "204":
+          description: "Activate Price Alert"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/price-alerts/{priceAlertId}/deactivate:
+    patch:
+      summary: "Deactivate Price Alert"
+      operationId: "deactivatePriceAlert"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      responses:
+        "204":
+          description: "Deactivate Price Alert"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    ConditionType:
+      type: string
+      enum:
+        - GREATER_THAN
+        - LESS_THAN
+        - CROSSED_UP
+        - CROSSED_DOWN
+
+    DeliveryMethod:
+      type: string
+      enum:
+        - EMAIL
+
+    PriceAlert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+        targetPrice:
+          type: string
+          format: double
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
+        recurring:
+          type: boolean
+        cooldownMinutes:
+          type: integer
+          minimum: 1
+        deliveryMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryMethod'
+          minItems: 1
+        active:
+          type: boolean
+          default: true
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PriceAlertRequest:
+      type: object
+      required:
+        - exchange
+        - tradingPair
+        - targetPrice
+        - conditionType
+        - deliveryMethods
+        - expiresAt
+      properties:
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+        targetPrice:
+          type: string
+          format: double
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
+        recurring:
+          type: boolean
+        cooldownMinutes:
+          type: integer
+          minimum: 1
+        deliveryMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryMethod'
+          minItems: 1
+        expiresAt:
+          type: string
+          format: date-time
+
+    PriceAlertUpdateRequest:
+      type: object
+      required:
+        - targetPrice
+        - conditionType
+        - deliveryMethods
+        - expiresAt
+      properties:
+        targetPrice:
+          type: string
+          format: double
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
+        recurring:
+          type: boolean
+        cooldownMinutes:
+          type: integer
+          minimum: 1
+        deliveryMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryMethod'
+          minItems: 1
+        expiresAt:
+          type: string
+          format: date-time
+
+  parameters:
+    PriceAlertParam:
+      in: path
+      name: priceAlertId
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'
