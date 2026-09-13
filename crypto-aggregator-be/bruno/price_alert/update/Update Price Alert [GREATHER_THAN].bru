@@ -1,26 +1,30 @@
 meta {
-  name: Create Price Alert
+  name: Update Price Alert [GREATHER_THAN]
   type: http
   seq: 1
 }
 
-post {
-  url: {{BASE_URL}}/api/price-alerts
+patch {
+  url: {{BASE_URL}}/api/price-alerts/:priceAlertId
   body: json
   auth: inherit
 }
 
+params:path {
+  priceAlertId: {{PRICE_ALERT_GREATER_THAN_ID}}
+}
+
 body:json {
   {
-    "exchange": "BINANCE",
-    "tradingPair": "BTC_USD",
-    "targetPrice": 85000.00,
-    "conditionType": "GREATER_THAN",
-    "isRecurring": true,
-    "cooldownMinutes": 5,
+    "recurring": true,
+    "cooldownMinutes": 10,
     "deliveryMethods": [
       "EMAIL"
     ],
+    "conditionPayload": {
+      "conditionType": "GREATER_THAN",
+      "targetPrice": 88000.00
+    },
     "expiresAt": "2026-12-31T23:59:59Z"
   }
 }

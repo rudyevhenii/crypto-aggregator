@@ -1,0 +1,40 @@
+meta {
+  name: Create Price Alert [TRAILING_DROP]
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{BASE_URL}}/api/price-alerts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "exchange": "BINANCE",
+    "tradingPair": "BTC_USD",
+    "recurring": false,
+    "cooldownMinutes": 2,
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "TRAILING_DROP",
+      "trailingPercentage": 3.0,
+      "referencePrice": 88500.00
+    },
+    "expiresAt": "2026-12-01T12:00:00Z"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_TRAILING_DROP_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

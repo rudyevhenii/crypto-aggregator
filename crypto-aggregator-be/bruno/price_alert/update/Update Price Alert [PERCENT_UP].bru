@@ -1,0 +1,42 @@
+meta {
+  name: Update Price Alert [PERCENT_UP]
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{BASE_URL}}/api/price-alerts/:priceAlertId
+  body: json
+  auth: inherit
+}
+
+params:path {
+  priceAlertId: {{PRICE_ALERT_PERCENT_UP_ID}}
+}
+
+body:json {
+  {
+    "recurring": false,
+    "cooldownMinutes": 60,
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "PERCENT_UP",
+      "initialPrice": 82000.00,
+      "percentageChange": 7.5
+    },
+    "expiresAt": "2026-11-01T00:00:00Z"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

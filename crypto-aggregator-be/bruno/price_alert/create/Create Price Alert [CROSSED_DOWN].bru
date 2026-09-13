@@ -1,0 +1,39 @@
+meta {
+  name: Create Price Alert [CROSSED_DOWN]
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{BASE_URL}}/api/price-alerts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "exchange": "BINANCE",
+    "tradingPair": "ADA_USD",
+    "recurring": true,
+    "cooldownMinutes": 30,
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "CROSSED_DOWN",
+      "targetPrice": 0.45
+    },
+    "expiresAt": null
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_CROSSED_DOWN_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -173,11 +173,77 @@ components:
         - LESS_THAN
         - CROSSED_UP
         - CROSSED_DOWN
+        - PERCENT_UP
+        - PERCENT_DOWN
+        - TRAILING_DROP
+        - TRAILING_RISE
 
     DeliveryMethod:
       type: string
       enum:
         - EMAIL
+
+    ConditionPayload:
+      type: object
+      discriminator:
+        propertyName: conditionType
+        mapping:
+          GREATER_THAN: '#/components/schemas/TargetPricePayload'
+          LESS_THAN: '#/components/schemas/TargetPricePayload'
+          CROSSED_UP: '#/components/schemas/TargetPricePayload'
+          CROSSED_DOWN: '#/components/schemas/TargetPricePayload'
+          PERCENT_UP: '#/components/schemas/PercentagePayload'
+          PERCENT_DOWN: '#/components/schemas/PercentagePayload'
+          TRAILING_DROP: '#/components/schemas/TrailingPayload'
+          TRAILING_RISE: '#/components/schemas/TrailingPayload'
+      oneOf:
+        - $ref: '#/components/schemas/TargetPricePayload'
+        - $ref: '#/components/schemas/PercentagePayload'
+        - $ref: '#/components/schemas/TrailingPayload'
+
+    TargetPricePayload:
+      type: object
+      required:
+        - conditionType
+        - targetPrice
+      properties:
+        conditionType:
+          type: string
+        targetPrice:
+          type: string
+          format: double
+
+    PercentagePayload:
+      type: object
+      required:
+        - conditionType
+        - initialPrice
+        - percentageChange
+      properties:
+        conditionType:
+          type: string
+        initialPrice:
+          type: string
+          format: double
+        percentageChange:
+          type: string
+          format: double
+
+    TrailingPayload:
+      type: object
+      required:
+        - conditionType
+        - trailingPercentage
+        - referencePrice
+      properties:
+        conditionType:
+          type: string
+        trailingPercentage:
+          type: string
+          format: double
+        referencePrice:
+          type: string
+          format: double
 
     PriceAlert:
       type: object
@@ -192,11 +258,6 @@ components:
           $ref: 'common-components.yaml#/components/schemas/Exchange'
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
-        targetPrice:
-          type: string
-          format: double
-        conditionType:
-          $ref: '#/components/schemas/ConditionType'
         recurring:
           type: boolean
         cooldownMinutes:
@@ -210,6 +271,8 @@ components:
         active:
           type: boolean
           default: true
+        conditionPayload:
+          $ref: '#/components/schemas/ConditionPayload'
         expiresAt:
           type: string
           format: date-time
@@ -225,20 +288,13 @@ components:
       required:
         - exchange
         - tradingPair
-        - targetPrice
-        - conditionType
         - deliveryMethods
-        - expiresAt
+        - conditionPayload
       properties:
         exchange:
           $ref: 'common-components.yaml#/components/schemas/Exchange'
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
-        targetPrice:
-          type: string
-          format: double
-        conditionType:
-          $ref: '#/components/schemas/ConditionType'
         recurring:
           type: boolean
         cooldownMinutes:
@@ -249,6 +305,8 @@ components:
           items:
             $ref: '#/components/schemas/DeliveryMethod'
           minItems: 1
+        conditionPayload:
+          $ref: '#/components/schemas/ConditionPayload'
         expiresAt:
           type: string
           format: date-time
@@ -256,16 +314,9 @@ components:
     PriceAlertUpdateRequest:
       type: object
       required:
-        - targetPrice
-        - conditionType
         - deliveryMethods
-        - expiresAt
+        - conditionPayload
       properties:
-        targetPrice:
-          type: string
-          format: double
-        conditionType:
-          $ref: '#/components/schemas/ConditionType'
         recurring:
           type: boolean
         cooldownMinutes:
@@ -276,6 +327,8 @@ components:
           items:
             $ref: '#/components/schemas/DeliveryMethod'
           minItems: 1
+        conditionPayload:
+          $ref: '#/components/schemas/ConditionPayload'
         expiresAt:
           type: string
           format: date-time

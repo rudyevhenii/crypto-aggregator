@@ -1,0 +1,39 @@
+meta {
+  name: Create Price Alert [CROSSED_UP]
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/api/price-alerts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "exchange": "BINANCE",
+    "tradingPair": "SOL_USD",
+    "recurring": false,
+    "cooldownMinutes": 5,
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "CROSSED_UP",
+      "targetPrice": 200.00
+    },
+    "expiresAt": "2026-10-15T12:00:00Z"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_CROSSED_UP_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
