@@ -16,5 +16,7 @@ public interface PriceAlertRepository {
 
     List<PriceAlert> findAll(UUID userId);
 
+    List<PriceAlert> findAllActive();
+
     void deleteById(UUID id);
 }

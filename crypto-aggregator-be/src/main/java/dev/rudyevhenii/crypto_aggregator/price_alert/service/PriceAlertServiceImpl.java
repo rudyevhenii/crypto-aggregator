@@ -94,12 +94,11 @@ public class PriceAlertServiceImpl implements PriceAlertService {
                 .userId(userContext.getUserId())
                 .exchange(request.exchange())
                 .tradingPair(request.tradingPair())
-                .targetPrice(request.targetPrice())
-                .conditionType(request.conditionType())
                 .recurring(request.recurring())
                 .cooldownMinutes(request.cooldownMinutes())
                 .deliveryMethods(request.deliveryMethods())
                 .expiresAt(request.expiresAt())
+                .conditionPayload(request.conditionPayload())
                 .createdAt(generator.now())
                 .updatedAt(generator.now())
                 .build();

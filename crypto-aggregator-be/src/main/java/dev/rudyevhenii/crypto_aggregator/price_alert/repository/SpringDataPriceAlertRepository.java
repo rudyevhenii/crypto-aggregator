@@ -12,4 +12,6 @@ public interface SpringDataPriceAlertRepository extends JpaRepository<PriceAlert
     Optional<PriceAlertEntity> findByUserIdAndId(UUID userId, UUID id);
 
     List<PriceAlertEntity> findAllByUserId(UUID userId);
+
+    List<PriceAlertEntity> findAllByActiveIsTrue();
 }

@@ -2,6 +2,7 @@ package dev.rudyevhenii.crypto_aggregator.price_alert;
 
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.core.enums.TradingPair;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.ConditionPayload;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,9 +15,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.domain.Persistable;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,13 +49,6 @@ public class PriceAlertEntity implements Persistable<UUID> {
     @Column(name = Fields.tradingPair)
     private TradingPair tradingPair;
 
-    @Column(name = Fields.targetPrice)
-    private BigDecimal targetPrice;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = Fields.conditionType)
-    private ConditionType conditionType;
-
     @Column(name = Fields.recurring)
     private boolean recurring;
 
@@ -61,10 +56,15 @@ public class PriceAlertEntity implements Persistable<UUID> {
     private int cooldownMinutes;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = Fields.deliveryMethods)
     private Set<DeliveryMethod> deliveryMethods = new HashSet<>();
 
     @Column(name = Fields.active)
     private boolean active;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = Fields.conditionPayload)
+    private ConditionPayload conditionPayload;
 
     @Column(name = Fields.expiresAt)
     private Instant expiresAt;

@@ -46,6 +46,13 @@ public class DefaultPriceAlertRepository implements PriceAlertRepository {
     }
 
     @Override
+    public List<PriceAlert> findAllActive() {
+        return repository.findAllByActiveIsTrue().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void deleteById(UUID id) {
         repository.deleteById(id);
     }
