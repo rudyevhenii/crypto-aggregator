@@ -19,6 +19,3 @@ public class PercentagePayload implements ConditionPayload {
     private BigDecimal initialPrice;
     private BigDecimal percentageChange;
 }
-
-
-

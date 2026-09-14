@@ -5,6 +5,7 @@ import dev.rudyevhenii.crypto_aggregator.core.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.ExchangeHealthDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.strategy.LiveExchangeStrategy;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.PriceAlertEngineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -23,12 +24,14 @@ public class LiveExchangeServiceImpl implements LiveExchangeService {
     private static final int BUFFER_DELAY_MILLIS = 500;
 
     private final Map<Exchange, LiveExchangeStrategy> liveExchangeStrategies;
+    private final PriceAlertEngineService priceAlertEngineService;
 
     @Override
     public Flux<LivePriceDto> streamAllPrices() {
         return Flux.merge(liveExchangeStrategies.entrySet().stream()
                         .map(entry -> entry.getValue().streamPriceByExchange(entry.getKey()))
                         .toList())
+                .doOnNext(priceAlertEngineService::processNewPrice)
                 .buffer(Duration.ofMillis(BUFFER_DELAY_MILLIS))
                 .filter(list -> !list.isEmpty())
                 .flatMap(bufferedPrices -> Flux.fromStream(bufferedPrices.stream()
