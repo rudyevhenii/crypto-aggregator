@@ -13,7 +13,8 @@ import java.util.concurrent.ExecutorService;
 @RequiredArgsConstructor
 public class PriceAlertStateStorageService {
 
-    private static final String KEY_PREFIX = "alert:prev_price:";
+    private static final String PREV_PRICE_KEY_PREFIX = "priceAlerts:previousPrice:";
+    private static final String EXTREMUM_PRICE_KEY_PREFIX = "priceAlerts:extremumPrice:";
 
     private static final Duration EXTREMUM_PRICE_TTL = Duration.ofDays(30);
     private static final Duration PREVIOUS_PRICE_TTL = Duration.ofMinutes(10);
@@ -22,21 +23,21 @@ public class PriceAlertStateStorageService {
     private final ExecutorService virtualExecutor;
 
     public void updateExtremumPriceAsync(UUID alertId, BigDecimal price) {
-        writeAlertPrice(alertId, price, EXTREMUM_PRICE_TTL);
+        writeAlertPrice(EXTREMUM_PRICE_KEY_PREFIX + alertId, price, EXTREMUM_PRICE_TTL);
     }
 
     public void updatePreviousPriceAsync(UUID alertId, BigDecimal price) {
-        writeAlertPrice(alertId, price, PREVIOUS_PRICE_TTL);
+        writeAlertPrice(PREV_PRICE_KEY_PREFIX + alertId, price, PREVIOUS_PRICE_TTL);
     }
 
-    private void writeAlertPrice(UUID alertId, BigDecimal price, Duration ttl) {
+    private void writeAlertPrice(String key, BigDecimal price, Duration ttl) {
         virtualExecutor.submit(() ->
-                redisTemplate.opsForValue().set(KEY_PREFIX + alertId, price.toPlainString(), ttl)
+                redisTemplate.opsForValue().set(key, price.toPlainString(), ttl)
         );
     }
 
     public BigDecimal getPreviousPrice(UUID alertId) {
-        String value = redisTemplate.opsForValue().get(KEY_PREFIX + alertId);
+        String value = redisTemplate.opsForValue().get(PREV_PRICE_KEY_PREFIX + alertId);
         return value != null ? new BigDecimal(value) : null;
     }
 }

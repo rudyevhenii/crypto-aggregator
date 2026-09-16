@@ -9,8 +9,7 @@ import java.util.Set;
 
 @Builder
 public record PriceAlertUpdateRequest(
-        boolean recurring,
-        int cooldownMinutes,
+        Integer cooldownMinutes,
         Set<DeliveryMethod> deliveryMethods,
         ConditionPayload conditionPayload,
         Instant expiresAt

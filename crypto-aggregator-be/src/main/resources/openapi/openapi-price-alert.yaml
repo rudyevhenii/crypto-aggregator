@@ -8,7 +8,7 @@ servers:
 
 security:
   - bearerAuth: []
-
+# TODO: Add examples to properties in schemas and remove unnecessary examples from other openapi specs
 paths:
   /api/price-alerts:
     post:
@@ -258,8 +258,6 @@ components:
           $ref: 'common-components.yaml#/components/schemas/Exchange'
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
-        recurring:
-          type: boolean
         cooldownMinutes:
           type: integer
           minimum: 1
@@ -295,8 +293,6 @@ components:
           $ref: 'common-components.yaml#/components/schemas/Exchange'
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
-        recurring:
-          type: boolean
         cooldownMinutes:
           type: integer
           minimum: 1
@@ -317,8 +313,6 @@ components:
         - deliveryMethods
         - conditionPayload
       properties:
-        recurring:
-          type: boolean
         cooldownMinutes:
           type: integer
           minimum: 1

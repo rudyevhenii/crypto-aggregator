@@ -49,11 +49,8 @@ public class PriceAlertEntity implements Persistable<UUID> {
     @Column(name = Fields.tradingPair)
     private TradingPair tradingPair;
 
-    @Column(name = Fields.recurring)
-    private boolean recurring;
-
     @Column(name = Fields.cooldownMinutes)
-    private int cooldownMinutes;
+    private Integer cooldownMinutes;
 
     @Enumerated(EnumType.STRING)
     @Column(name = Fields.deliveryMethods)

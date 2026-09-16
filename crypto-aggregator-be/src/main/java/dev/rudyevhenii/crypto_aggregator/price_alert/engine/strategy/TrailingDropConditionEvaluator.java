@@ -22,8 +22,8 @@ public class TrailingDropConditionEvaluator implements ConditionEvaluatorStrateg
         TrailingPayload payload = (TrailingPayload) priceAlert.getConditionPayload();
 
         if (allTimeHighPrice == null) {
-            storageService.updateExtremumPriceAsync(priceAlert.getId(), payload.getReferencePrice());
-            return false;
+            allTimeHighPrice = payload.getReferencePrice();
+            storageService.updateExtremumPriceAsync(priceAlert.getId(), allTimeHighPrice);
         }
         if (allTimeHighPrice.compareTo(livePrice) < 0) {
             storageService.updateExtremumPriceAsync(priceAlert.getId(), livePrice);
@@ -32,7 +32,7 @@ public class TrailingDropConditionEvaluator implements ConditionEvaluatorStrateg
         BigDecimal percentage = payload.getTrailingPercentage().movePointLeft(2);
         BigDecimal activationPrice = allTimeHighPrice.subtract(allTimeHighPrice.multiply(percentage, MathContext.DECIMAL64));
 
-        return activationPrice.compareTo(livePrice) >= 0;
+        return livePrice.compareTo(activationPrice) <= 0;
     }
 
     @Override

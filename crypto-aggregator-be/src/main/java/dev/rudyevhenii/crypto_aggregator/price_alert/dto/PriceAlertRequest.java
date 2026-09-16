@@ -13,8 +13,7 @@ import java.util.Set;
 public record PriceAlertRequest(
         Exchange exchange,
         TradingPair tradingPair,
-        boolean recurring,
-        int cooldownMinutes,
+        Integer cooldownMinutes,
         Set<DeliveryMethod> deliveryMethods,
         ConditionPayload conditionPayload,
         Instant expiresAt

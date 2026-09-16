@@ -24,7 +24,7 @@ public class CrossedUpConditionEvaluator implements ConditionEvaluatorStrategy {
         TargetPricePayload payload = (TargetPricePayload) priceAlert.getConditionPayload();
 
         return payload.getTargetPrice().compareTo(previousPrice) >= 0 &&
-                payload.getTargetPrice().compareTo(livePrice) < 0;
+                livePrice.compareTo(payload.getTargetPrice()) > 0;
     }
 
     @Override

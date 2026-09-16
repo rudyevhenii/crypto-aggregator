@@ -23,10 +23,7 @@ public class PriceAlert {
     private UUID userId;
     private Exchange exchange;
     private TradingPair tradingPair;
-    @Builder.Default
-    private boolean recurring = false;
-    @Builder.Default
-    private int cooldownMinutes = 1;
+    private Integer cooldownMinutes;
     @Builder.Default
     private Set<DeliveryMethod> deliveryMethods = new HashSet<>();
     @Builder.Default

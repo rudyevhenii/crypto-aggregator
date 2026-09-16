@@ -1,13 +1,10 @@
 openapi: 3.1.0
 info:
-  title: Crypto Aggregator API
+  title: Crypto Aggregator API # TODO: add specific titles and descriptions to each openapi spec
   description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
   version: 1.0.0
 servers:
   - url: 'http://localhost:8080'
-
-security:
-  - bearerAuth: []
 
 paths:
   /api/stream/exchanges/prices:

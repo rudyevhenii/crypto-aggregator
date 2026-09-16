@@ -6,6 +6,7 @@ import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import dev.rudyevhenii.crypto_aggregator.price_alert.domain.PriceAlert;
 import dev.rudyevhenii.crypto_aggregator.price_alert.dto.PriceAlertRequest;
 import dev.rudyevhenii.crypto_aggregator.price_alert.dto.PriceAlertUpdateRequest;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.PriceAlertEngineService;
 import dev.rudyevhenii.crypto_aggregator.price_alert.mapper.PriceAlertDomainMapper;
 import dev.rudyevhenii.crypto_aggregator.price_alert.repository.PriceAlertRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class PriceAlertServiceImpl implements PriceAlertService {
 
     private final PriceAlertRepository repository;
     private final PriceAlertDomainMapper mapper;
+    private final PriceAlertEngineService alertEngineService;
     private final UserContext userContext;
     private final GeneratorUtils generator;
 
@@ -31,19 +33,24 @@ public class PriceAlertServiceImpl implements PriceAlertService {
     public PriceAlert create(PriceAlertRequest request) {
         PriceAlert priceAlert = toDomain(request);
 
+        PriceAlert createdPriceAlert = repository.create(priceAlert);
+        alertEngineService.addAlertToCache(createdPriceAlert);
         log.info("User [{}] created a new Price Alert", userContext.getUserId());
-        return repository.create(priceAlert);
+
+        return createdPriceAlert;
     }
 
     @Override
     @Transactional
     public PriceAlert update(UUID id, PriceAlertUpdateRequest request) {
         PriceAlert priceAlert = getById(userContext.getUserId(), id);
-
         mapper.toUpdateDomain(request, priceAlert, generator);
+
+        PriceAlert updatedPriceAlert = repository.update(priceAlert);
+        alertEngineService.updateAlertFromCache(updatedPriceAlert);
         log.info("User [{}] updated Price Alert [{}]", userContext.getUserId(), id);
 
-        return repository.update(priceAlert);
+        return updatedPriceAlert;
     }
 
     @Override
@@ -62,7 +69,8 @@ public class PriceAlertServiceImpl implements PriceAlertService {
     public void activate(UUID id) {
         PriceAlert priceAlert = getById(userContext.getUserId(), id);
         priceAlert.setActive(true);
-        repository.update(priceAlert);
+        PriceAlert activatedPriceAlert = repository.update(priceAlert);
+        alertEngineService.updateAlertFromCache(activatedPriceAlert);
         log.info("User [{}] activated Price Alert [{}]", userContext.getUserId(), id);
     }
 
@@ -71,13 +79,15 @@ public class PriceAlertServiceImpl implements PriceAlertService {
     public void deactivate(UUID id) {
         PriceAlert priceAlert = getById(userContext.getUserId(), id);
         priceAlert.setActive(false);
-        repository.update(priceAlert);
+        PriceAlert deactivatedPriceAlert = repository.update(priceAlert);
+        alertEngineService.updateAlertFromCache(deactivatedPriceAlert);
         log.info("User [{}] deactivated Price Alert [{}]", userContext.getUserId(), id);
     }
 
     @Override
     @Transactional
     public void deleteById(UUID id) {
+        alertEngineService.removeAlertFromCache(getById(userContext.getUserId(), id));
         repository.deleteById(id);
         log.info("User [{}] deleted Price Alert [{}]", userContext.getUserId(), id);
     }
@@ -94,7 +104,6 @@ public class PriceAlertServiceImpl implements PriceAlertService {
                 .userId(userContext.getUserId())
                 .exchange(request.exchange())
                 .tradingPair(request.tradingPair())
-                .recurring(request.recurring())
                 .cooldownMinutes(request.cooldownMinutes())
                 .deliveryMethods(request.deliveryMethods())
                 .expiresAt(request.expiresAt())

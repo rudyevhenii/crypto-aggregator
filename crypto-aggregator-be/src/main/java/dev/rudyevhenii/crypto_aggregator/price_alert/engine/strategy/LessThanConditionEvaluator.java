@@ -13,7 +13,7 @@ public class LessThanConditionEvaluator implements ConditionEvaluatorStrategy {
     @Override
     public boolean shouldTrigger(PriceAlert priceAlert, BigDecimal livePrice) {
         TargetPricePayload payload = (TargetPricePayload) priceAlert.getConditionPayload();
-        return payload.getTargetPrice().compareTo(livePrice) < 0;
+        return livePrice.compareTo(payload.getTargetPrice()) < 0;
     }
 
     @Override
