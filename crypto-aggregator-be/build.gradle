@@ -34,9 +34,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.5'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:testcontainers-postgresql:2.0.5'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
