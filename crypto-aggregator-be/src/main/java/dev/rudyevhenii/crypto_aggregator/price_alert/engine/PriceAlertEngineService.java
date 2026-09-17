@@ -19,6 +19,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,6 +91,8 @@ public class PriceAlertEngineService {
         if (CollectionUtils.isEmpty(priceAlerts)) return;
 
         for (PriceAlert priceAlert : priceAlerts) {
+            // TODO: Add scheduler to set active status to false when PriceAlert gets expired.
+            //  Also it should update caffeine cache to sync with db state
             if (priceAlert.getExpiresAt().isBefore(livePriceDto.timestamp())) {
                 continue;
             }
@@ -97,13 +100,13 @@ public class PriceAlertEngineService {
             ConditionEvaluatorStrategy conditionEvaluatorStrategy = conditionEvaluatorStrategies.get(conditionPayload.getConditionType());
             if (conditionEvaluatorStrategy.shouldTrigger(priceAlert, livePriceDto.lastPrice())) {
                 for (DeliveryMethod deliveryMethod : priceAlert.getDeliveryMethods()) {
-                    sendNotification(priceAlert, deliveryMethod);
+                    sendNotification(priceAlert, livePriceDto.lastPrice(), deliveryMethod);
                 }
             }
         }
     }
 
-    private void sendNotification(PriceAlert priceAlert, DeliveryMethod deliveryMethod) {
+    private void sendNotification(PriceAlert priceAlert, BigDecimal livePrice, DeliveryMethod deliveryMethod) {
         NotificationSenderStrategy notificationStrategy = notificationSenderStrategies.get(deliveryMethod);
         if (priceAlert.getCooldownMinutes() == null) {
             removeAlertFromCache(priceAlert);
@@ -113,7 +116,7 @@ public class PriceAlertEngineService {
             }
             priceAlertCooldownService.setPriceAlertOnCooldown(priceAlert);
         }
-        notificationStrategy.sendNotification(priceAlert);
+        notificationStrategy.sendNotification(priceAlert, livePrice);
     }
 
     private CopyOnWriteArrayList<PriceAlert> getPriceAlertsValueFromCache(PriceAlert priceAlert) {

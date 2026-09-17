@@ -4,7 +4,7 @@ spring:
   config:
     import:
       - 'classpath:exchanges.yaml'
-      - 'optional:file:.env'
+      - 'optional:file:.env[.properties]'
   datasource:
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
@@ -27,6 +27,17 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  mail:
+    host: "smtp.gmail.com"
+    port: 587
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 security:
   jwt:

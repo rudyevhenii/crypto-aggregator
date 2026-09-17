@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 40px 20px;">
+<div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+
+  <!-- Header -->
+  <div style="background-color: #111827; padding: 24px; text-align: center;">
+    <h2 style="margin: 0; color: #f3f4f6; font-size: 24px; letter-spacing: 1px;">
+      🚀 Alert Triggered
+    </h2>
+  </div>
+
+  <!-- Body -->
+  <div style="padding: 32px 24px;">
+    <p style="margin-top: 0; color: #374151; font-size: 16px; line-height: 1.5;">
+      Your condition for the trading pair
+      <strong style="color: #111827;" th:text="${alert.tradingPair}">BTC_USD</strong> on the
+      <strong style="color: #111827;" th:text="${alert.exchange}">BINANCE</strong> exchange has just been met!
+    </p>
+
+    <!-- Info Card -->
+    <div style="background-color: #f9fafb; border-left: 4px solid #3b82f6; border-radius: 4px; padding: 16px; margin: 24px 0;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Current Price:</td>
+          <td style="padding: 4px 0; color: #111827; font-size: 16px; font-weight: bold; text-align: right;" th:text="'$' + ${livePrice.stripTrailingZeros()}">$0.00</td>
+        </tr>
+        <tr>
+          <td style="padding: 4px 0; color: #6b7280; font-size: 14px;">Condition:</td>
+          <td style="padding: 4px 0; color: #111827; font-size: 14px; font-weight: bold; text-align: right;" th:text="${alert.conditionPayload.conditionType}">GREATER_THAN</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Dynamic Footer Note based on Recurrence -->
+    <p th:if="${alert.cooldownMinutes != null}" style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
+      The alert has been automatically restarted (cooldown: <span th:text="${alert.cooldownMinutes}">5</span> min).
+    </p>
+    <p th:if="${alert.cooldownMinutes == null}" style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
+      The alert has been automatically deactivated (one-shot).
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background-color: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+      Crypto Aggregator &copy; 2026<br>
+      ID: <span style="font-family: monospace;" th:text="${alert.id}">1234-abcd</span>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
