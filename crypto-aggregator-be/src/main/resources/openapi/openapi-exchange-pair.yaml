@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Crypto Aggregator API
-  description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
+  title: Crypto Aggregator Exchange Pair API
+  description: Retrieves mappings between supported exchanges and trading pairs, including search and filtering capabilities.
   version: 1.0.0
 servers:
   - url: 'http://localhost:8080'
@@ -12,13 +12,12 @@ security:
 paths:
   /api/exchange-pairs:
     get:
-      summary: "Get all exchange pairs"
       operationId: "findAllExchangePairs"
       tags:
         - "ExchangePair"
       responses:
         "200":
-          description: "Returns all exchange pairs"
+          description: "Array of exchange-pair mappings"
           content:
             application/json:
               schema:
@@ -32,7 +31,6 @@ paths:
 
   /api/exchange-pairs/search:
     get:
-      summary: "Search exchange pairs by exchange and/or trading pair"
       operationId: "searchExchangePairs"
       tags:
         - "ExchangePair"
@@ -49,7 +47,7 @@ paths:
             type: string
       responses:
         "200":
-          description: "Returns matching exchange pairs"
+          description: "Filtered array of exchange-pair mappings"
           content:
             application/json:
               schema:
@@ -71,22 +69,18 @@ components:
 
     ExchangePair:
       type: object
-      description: "Exchange-trading pair mapping"
+      description: "Mapping between a specific exchange and a trading pair."
       properties:
         id:
           type: string
           format: uuid
-          description: "Unique identifier"
+          description: "Unique identifier (e.g. 550e8400-e29b-41d4-a716-446655440000)"
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
-          description: "Trading pair"
+          description: "Trading pair (e.g. BTC_USD)"
         exchange:
           $ref: 'common-components.yaml#/components/schemas/Exchange'
-          description: "Exchange name"
-      example:
-        id: "550e8400-e29b-41d4-a716-446655440000"
-        tradingPair: "BTC_USD"
-        exchange: "BINANCE"
+          description: "Exchange name (e.g. BINANCE)"
 
   securitySchemes:
     bearerAuth:

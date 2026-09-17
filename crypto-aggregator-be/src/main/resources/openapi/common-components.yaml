@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Common Components
-  description: Common Components
+  title: Crypto Aggregator Common Components
+  description: Shared reusable components, security schemes, and standardized error responses for the Crypto Aggregator API.
   version: 1.0.0
 
 components:
@@ -80,8 +80,10 @@ components:
         code:
           type: integer
           format: int32
+          description: "HTTP status code (e.g. 400)"
         message:
           type: string
+          description: "Human-readable error message (e.g. 'Invalid request parameters')"
         errors:
           $ref: '#/components/schemas/FieldError'
 
@@ -90,40 +92,42 @@ components:
       properties:
         field:
           type: string
+          description: "Name of the invalid field (e.g. 'email')"
         error:
           type: string
+          description: "Validation error detail (e.g. 'must be a valid email address')"
 
   responses:
     BadRequest:
-      description: "Bad request"
+      description: "Validation errors with field-level details"
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
 
     UnauthorizedError:
-      description: "Unauthorized"
+      description: "Authentication required or invalid credentials"
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
 
     NotFoundError:
-      description: "Not found"
+      description: "Requested resource was not found"
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
 
     Conflict:
-      description: "Conflict"
+      description: "Conflict with current resource state"
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
 
     InternalServerError:
-      description: "Internal server error"
+      description: "Unexpected server error occurred"
       content:
         application/json:
           schema:

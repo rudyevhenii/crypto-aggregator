@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Crypto Aggregator API
-  description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
+  title: Crypto Aggregator Authentication API
+  description: Handles user registration, login, token refresh, and logout operations for the Crypto Aggregator platform.
   version: 1.0.0
 servers:
   - url: 'http://localhost:8080'
@@ -12,7 +12,6 @@ security:
 paths:
   /api/auth/register:
     post:
-      summary: "Register a new user"
       operationId: "register"
       tags:
         - "Auth"
@@ -40,7 +39,6 @@ paths:
 
   /api/auth/login:
     post:
-      summary: "Login and receive JWT tokens"
       operationId: "login"
       tags:
         - "Auth"
@@ -70,7 +68,6 @@ paths:
 
   /api/auth/refresh-token:
     post:
-      summary: "Refresh JWT access and refresh tokens"
       operationId: "refreshToken"
       tags:
         - "Auth"
@@ -100,7 +97,6 @@ paths:
 
   /api/auth/logout:
     post:
-      summary: "Logout by blacklisting the current access token"
       operationId: "logout"
       tags:
         - "Auth"
@@ -135,23 +131,23 @@ components:
           type: string
           format: email
           minLength: 1
-          description: "User email address"
+          description: "User email address (e.g. user@example.com)"
         password:
           type: string
           format: password
           minLength: 6
           maxLength: 100
-          description: "User password"
+          description: "User password (e.g. securePassword123)"
         firstName:
           type: string
           minLength: 2
           maxLength: 50
-          description: "User first name"
+          description: "User first name (e.g. John)"
         lastName:
           type: string
           minLength: 2
           maxLength: 50
-          description: "User last name"
+          description: "User last name (e.g. Doe)"
 
     LoginRequest:
       type: object
@@ -164,13 +160,13 @@ components:
           type: string
           format: email
           minLength: 1
-          description: "User email address"
+          description: "User email address (e.g. user@example.com)"
         password:
           type: string
           format: password
           minLength: 6
           maxLength: 100
-          description: "User password"
+          description: "User password (e.g. securePassword123)"
 
     RefreshTokenRequest:
       type: object
@@ -180,7 +176,7 @@ components:
       properties:
         refreshToken:
           type: string
-          description: "Valid refresh token"
+          description: "Valid refresh token (e.g. eyJhbGciOiJIUzI1NiJ9...)"
 
     TokenResponse:
       type: object
@@ -188,13 +184,10 @@ components:
       properties:
         accessToken:
           type: string
-          description: "Short-lived access token"
+          description: "Short-lived access token (e.g. eyJhbGciOiJIUzI1NiJ9...)"
         refreshToken:
           type: string
-          description: "Long-lived refresh token"
-      example:
-        accessToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNjk4OTk1MDAwLCJleHAiOjE2OTkwMzgwMDB9.signature"
-        refreshToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNjk4OTk1MDAwLCJ0eXBlIjoicmVmcmVzaCJ9.signature"
+          description: "Long-lived refresh token (e.g. eyJhbGciOiJIUzI1NiJ9...)"
 
     LogoutRequest:
       type: object
@@ -205,10 +198,10 @@ components:
       properties:
         accessToken:
           type: string
-          description: "Access token to blacklist"
+          description: "Access token to blacklist (e.g. eyJhbGciOiJIUzI1NiJ9...)"
         refreshToken:
           type: string
-          description: "Refresh token to blacklist"
+          description: "Refresh token to blacklist (e.g. eyJhbGciOiJIUzI1NiJ9...)"
 
   securitySchemes:
     bearerAuth:

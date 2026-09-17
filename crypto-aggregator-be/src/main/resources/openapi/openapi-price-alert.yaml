@@ -1,18 +1,17 @@
 openapi: 3.1.0
 info:
-  title: Crypto Aggregator API
-  description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
+  title: Crypto Aggregator Price Alert API
+  description: Creates, updates, retrieves, and manages price alerts for cryptocurrency trading pairs across supported exchanges.
   version: 1.0.0
 servers:
   - url: 'http://localhost:8080'
 
 security:
   - bearerAuth: []
-# TODO: Add examples to properties in schemas and remove unnecessary examples from other openapi specs
+
 paths:
   /api/price-alerts:
     post:
-      summary: "Create a new Price Alert"
       operationId: "createPriceAlert"
       tags:
         - "PriceAlert"
@@ -23,7 +22,7 @@ paths:
               $ref: '#/components/schemas/PriceAlertRequest'
       responses:
         "201":
-          description: "Price Alert created"
+          description: "Newly created price alert object"
           content:
             application/json:
               schema:
@@ -36,13 +35,12 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
     get:
-      summary: "Get all Price Alerts"
       operationId: "getAllPriceAlerts"
       tags:
         - "PriceAlert"
       responses:
         "200":
-          description: "Returns all Price Alerts"
+          description: "Array of user price alerts"
           content:
             application/json:
               schema:
@@ -56,7 +54,6 @@ paths:
 
   /api/price-alerts/{priceAlertId}:
     patch:
-      summary: "Update Price Alert"
       operationId: "updatePriceAlert"
       tags:
         - "PriceAlert"
@@ -70,7 +67,7 @@ paths:
               $ref: '#/components/schemas/PriceAlertUpdateRequest'
       responses:
         "201":
-          description: "Updated Price Alert"
+          description: "Updated price alert object"
           content:
             application/json:
               schema:
@@ -85,7 +82,6 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
     get:
-      summary: "Get Price Alert by id"
       operationId: "getPriceAlertById"
       tags:
         - "PriceAlert"
@@ -93,7 +89,7 @@ paths:
         - $ref: '#/components/parameters/PriceAlertParam'
       responses:
         "200":
-          description: "Return Price Alert"
+          description: "Price alert object"
           content:
             application/json:
               schema:
@@ -108,7 +104,6 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
     delete:
-      summary: "Delete Price Alert"
       operationId: "deletePriceAlert"
       tags:
         - "PriceAlert"
@@ -116,7 +111,7 @@ paths:
         - $ref: '#/components/parameters/PriceAlertParam'
       responses:
         "204":
-          description: "Delete Price Alert"
+          description: "Price alert successfully deleted"
         "400":
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
@@ -126,7 +121,6 @@ paths:
 
   /api/price-alerts/{priceAlertId}/activate:
     patch:
-      summary: "Activate Price Alert"
       operationId: "activatePriceAlert"
       tags:
         - "PriceAlert"
@@ -134,7 +128,7 @@ paths:
         - $ref: '#/components/parameters/PriceAlertParam'
       responses:
         "204":
-          description: "Activate Price Alert"
+          description: "Price alert successfully activated"
         "400":
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
@@ -146,7 +140,6 @@ paths:
 
   /api/price-alerts/{priceAlertId}/deactivate:
     patch:
-      summary: "Deactivate Price Alert"
       operationId: "deactivatePriceAlert"
       tags:
         - "PriceAlert"
@@ -154,7 +147,7 @@ paths:
         - $ref: '#/components/parameters/PriceAlertParam'
       responses:
         "204":
-          description: "Deactivate Price Alert"
+          description: "Price alert successfully deactivated"
         "400":
           $ref: 'common-components.yaml#/components/responses/BadRequest'
         "401":
@@ -203,18 +196,22 @@ components:
 
     TargetPricePayload:
       type: object
+      description: "Condition payload for absolute price threshold alerts."
       required:
         - conditionType
         - targetPrice
       properties:
         conditionType:
           type: string
+          description: "Condition type (e.g. GREATER_THAN or LESS_THAN)"
         targetPrice:
           type: string
           format: double
+          description: "Target price threshold (e.g. 50000.00)"
 
     PercentagePayload:
       type: object
+      description: "Condition payload for percentage change alerts."
       required:
         - conditionType
         - initialPrice
@@ -222,15 +219,19 @@ components:
       properties:
         conditionType:
           type: string
+          description: "Condition type (e.g. PERCENT_UP or PERCENT_DOWN)"
         initialPrice:
           type: string
           format: double
+          description: "Reference price for percentage calculation (e.g. 42000.00)"
         percentageChange:
           type: string
           format: double
+          description: "Percentage change threshold (e.g. 5.0 for 5%)"
 
     TrailingPayload:
       type: object
+      description: "Condition payload for trailing stop or trailing rise alerts."
       required:
         - conditionType
         - trailingPercentage
@@ -238,51 +239,67 @@ components:
       properties:
         conditionType:
           type: string
+          description: "Condition type (e.g. TRAILING_DROP or TRAILING_RISE)"
         trailingPercentage:
           type: string
           format: double
+          description: "Trailing percentage distance (e.g. 2.0 for 2%)"
         referencePrice:
           type: string
           format: double
+          description: "Reference price for trailing calculation (e.g. 43000.00)"
 
     PriceAlert:
       type: object
+      description: "Price alert configuration and current state."
       properties:
         id:
           type: string
           format: uuid
+          description: "Unique identifier (e.g. 550e8400-e29b-41d4-a716-446655440000)"
         userId:
           type: string
           format: uuid
+          description: "Owner user identifier (e.g. 660e8400-e29b-41d4-a716-446655440001)"
         exchange:
           $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair (e.g. BTC_USD)"
         cooldownMinutes:
           type: integer
           minimum: 1
+          description: "Cooldown period between notifications in minutes (e.g. 60)"
         deliveryMethods:
           type: array
           items:
             $ref: '#/components/schemas/DeliveryMethod'
           minItems: 1
+          description: "Notification delivery methods (e.g. ['EMAIL'])"
         active:
           type: boolean
           default: true
+          description: "Whether the alert is currently active (e.g. true)"
         conditionPayload:
           $ref: '#/components/schemas/ConditionPayload'
+          description: "Condition-specific payload defining the alert trigger logic"
         expiresAt:
           type: string
           format: date-time
+          description: "Expiration timestamp (e.g. 2024-12-31T23:59:59Z)"
         createdAt:
           type: string
           format: date-time
+          description: "Creation timestamp (e.g. 2024-01-15T10:00:00Z)"
         updatedAt:
           type: string
           format: date-time
+          description: "Last update timestamp (e.g. 2024-01-15T14:30:00Z)"
 
     PriceAlertRequest:
       type: object
+      description: "Request payload for creating a new price alert."
       required:
         - exchange
         - tradingPair
@@ -291,24 +308,31 @@ components:
       properties:
         exchange:
           $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair (e.g. BTC_USD)"
         cooldownMinutes:
           type: integer
           minimum: 1
+          description: "Cooldown period between notifications in minutes (e.g. 60)"
         deliveryMethods:
           type: array
           items:
             $ref: '#/components/schemas/DeliveryMethod'
           minItems: 1
+          description: "Notification delivery methods (e.g. ['EMAIL'])"
         conditionPayload:
           $ref: '#/components/schemas/ConditionPayload'
+          description: "Condition-specific payload defining the alert trigger logic"
         expiresAt:
           type: string
           format: date-time
+          description: "Expiration timestamp (e.g. 2024-12-31T23:59:59Z)"
 
     PriceAlertUpdateRequest:
       type: object
+      description: "Request payload for updating an existing price alert."
       required:
         - deliveryMethods
         - conditionPayload
@@ -316,16 +340,20 @@ components:
         cooldownMinutes:
           type: integer
           minimum: 1
+          description: "Cooldown period between notifications in minutes (e.g. 60)"
         deliveryMethods:
           type: array
           items:
             $ref: '#/components/schemas/DeliveryMethod'
           minItems: 1
+          description: "Notification delivery methods (e.g. ['EMAIL'])"
         conditionPayload:
           $ref: '#/components/schemas/ConditionPayload'
+          description: "Condition-specific payload defining the alert trigger logic"
         expiresAt:
           type: string
           format: date-time
+          description: "Expiration timestamp (e.g. 2024-12-31T23:59:59Z)"
 
   parameters:
     PriceAlertParam:

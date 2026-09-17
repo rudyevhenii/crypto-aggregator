@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Crypto Aggregator API
-  description: Crypto market data aggregation API with authentication, historical prices, live streams, and workspace management.
+  title: Crypto Aggregator Chart Widget API
+  description: Creates, updates, retrieves, and manages chart widgets within user workspaces for visualizing cryptocurrency price data.
   version: 1.0.0
 servers:
   - url: 'http://localhost:8080'
@@ -12,7 +12,6 @@ security:
 paths:
   /api/workspaces/{workspaceId}/widgets:
     post:
-      summary: "Create a chart widget in a workspace"
       operationId: "createChartWidget"
       tags:
         - "ChartWidget"
@@ -41,7 +40,6 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
     get:
-      summary: "Get all chart widgets for a workspace"
       operationId: "getAllByWorkspaceId"
       tags:
         - "ChartWidget"
@@ -66,7 +64,6 @@ paths:
 
   /api/workspaces/{workspaceId}/widgets/{chartWidgetId}:
     patch:
-      summary: "Update a specific chart widget"
       operationId: "updateChartWidget"
       tags:
         - "ChartWidget"
@@ -95,7 +92,6 @@ paths:
           $ref: 'common-components.yaml#/components/responses/InternalServerError'
 
     delete:
-      summary: "Delete a specific chart widget"
       operationId: "deleteChartWidget"
       tags:
         - "ChartWidget"
@@ -114,7 +110,6 @@ paths:
 
   /api/workspaces/{workspaceId}/widgets/positions:
     put:
-      summary: "Update chart widget positions"
       operationId: "updateChartWidgetPositions"
       tags:
         - "ChartWidget"
@@ -148,7 +143,7 @@ components:
         exchangePairId:
           type: string
           format: uuid
-          description: "Exchange pair ID to chart"
+          description: "Exchange pair ID to chart (e.g. 550e8400-e29b-41d4-a716-446655440000)"
 
     ChartWidget:
       type: object
@@ -157,38 +152,30 @@ components:
         id:
           type: string
           format: uuid
-          description: "Unique identifier"
+          description: "Unique identifier (e.g. 660e8400-e29b-41d4-a716-446655440001)"
         chartInterval:
           $ref: 'common-components.yaml#/components/schemas/ChartInterval'
-          description: "Chart interval"
+          description: "Chart interval (e.g. ONE_HOUR)"
         exchangePairId:
           type: string
           format: uuid
-          description: "Exchange pair ID"
+          description: "Exchange pair ID (e.g. 550e8400-e29b-41d4-a716-446655440000)"
         workspaceId:
           type: string
           format: uuid
-          description: "Workspace ID"
+          description: "Workspace ID (e.g. 550e8400-e29b-41d4-a716-446655440000)"
         position:
           type: integer
           format: int32
-          description: "Widget position in workspace"
+          description: "Widget position in workspace (e.g. 1)"
         createdAt:
           type: string
           format: date-time
-          description: "Creation timestamp"
+          description: "Creation timestamp (e.g. 2024-01-15T10:05:00Z)"
         updatedAt:
           type: string
           format: date-time
-          description: "Last update timestamp"
-      example:
-        id: "660e8400-e29b-41d4-a716-446655440001"
-        chartInterval: "ONE_HOUR"
-        exchangePairId: "550e8400-e29b-41d4-a716-446655440000"
-        workspaceId: "550e8400-e29b-41d4-a716-446655440000"
-        position: 1
-        createdAt: "2024-01-15T10:05:00Z"
-        updatedAt: "2024-01-15T14:30:00Z"
+          description: "Last update timestamp (e.g. 2024-01-15T14:30:00Z)"
 
     UpdateChartWidgetRequest:
       type: object
@@ -198,7 +185,7 @@ components:
       properties:
         chartInterval:
           $ref: 'common-components.yaml#/components/schemas/ChartInterval'
-          description: "New chart interval"
+          description: "New chart interval (e.g. ONE_DAY)"
 
     UpdateChartWidgetPositionsRequest:
       type: object
@@ -210,11 +197,11 @@ components:
         chartWidgetId:
           type: string
           format: uuid
-          description: "Widget ID to update"
+          description: "Widget ID to update (e.g. 660e8400-e29b-41d4-a716-446655440001)"
         position:
           type: integer
           minimum: 1
-          description: "New position value"
+          description: "New position value (e.g. 2)"
 
   parameters:
     ChartWidgetParam:
