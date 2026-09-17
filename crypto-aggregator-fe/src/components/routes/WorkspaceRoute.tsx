@@ -166,7 +166,7 @@ function WorkspaceRouteInner() {
         onConfirm={handleCreateWorkspace}
       />
 
-      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={handleAddWidget} isMaxWidgetsReached={isMaxWidgetsReached}/>
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onAdd={(pair) => handleAddWidget(pair)} isMaxWidgetsReached={isMaxWidgetsReached}/>
     </div>
   );
 }

@@ -24,8 +24,6 @@ export default function ChartRoute() {
   const [livePrice, setLivePrice] = useState<LivePrice | null>(null);
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [exchangeHealth, setExchangeHealth] = useState<ExchangeHealthDto | null>(null);
-  const [metadata, setMetadata] = useState<{ exchange: Exchange; supportedPairs: TradingPair[]; supportedIntervals: ChartInterval[] }[]>([]);
-  const [availablePairs, setAvailablePairs] = useState<TradingPair[]>([]);
   const [availableIntervals, setAvailableIntervals] = useState<ChartInterval[]>([]);
 
   const [chartHandle, setChartHandle] = useState<ChartHandle | null>(null);
@@ -71,10 +69,8 @@ export default function ChartRoute() {
     if (!exchange || !symbol) return;
 
     api.getMetadata().then(data => {
-      setMetadata(data);
       const exData = data.find(m => m.exchange === exchange);
       if (exData) {
-        setAvailablePairs(exData.supportedPairs);
         setAvailableIntervals(exData.supportedIntervals);
         if (!exData.supportedPairs.includes(symbol)) {
           const fallback = exData.supportedPairs[0] || 'BTC_USD';
@@ -187,8 +183,11 @@ export default function ChartRoute() {
       <TopBar
         exchange={exchange}
         pair={symbol}
-        livePrice={livePrice}
-        health={exchangeHealth}
+        intervals={availableIntervals}
+        selectedInterval={effectiveInterval}
+        onIntervalChange={handleIntervalChange}
+        onExchangeChange={handleExchangeChange}
+        onPairChange={handlePairChange}
         onBack={() => navigate('/app/overview')}
       />
 
@@ -201,20 +200,18 @@ export default function ChartRoute() {
             onLoadMore={handleLoadMoreHistory}
             exchange={exchange}
             tradingPair={symbol}
+            livePrice={livePrice ? {
+              lastPrice: livePrice.lastPrice,
+              priceChangePercent24h: livePrice.priceChangePercent24h,
+              highPrice24h: livePrice.highPrice24h,
+              lowPrice24h: livePrice.lowPrice24h,
+              volume24h: livePrice.volume24h,
+            } : null}
+            health={exchangeHealth}
           />
         </main>
 
-        <Sidebar
-          exchanges={metadata.map(m => m.exchange)}
-          pairs={availablePairs}
-          intervals={availableIntervals}
-          selectedExchange={exchange}
-          selectedPair={symbol}
-          selectedInterval={effectiveInterval}
-          onExchangeChange={handleExchangeChange}
-          onPairChange={handlePairChange}
-          onIntervalChange={handleIntervalChange}
-        />
+        <Sidebar />
       </div>
     </div>
   );

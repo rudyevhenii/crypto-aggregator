@@ -32,7 +32,7 @@ type WorkspaceContextType = {
   openDeleteModal: () => void;
   closeDeleteModal: () => void;
   confirmDelete: () => Promise<void>;
-  handleAddWidget: (exchangePairId: string) => Promise<void>;
+  handleAddWidget: (pair: { exchange: string; tradingPair: string }) => Promise<void>;
   handleDeleteWidget: (widgetId: string) => Promise<void>;
   handleUpdateInterval: (widgetId: string, interval: ChartInterval) => Promise<void>;
   handleDragEnd: (event: DragEndEvent) => Promise<void>;
@@ -182,10 +182,10 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
     await loadWorkspaces();
   }, [activeWsId, loadWorkspaces]);
 
-  const handleAddWidget = useCallback(async (exchangePairId: string) => {
+  const handleAddWidget = useCallback(async (pair: { exchange: string; tradingPair: string }) => {
     if (!activeWsId) return;
     if (widgets.length >= MAX_WIDGETS) return;
-    const newWidget = await api.addChartWidget(activeWsId, exchangePairId);
+    const newWidget = await api.addChartWidget(activeWsId, `${pair.exchange}:${pair.tradingPair}`);
     setWidgets(prev => [...prev, newWidget]);
   }, [activeWsId, widgets.length]);
 

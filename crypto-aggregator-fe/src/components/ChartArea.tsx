@@ -1,6 +1,7 @@
-import {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useCallback} from 'react';
+import {useEffect, useImperativeHandle, useMemo, useRef, useState, useCallback, forwardRef} from 'react';
 import {CandlestickData, CandlestickSeries, createChart, IChartApi, ISeriesApi, UTCTimestamp} from 'lightweight-charts';
 import {ChartInterval, HistoricalPrice, intervalToSeconds, LivePrice} from '../api';
+import {formatPrice, formatVolume} from '../utils/format';
 
 const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -87,6 +88,14 @@ type Props = {
   isWidget?: boolean;
   exchange: string;
   tradingPair: string;
+  livePrice: {
+    lastPrice: number;
+    priceChangePercent24h: number;
+    highPrice24h: number;
+    lowPrice24h: number;
+    volume24h: number;
+  } | null;
+  health: { connectionStatus: string } | null;
 };
 
 const getPrecisionParams = (price: number) => {
@@ -97,7 +106,16 @@ const getPrecisionParams = (price: number) => {
   return {precision: 6, minMove: 0.000001};
 };
 
-const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadMore, isWidget = false, exchange, tradingPair}, ref) => {
+const ChartArea = forwardRef<ChartHandle, Props>(({
+                                                      interval,
+                                                      historical,
+                                                      onLoadMore,
+                                                      isWidget = false,
+                                                      exchange,
+                                                      tradingPair,
+                                                      livePrice,
+                                                      health,
+                                                    }, ref) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -111,6 +129,14 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
   const onLoadMoreRef = useRef(onLoadMore);
   const parsedCandlesRef = useRef<{candles: CandlestickData[], oldestTime: string | null} | null>(null);
 
+  const [hoverData, setHoverData] = useState<{
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  } | null>(null);
+
   useEffect(() => {
     onLoadMoreRef.current = onLoadMore;
   }, [onLoadMore]);
@@ -122,6 +148,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
     currentCandleRef.current = null;
     oldestTimeRef.current = null;
     isFetchingRef.current = false;
+    setHoverData(null);
 
     if (seriesRef.current) {
       seriesRef.current.setData([]);
@@ -300,6 +327,26 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
         }
       });
 
+      chartRef.current.subscribeCrosshairMove((param) => {
+        if (!param || !param.time || !param.point || param.point.x < 0 || param.point.y < 0) {
+          setHoverData(null);
+          return;
+        }
+
+        const data = param.seriesData.get(seriesRef.current as ISeriesApi<'Candlestick'>);
+        if (data && 'open' in data && 'high' in data && 'low' in data && 'close' in data) {
+          setHoverData({
+            open: Number((data as CandlestickData).open),
+            high: Number((data as CandlestickData).high),
+            low: Number((data as CandlestickData).low),
+            close: Number((data as CandlestickData).close),
+            volume: livePrice?.volume24h ?? 0,
+          });
+        } else {
+          setHoverData(null);
+        }
+      });
+
       // Apply any existing data that arrived before the chart was ready
       const existing = parsedCandlesRef.current;
       if (existing && existing.candles.length > 0) {
@@ -355,15 +402,65 @@ const ChartArea = forwardRef<ChartHandle, Props>(({interval, historical, onLoadM
     };
   }, [isWidget]);
 
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'CONNECTED':
+        return 'bg-[#0ecb81] shadow-[0_0_6px_rgba(14,203,129,0.4)]';
+      case 'RECONNECTING':
+        return 'bg-[#fcd535] shadow-[0_0_6px_rgba(252,213,53,0.4)] animate-pulse';
+      case 'ERROR':
+        return 'bg-[#f6465d] shadow-[0_0_6px_rgba(246,70,93,0.4)]';
+      case 'DISCONNECTED':
+      default:
+        return 'bg-[#848e9c]';
+    }
+  };
+
+  const isPositive = (livePrice?.priceChangePercent24h ?? 0) >= 0;
+  const changeColor = isPositive ? 'text-[#0ecb81]' : 'text-[#f6465d]';
+  const changeSign = isPositive ? '+' : '';
+
+  const display = hoverData ?? {
+    open: livePrice?.lastPrice ?? 0,
+    high: livePrice?.highPrice24h ?? 0,
+    low: livePrice?.lowPrice24h ?? 0,
+    close: livePrice?.lastPrice ?? 0,
+    volume: livePrice?.volume24h ?? 0,
+  };
+
   return (
     <div className={`w-full h-full ${isWidget ? '' : 'pt-2 px-2 pb-2 bg-[#0b0e14]'}`}>
       <div
         className={`w-full h-full ${isWidget ? '' : 'bg-[#181a20] rounded-sm border border-[#2b3139]'} relative flex flex-col`}>
         {!isWidget && (
           <div className="flex items-center px-3 h-8 border-b border-[#2b3139] text-sm flex-shrink-0">
-            <div className="text-[#eaecef] font-medium border-b-2 border-[#fcd535] py-1.5 mr-4 text-xs">Chart</div>
+            <div className="flex items-center gap-3 text-[11px] text-zinc-300 tabular-nums">
+              <span className="text-zinc-500">O</span>
+              <span>{formatPrice(display.open)}</span>
+
+              <span className="text-zinc-500">H</span>
+              <span>{formatPrice(display.high)}</span>
+
+              <span className="text-zinc-500">L</span>
+              <span>{formatPrice(display.low)}</span>
+
+              <span className="text-zinc-500">C</span>
+              <span>{formatPrice(display.close)}</span>
+
+              <span className="text-zinc-500">V</span>
+              <span>{formatVolume(livePrice?.volume24h ?? 0)}</span>
+
+              <span className={`ml-1 font-semibold ${changeColor}`}>
+                {livePrice?.priceChangePercent24h != null ? `${changeSign}${livePrice.priceChangePercent24h.toFixed(2)}%` : '—'}
+              </span>
+
+              <span className="ml-2 flex items-center gap-1 text-zinc-400">
+                <span className={`w-1.5 h-1.5 rounded-full ${getStatusColor(health?.connectionStatus)}`}/>
+              </span>
+            </div>
           </div>
         )}
+
         <div ref={containerRef} className="flex-1 w-full"/>
       </div>
     </div>
