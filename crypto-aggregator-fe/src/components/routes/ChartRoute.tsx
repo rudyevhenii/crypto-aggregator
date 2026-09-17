@@ -1,9 +1,10 @@
 import {useEffect, useState} from 'react';
 import {useParams, useNavigate, useSearchParams} from 'react-router-dom';
-import {api, Exchange, ChartInterval, LivePrice, ExchangeHealthDto, HistoricalPrice, TradingPair} from '../../api';
+import {api, Exchange, ChartInterval, LivePrice, ExchangeHealthDto, HistoricalPrice, TradingPair, ExchangePair} from '../../api';
 import TopBar from '../TopBar';
 import Sidebar from '../Sidebar';
 import ChartArea from '../ChartArea';
+import SearchModal from '../SearchModal';
 import {ChartHandle} from '../ChartArea';
 
 const CHART_INTERVALS: ChartInterval[] = [
@@ -27,6 +28,7 @@ export default function ChartRoute() {
   const [availableIntervals, setAvailableIntervals] = useState<ChartInterval[]>([]);
 
   const [chartHandle, setChartHandle] = useState<ChartHandle | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const urlInterval = searchParams.get('interval');
   const isValidChartInterval = (val: string | null): val is ChartInterval => {
@@ -174,6 +176,12 @@ export default function ChartRoute() {
     navigate(`/app/chart/${exchange}/${pair}${query}`);
   };
 
+  const handleSelectPair = (pair: ExchangePair) => {
+    handleExchangeChange(pair.exchange);
+    handlePairChange(pair.tradingPair);
+    setIsSearchOpen(false);
+  };
+
   if (!exchange || !symbol) {
     return null;
   }
@@ -186,9 +194,20 @@ export default function ChartRoute() {
         intervals={availableIntervals}
         selectedInterval={effectiveInterval}
         onIntervalChange={handleIntervalChange}
-        onExchangeChange={handleExchangeChange}
-        onPairChange={handlePairChange}
+        onSearchOpen={() => setIsSearchOpen(true)}
         onBack={() => navigate('/app/overview')}
+      />
+
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onAdd={handleSelectPair}
+      />
+
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onAdd={handleSelectPair}
       />
 
       <div className="flex flex-1 overflow-hidden gap-0.5">

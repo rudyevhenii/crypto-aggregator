@@ -1,9 +1,7 @@
-import {useState} from 'react';
 import {ArrowLeft} from 'lucide-react';
-import SearchModal from './SearchModal';
 import {Select} from './ui';
 import {formatInterval} from '../utils/format';
-import {ChartInterval, Exchange, TradingPair, ExchangePair} from '../api';
+import {ChartInterval, Exchange, TradingPair} from '../api';
 
 type Props = {
   exchange: Exchange;
@@ -11,8 +9,7 @@ type Props = {
   intervals: ChartInterval[];
   selectedInterval: ChartInterval;
   onIntervalChange: (interval: ChartInterval) => void;
-  onExchangeChange: (exchange: Exchange) => void;
-  onPairChange: (pair: TradingPair) => void;
+  onSearchOpen?: () => void;
   onBack?: () => void;
 };
 
@@ -22,22 +19,13 @@ export default function TopBar({
                                   intervals,
                                   selectedInterval,
                                   onIntervalChange,
-                                  onExchangeChange,
-                                  onPairChange,
+                                  onSearchOpen,
                                   onBack,
                                 }: Props) {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
   const displayPair = pair.replace('_', '/');
 
-  const handleSelectPair = (pair: ExchangePair) => {
-    onExchangeChange(pair.exchange);
-    onPairChange(pair.tradingPair);
-    setIsSearchOpen(false);
-  };
-
   return (
-    <div className="flex items-center h-10 px-3 border-b border-white/5 glass-surface shrink-0 relative z-30 gap-2">
+    <div className="flex items-center h-12 px-3 border-b border-white/5 glass-surface shrink-0 relative z-30 gap-2">
       {onBack && (
         <button
           onClick={onBack}
@@ -50,7 +38,7 @@ export default function TopBar({
 
       {/* Clickable Pair + Exchange */}
       <button
-        onClick={() => setIsSearchOpen(true)}
+        onClick={onSearchOpen}
         className="flex items-center gap-2 hover:bg-white/5 rounded-md px-2 py-1 transition-colors"
         title="Change market"
       >
@@ -70,12 +58,6 @@ export default function TopBar({
           hideArrow
         />
       </div>
-
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onAdd={handleSelectPair}
-      />
     </div>
   );
 }

@@ -204,7 +204,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({
 
     let oldestTimeStr: string | null = null;
     let minTime = Infinity;
-    const uniqueCandles = new Map<number, CandlestickData>();
+    const uniqueCandles = new Map<number, CandlestickData & {volume?: number}>();
 
     historical
       .filter((h) => h.openTime != null && h.open != null && h.high != null && h.low != null && h.close != null)
@@ -223,6 +223,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({
           high: Number(h.high),
           low: Number(h.low),
           close: Number(h.close),
+          volume: h.volume != null ? Number(h.volume) : undefined,
         });
       });
 
@@ -335,12 +336,16 @@ const ChartArea = forwardRef<ChartHandle, Props>(({
 
         const data = param.seriesData.get(seriesRef.current as ISeriesApi<'Candlestick'>);
         if (data && 'open' in data && 'high' in data && 'low' in data && 'close' in data) {
+          const candleData = data as CandlestickData;
+          const candleTime = candleData.time as number;
+          const storedCandle = parsedCandlesRef.current?.candles.find(c => c.time === candleTime);
+          const candleVolume = storedCandle && 'volume' in storedCandle ? (storedCandle as CandlestickData & {volume?: number}).volume : undefined;
           setHoverData({
-            open: Number((data as CandlestickData).open),
-            high: Number((data as CandlestickData).high),
-            low: Number((data as CandlestickData).low),
-            close: Number((data as CandlestickData).close),
-            volume: livePrice?.volume24h ?? 0,
+            open: Number(candleData.open),
+            high: Number(candleData.high),
+            low: Number(candleData.low),
+            close: Number(candleData.close),
+            volume: candleVolume != null ? Number(candleVolume) : (livePrice?.volume24h ?? 0),
           });
         } else {
           setHoverData(null);
@@ -428,6 +433,12 @@ const ChartArea = forwardRef<ChartHandle, Props>(({
     volume: livePrice?.volume24h ?? 0,
   };
 
+  const candleColor = hoverData
+    ? hoverData.close >= hoverData.open
+      ? 'text-[#0ecb81]'
+      : 'text-[#f6465d]'
+    : changeColor;
+
   return (
     <div className={`w-full h-full ${isWidget ? '' : 'pt-2 px-2 pb-2 bg-[#0b0e14]'}`}>
       <div
@@ -436,19 +447,19 @@ const ChartArea = forwardRef<ChartHandle, Props>(({
           <div className="flex items-center px-3 h-8 border-b border-[#2b3139] text-sm flex-shrink-0">
             <div className="flex items-center gap-3 text-[11px] text-zinc-300 tabular-nums">
               <span className="text-zinc-500">O</span>
-              <span>{formatPrice(display.open)}</span>
+              <span className={candleColor}>{formatPrice(display.open)}</span>
 
               <span className="text-zinc-500">H</span>
-              <span>{formatPrice(display.high)}</span>
+              <span className={candleColor}>{formatPrice(display.high)}</span>
 
               <span className="text-zinc-500">L</span>
-              <span>{formatPrice(display.low)}</span>
+              <span className={candleColor}>{formatPrice(display.low)}</span>
 
               <span className="text-zinc-500">C</span>
-              <span>{formatPrice(display.close)}</span>
+              <span className={candleColor}>{formatPrice(display.close)}</span>
 
               <span className="text-zinc-500">V</span>
-              <span>{formatVolume(livePrice?.volume24h ?? 0)}</span>
+              <span className={candleColor}>{formatVolume(display.volume)}</span>
 
               <span className={`ml-1 font-semibold ${changeColor}`}>
                 {livePrice?.priceChangePercent24h != null ? `${changeSign}${livePrice.priceChangePercent24h.toFixed(2)}%` : '—'}
