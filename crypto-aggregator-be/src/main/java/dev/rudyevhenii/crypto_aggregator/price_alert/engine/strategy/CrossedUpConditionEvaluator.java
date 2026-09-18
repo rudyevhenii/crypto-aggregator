@@ -3,7 +3,7 @@ package dev.rudyevhenii.crypto_aggregator.price_alert.engine.strategy;
 import dev.rudyevhenii.crypto_aggregator.price_alert.ConditionType;
 import dev.rudyevhenii.crypto_aggregator.price_alert.domain.PriceAlert;
 import dev.rudyevhenii.crypto_aggregator.price_alert.engine.PriceAlertStateStorageService;
-import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.TargetPricePayload;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.condition_payload.TargetPricePayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -2,7 +2,7 @@ package dev.rudyevhenii.crypto_aggregator.price_alert.engine.strategy;
 
 import dev.rudyevhenii.crypto_aggregator.price_alert.ConditionType;
 import dev.rudyevhenii.crypto_aggregator.price_alert.domain.PriceAlert;
-import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.PercentagePayload;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.condition_payload.PercentagePayload;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

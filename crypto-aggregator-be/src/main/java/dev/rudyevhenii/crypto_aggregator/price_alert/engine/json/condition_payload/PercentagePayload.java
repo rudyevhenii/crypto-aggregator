@@ -1,4 +1,4 @@
-package dev.rudyevhenii.crypto_aggregator.price_alert.engine.json;
+package dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.condition_payload;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.rudyevhenii.crypto_aggregator.price_alert.ConditionType;
@@ -14,8 +14,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TrailingPayload implements ConditionPayload {
+public class PercentagePayload implements ConditionPayload {
     private ConditionType conditionType;
-    private BigDecimal trailingPercentage;
-    private BigDecimal referencePrice;
+    private BigDecimal initialPrice;
+    private BigDecimal percentageChange;
 }

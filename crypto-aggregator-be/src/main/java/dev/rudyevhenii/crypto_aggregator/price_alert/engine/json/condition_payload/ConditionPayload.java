@@ -1,4 +1,4 @@
-package dev.rudyevhenii.crypto_aggregator.price_alert.engine.json;
+package dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.condition_payload;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
