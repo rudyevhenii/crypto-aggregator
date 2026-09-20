@@ -15,10 +15,10 @@ public class PriceAlertCooldownService {
 
     private final RedisTemplate<String, PriceAlert> redisTemplate;
 
-    public void setPriceAlertOnCooldown(PriceAlert priceAlert) {
+    public void setPriceAlertOnCooldown(PriceAlert priceAlert, int cooldownMinutes) {
         redisTemplate.opsForValue().setIfAbsent(
                 PRICE_ALERT_COOLDOWN_KEY + priceAlert.getId(), priceAlert,
-                Duration.ofMinutes(priceAlert.getCooldownMinutes())
+                Duration.ofMinutes(cooldownMinutes)
         );
     }
 

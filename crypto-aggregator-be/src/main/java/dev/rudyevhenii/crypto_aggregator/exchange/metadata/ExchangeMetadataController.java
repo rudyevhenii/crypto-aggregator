@@ -20,6 +20,7 @@ public class ExchangeMetadataController implements ExchangeMetadataApi {
     private final ExchangeMetadataService service;
     private final ExchangeMetadataMapper mapper;
 
+    // TODO: delete unused endpoints
     @Override
     public ResponseEntity<List<ExchangeRqDto>> getSupportedExchanges() {
         return ResponseEntity.ok(service.getSupportedExchanges().stream()

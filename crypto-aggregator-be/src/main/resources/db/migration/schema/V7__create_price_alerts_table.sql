@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS "priceAlerts"
     "userId"           UUID                        NOT NULL,
     "exchange"         VARCHAR(255)                NOT NULL,
     "tradingPair"      VARCHAR(255)                NOT NULL,
-    "cooldownMinutes"  INTEGER,
+    "triggerPolicy"    JSONB                       NOT NULL,
     "deliveryMethods"  TEXT[]                      NOT NULL,
     "active"           BOOLEAN                     NOT NULL,
     "expiresAt"        TIMESTAMP WITHOUT TIME ZONE,

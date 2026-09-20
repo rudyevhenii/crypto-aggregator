@@ -171,10 +171,50 @@ components:
         - TRAILING_DROP
         - TRAILING_RISE
 
+    TriggerType:
+      type: string
+      enum:
+        - ONE_TIME
+        - RECURRING
+
     DeliveryMethod:
       type: string
       enum:
         - EMAIL
+
+    TriggerPolicy:
+      type: object
+      discriminator:
+        propertyName: triggerType
+        mapping:
+          ONE_TIME: '#/components/schemas/OneTimeTriggerPolicy'
+          RECURRING: '#/components/schemas/RecurringTriggerPolicy'
+      properties:
+        triggerType:
+          $ref: '#/components/schemas/TriggerType'
+      oneOf:
+        - $ref: '#/components/schemas/OneTimeTriggerPolicy'
+        - $ref: '#/components/schemas/RecurringTriggerPolicy'
+
+    OneTimeTriggerPolicy:
+      type: object
+      required:
+        - triggerType
+      properties:
+        triggerType:
+          $ref: '#/components/schemas/TriggerType'
+
+    RecurringTriggerPolicy:
+      type: object
+      required:
+        - triggerType
+        - cooldownMinutes
+      properties:
+        triggerType:
+          $ref: '#/components/schemas/TriggerType'
+        cooldownMinutes:
+          type: integer
+          minimum: 1
 
     ConditionPayload:
       type: object
@@ -189,6 +229,9 @@ components:
           PERCENT_DOWN: '#/components/schemas/PercentagePayload'
           TRAILING_DROP: '#/components/schemas/TrailingPayload'
           TRAILING_RISE: '#/components/schemas/TrailingPayload'
+      properties:
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
       oneOf:
         - $ref: '#/components/schemas/TargetPricePayload'
         - $ref: '#/components/schemas/PercentagePayload'
@@ -202,11 +245,9 @@ components:
         - targetPrice
       properties:
         conditionType:
-          type: string
-          description: "Condition type (e.g. GREATER_THAN or LESS_THAN)"
+          $ref: '#/components/schemas/ConditionType'
         targetPrice:
-          type: string
-          format: double
+          type: number
           description: "Target price threshold (e.g. 50000.00)"
 
     PercentagePayload:
@@ -218,15 +259,12 @@ components:
         - percentageChange
       properties:
         conditionType:
-          type: string
-          description: "Condition type (e.g. PERCENT_UP or PERCENT_DOWN)"
+          $ref: '#/components/schemas/ConditionType'
         initialPrice:
-          type: string
-          format: double
+          type: number
           description: "Reference price for percentage calculation (e.g. 42000.00)"
         percentageChange:
-          type: string
-          format: double
+          type: number
           description: "Percentage change threshold (e.g. 5.0 for 5%)"
 
     TrailingPayload:
@@ -238,15 +276,12 @@ components:
         - referencePrice
       properties:
         conditionType:
-          type: string
-          description: "Condition type (e.g. TRAILING_DROP or TRAILING_RISE)"
+          $ref: '#/components/schemas/ConditionType'
         trailingPercentage:
-          type: string
-          format: double
+          type: number
           description: "Trailing percentage distance (e.g. 2.0 for 2%)"
         referencePrice:
-          type: string
-          format: double
+          type: number
           description: "Reference price for trailing calculation (e.g. 43000.00)"
 
     PriceAlert:
@@ -267,15 +302,12 @@ components:
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
           description: "Trading pair (e.g. BTC_USD)"
-        cooldownMinutes:
-          type: integer
-          minimum: 1
-          description: "Cooldown period between notifications in minutes (e.g. 60)"
+        triggerPolicy:
+          $ref: '#/components/schemas/TriggerPolicy'
         deliveryMethods:
           type: array
           items:
             $ref: '#/components/schemas/DeliveryMethod'
-          minItems: 1
           description: "Notification delivery methods (e.g. ['EMAIL'])"
         active:
           type: boolean
@@ -303,6 +335,7 @@ components:
       required:
         - exchange
         - tradingPair
+        - triggerPolicy
         - deliveryMethods
         - conditionPayload
       properties:
@@ -312,10 +345,8 @@ components:
         tradingPair:
           $ref: 'common-components.yaml#/components/schemas/TradingPair'
           description: "Trading pair (e.g. BTC_USD)"
-        cooldownMinutes:
-          type: integer
-          minimum: 1
-          description: "Cooldown period between notifications in minutes (e.g. 60)"
+        triggerPolicy:
+          $ref: '#/components/schemas/TriggerPolicy'
         deliveryMethods:
           type: array
           items:
@@ -334,13 +365,12 @@ components:
       type: object
       description: "Request payload for updating an existing price alert."
       required:
+        - triggerPolicy
         - deliveryMethods
         - conditionPayload
       properties:
-        cooldownMinutes:
-          type: integer
-          minimum: 1
-          description: "Cooldown period between notifications in minutes (e.g. 60)"
+        triggerPolicy:
+          $ref: '#/components/schemas/TriggerPolicy'
         deliveryMethods:
           type: array
           items:

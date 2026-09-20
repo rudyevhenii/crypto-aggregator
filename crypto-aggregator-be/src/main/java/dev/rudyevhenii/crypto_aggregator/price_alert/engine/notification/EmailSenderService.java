@@ -1,6 +1,7 @@
 package dev.rudyevhenii.crypto_aggregator.price_alert.engine.notification;
 
 import dev.rudyevhenii.crypto_aggregator.price_alert.domain.PriceAlert;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.trigger_policy.RecurringTriggerPolicy;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,10 @@ public class EmailSenderService {
     public void sendMessage(String to, PriceAlert priceAlert, BigDecimal livePrice) {
         MimeMessage message = javaMailSender.createMimeMessage();
         Context context = new Context();
+        int cooldownMinutes = ((RecurringTriggerPolicy) priceAlert.getTriggerPolicy()).getCooldownMinutes();
 
         context.setVariable("alert", priceAlert);
+        context.setVariable("cooldownMinutes", cooldownMinutes);
         context.setVariable("livePrice", livePrice);
 
         String htmlText = templateEngine.process("alert-email", context);

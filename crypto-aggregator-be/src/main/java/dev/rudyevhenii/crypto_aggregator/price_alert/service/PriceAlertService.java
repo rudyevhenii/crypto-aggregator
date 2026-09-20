@@ -17,6 +17,8 @@ public interface PriceAlertService {
 
     List<PriceAlert> getAllPriceAlerts();
 
+    List<PriceAlert> getAllActive();
+
     void activate(UUID id);
 
     void deactivate(UUID id);

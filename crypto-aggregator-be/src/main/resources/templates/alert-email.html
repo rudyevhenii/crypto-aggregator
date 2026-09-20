@@ -36,10 +36,10 @@
     </div>
 
     <!-- Dynamic Footer Note based on Recurrence -->
-    <p th:if="${alert.cooldownMinutes != null}" style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
-      The alert has been automatically restarted (cooldown: <span th:text="${alert.cooldownMinutes}">5</span> min).
+    <p th:if="${cooldownMinutes != null}" style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
+      The alert has been automatically restarted (cooldown: <span th:text="${cooldownMinutes}">5</span> min).
     </p>
-    <p th:if="${alert.cooldownMinutes == null}" style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
+    <p th:if="${cooldownMinutes == null}" style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
       The alert has been automatically deactivated (one-shot).
     </p>
   </div>

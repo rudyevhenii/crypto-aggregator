@@ -2,6 +2,8 @@ package dev.rudyevhenii.crypto_aggregator.price_alert.repository;
 
 import dev.rudyevhenii.crypto_aggregator.price_alert.PriceAlertEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +16,12 @@ public interface SpringDataPriceAlertRepository extends JpaRepository<PriceAlert
     List<PriceAlertEntity> findAllByUserId(UUID userId);
 
     List<PriceAlertEntity> findAllByActiveIsTrue();
+
+    @Modifying
+    @Query("UPDATE PriceAlertEntity p SET p.active = true WHERE p.id = :id")
+    void activatePriceAlert(UUID id);
+
+    @Modifying
+    @Query("UPDATE PriceAlertEntity p SET p.active = false WHERE p.id = :id")
+    void deactivatePriceAlert(UUID id);
 }

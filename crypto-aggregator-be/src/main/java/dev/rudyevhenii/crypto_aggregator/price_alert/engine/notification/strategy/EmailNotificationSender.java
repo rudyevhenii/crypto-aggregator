@@ -25,7 +25,9 @@ public class EmailNotificationSender implements NotificationSenderStrategy {
         String userEmail = userDetails.getUsername();
 
         emailSenderService.sendMessage(userEmail, priceAlert, livePrice);
-        log.info("Sending alert email to: {}", userEmail);
+        log.info("Sending [{}] alert email with met condition [{}] to: {}",
+                priceAlert.getTriggerPolicy().getTriggerType(),
+                priceAlert.getConditionPayload().getConditionType(), userEmail);
     }
 
     @Override

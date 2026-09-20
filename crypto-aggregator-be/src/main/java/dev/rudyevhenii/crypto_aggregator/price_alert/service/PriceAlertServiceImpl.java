@@ -6,7 +6,7 @@ import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import dev.rudyevhenii.crypto_aggregator.price_alert.domain.PriceAlert;
 import dev.rudyevhenii.crypto_aggregator.price_alert.dto.PriceAlertRequest;
 import dev.rudyevhenii.crypto_aggregator.price_alert.dto.PriceAlertUpdateRequest;
-import dev.rudyevhenii.crypto_aggregator.price_alert.engine.PriceAlertEngineService;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.PriceAlertInMemoryCacheManager;
 import dev.rudyevhenii.crypto_aggregator.price_alert.mapper.PriceAlertDomainMapper;
 import dev.rudyevhenii.crypto_aggregator.price_alert.repository.PriceAlertRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class PriceAlertServiceImpl implements PriceAlertService {
 
     private final PriceAlertRepository repository;
     private final PriceAlertDomainMapper mapper;
-    private final PriceAlertEngineService alertEngineService;
+    private final PriceAlertInMemoryCacheManager inMemoryCacheManager;
     private final UserContext userContext;
     private final GeneratorUtils generator;
 
@@ -34,7 +34,7 @@ public class PriceAlertServiceImpl implements PriceAlertService {
         PriceAlert priceAlert = toDomain(request);
 
         PriceAlert createdPriceAlert = repository.create(priceAlert);
-        alertEngineService.addAlertToCache(createdPriceAlert);
+        inMemoryCacheManager.addAlertToCache(createdPriceAlert);
         log.info("User [{}] created a new Price Alert", userContext.getUserId());
 
         return createdPriceAlert;
@@ -47,7 +47,7 @@ public class PriceAlertServiceImpl implements PriceAlertService {
         mapper.toUpdateDomain(request, priceAlert, generator);
 
         PriceAlert updatedPriceAlert = repository.update(priceAlert);
-        alertEngineService.updateAlertFromCache(updatedPriceAlert);
+        inMemoryCacheManager.updateAlertFromCache(updatedPriceAlert);
         log.info("User [{}] updated Price Alert [{}]", userContext.getUserId(), id);
 
         return updatedPriceAlert;
@@ -66,28 +66,27 @@ public class PriceAlertServiceImpl implements PriceAlertService {
     }
 
     @Override
+    @Transactional
+    public List<PriceAlert> getAllActive() {
+        return repository.findAllActive();
+    }
+
+    @Override
+    @Transactional
     public void activate(UUID id) {
-        PriceAlert priceAlert = getById(userContext.getUserId(), id);
-        priceAlert.setActive(true);
-        PriceAlert activatedPriceAlert = repository.update(priceAlert);
-        alertEngineService.updateAlertFromCache(activatedPriceAlert);
-        log.info("User [{}] activated Price Alert [{}]", userContext.getUserId(), id);
+        repository.activate(id);
     }
 
     @Override
     @Transactional
     public void deactivate(UUID id) {
-        PriceAlert priceAlert = getById(userContext.getUserId(), id);
-        priceAlert.setActive(false);
-        PriceAlert deactivatedPriceAlert = repository.update(priceAlert);
-        alertEngineService.updateAlertFromCache(deactivatedPriceAlert);
-        log.info("User [{}] deactivated Price Alert [{}]", userContext.getUserId(), id);
+        repository.deactivate(id);
     }
 
     @Override
     @Transactional
     public void deleteById(UUID id) {
-        alertEngineService.removeAlertFromCache(getById(userContext.getUserId(), id));
+        inMemoryCacheManager.removeAlertFromCache(getById(userContext.getUserId(), id));
         repository.deleteById(id);
         log.info("User [{}] deleted Price Alert [{}]", userContext.getUserId(), id);
     }
@@ -104,7 +103,7 @@ public class PriceAlertServiceImpl implements PriceAlertService {
                 .userId(userContext.getUserId())
                 .exchange(request.exchange())
                 .tradingPair(request.tradingPair())
-                .cooldownMinutes(request.cooldownMinutes())
+                .triggerPolicy(request.triggerPolicy())
                 .deliveryMethods(request.deliveryMethods())
                 .expiresAt(request.expiresAt())
                 .conditionPayload(request.conditionPayload())

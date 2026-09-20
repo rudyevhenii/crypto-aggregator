@@ -23,10 +23,10 @@ public class TrailingRiseConditionEvaluator implements ConditionEvaluatorStrateg
 
         if (allTimeLowPrice == null) {
             allTimeLowPrice = payload.getReferencePrice();
-            storageService.updateExtremumPriceAsync(priceAlert.getId(), allTimeLowPrice);
+            storageService.updateExtremumPrice(priceAlert.getId(), allTimeLowPrice);
         }
         if (allTimeLowPrice.compareTo(livePrice) > 0) {
-            storageService.updateExtremumPriceAsync(priceAlert.getId(), livePrice);
+            storageService.updateExtremumPrice(priceAlert.getId(), livePrice);
             return false;
         }
         BigDecimal percentage = payload.getTrailingPercentage().movePointLeft(2);

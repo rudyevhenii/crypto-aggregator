@@ -2,7 +2,8 @@ package dev.rudyevhenii.crypto_aggregator.price_alert;
 
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.core.enums.TradingPair;
-import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.ConditionPayload;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.condition_payload.ConditionPayload;
+import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.trigger_policy.TriggerPolicy;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -49,8 +50,9 @@ public class PriceAlertEntity implements Persistable<UUID> {
     @Column(name = Fields.tradingPair)
     private TradingPair tradingPair;
 
-    @Column(name = Fields.cooldownMinutes)
-    private Integer cooldownMinutes;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = Fields.triggerPolicy)
+    private TriggerPolicy triggerPolicy;
 
     @Enumerated(EnumType.STRING)
     @Column(name = Fields.deliveryMethods)

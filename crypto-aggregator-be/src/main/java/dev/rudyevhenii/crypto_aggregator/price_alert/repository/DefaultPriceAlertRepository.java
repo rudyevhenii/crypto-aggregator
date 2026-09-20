@@ -53,6 +53,16 @@ public class DefaultPriceAlertRepository implements PriceAlertRepository {
     }
 
     @Override
+    public void activate(UUID id) {
+        repository.activatePriceAlert(id);
+    }
+
+    @Override
+    public void deactivate(UUID id) {
+        repository.deactivatePriceAlert(id);
+    }
+
+    @Override
     public void deleteById(UUID id) {
         repository.deleteById(id);
     }

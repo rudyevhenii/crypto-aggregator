@@ -18,7 +18,7 @@ public class CrossedDownConditionEvaluator implements ConditionEvaluatorStrategy
     @Override
     public boolean shouldTrigger(PriceAlert priceAlert, BigDecimal livePrice) {
         BigDecimal previousPrice = priceAlertStateStorageService.getPreviousPrice(priceAlert.getId());
-        priceAlertStateStorageService.updatePreviousPriceAsync(priceAlert.getId(), livePrice);
+        priceAlertStateStorageService.updatePreviousPrice(priceAlert.getId(), livePrice);
 
         if (previousPrice == null) return false;
         TargetPricePayload payload = (TargetPricePayload) priceAlert.getConditionPayload();
