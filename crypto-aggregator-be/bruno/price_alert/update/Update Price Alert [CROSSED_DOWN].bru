@@ -16,7 +16,9 @@ params:path {
 
 body:json {
   {
-    "cooldownMinutes": 30,
+    "triggerPolicy": {
+      "triggerType": "ONE_TIME"
+    },
     "deliveryMethods": [
       "EMAIL"
     ],

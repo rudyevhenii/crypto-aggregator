@@ -16,7 +16,10 @@ params:path {
 
 body:json {
   {
-    "cooldownMinutes": 60,
+    "triggerPolicy": {
+      "triggerType": "RECURRING",
+      "cooldownMinutes": 60
+    },
     "deliveryMethods": [
       "EMAIL"
     ],

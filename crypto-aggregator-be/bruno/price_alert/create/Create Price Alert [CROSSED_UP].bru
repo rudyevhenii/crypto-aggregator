@@ -14,7 +14,9 @@ body:json {
   {
     "exchange": "BINANCE",
     "tradingPair": "SOL_USD",
-    "cooldownMinutes": 5,
+    "triggerPolicy": {
+      "triggerType": "ONE_TIME"
+    },
     "deliveryMethods": [
       "EMAIL"
     ],

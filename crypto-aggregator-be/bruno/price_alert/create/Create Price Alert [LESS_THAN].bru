@@ -14,7 +14,9 @@ body:json {
   {
     "exchange": "BINANCE",
     "tradingPair": "ETH_USD",
-    "cooldownMinutes": 15,
+    "triggerPolicy": {
+      "triggerType": "ONE_TIME"
+    },
     "deliveryMethods": [
       "EMAIL"
     ],

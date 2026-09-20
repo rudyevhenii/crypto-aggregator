@@ -14,7 +14,10 @@ body:json {
   {
     "exchange": "BINANCE",
     "tradingPair": "DOGE_USD",
-    "cooldownMinutes": 15,
+    "triggerPolicy": {
+      "triggerType": "RECURRING",
+      "cooldownMinutes": 15
+    },
     "deliveryMethods": [
       "EMAIL"
     ],
