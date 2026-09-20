@@ -1,4 +1,4 @@
-import {ArrowLeft} from 'lucide-react';
+import {ArrowLeft, AlarmClock} from 'lucide-react';
 import {Select} from './ui';
 import {formatInterval} from '../utils/format';
 import {ChartInterval, Exchange, TradingPair} from '../api';
@@ -11,6 +11,7 @@ type Props = {
   onIntervalChange: (interval: ChartInterval) => void;
   onSearchOpen?: () => void;
   onBack?: () => void;
+  onAlertClick?: () => void;
 };
 
 export default function TopBar({
@@ -21,6 +22,7 @@ export default function TopBar({
                                   onIntervalChange,
                                   onSearchOpen,
                                   onBack,
+                                  onAlertClick,
                                 }: Props) {
   const displayPair = pair.replace('_', '/');
 
@@ -58,6 +60,20 @@ export default function TopBar({
           hideArrow
         />
       </div>
+
+      <div className="h-4 w-px bg-white/10"/>
+
+      {/* Alert button */}
+      {onAlertClick && (
+        <button
+          onClick={onAlertClick}
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+          title="Create alert"
+        >
+          <AlarmClock size={16} className="text-zinc-300"/>
+          <span className="text-xs font-medium text-zinc-300">Alert</span>
+        </button>
+      )}
     </div>
   );
 }

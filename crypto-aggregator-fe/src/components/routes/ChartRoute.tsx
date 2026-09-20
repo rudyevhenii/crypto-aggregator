@@ -1,11 +1,13 @@
 import {useEffect, useState} from 'react';
 import {useParams, useNavigate, useSearchParams} from 'react-router-dom';
-import {api, Exchange, ChartInterval, LivePrice, ExchangeHealthDto, HistoricalPrice, TradingPair, ExchangePair} from '../../api';
+import {api, Exchange, ChartInterval, LivePrice, ExchangeHealthDto, HistoricalPrice, TradingPair, ExchangePair, PriceAlertRequest} from '../../api';
 import TopBar from '../TopBar';
-import Sidebar from '../Sidebar';
 import ChartArea from '../ChartArea';
 import SearchModal from '../SearchModal';
+import AlertModal from '../modals/AlertModal';
+import AlertSidebar from '../AlertSidebar';
 import {ChartHandle} from '../ChartArea';
+import {useMarketDataContext} from '../../contexts/MarketDataContext';
 
 const CHART_INTERVALS: ChartInterval[] = [
   'ONE_SECOND', 'ONE_MINUTE', 'THREE_MINUTES', 'FIVE_MINUTES',
@@ -14,7 +16,7 @@ const CHART_INTERVALS: ChartInterval[] = [
   'ONE_DAY', 'THREE_DAYS', 'FIFTEEN_DAYS', 'ONE_WEEK', 'ONE_MONTH'
 ];
 
-export default function ChartRoute() {
+function ChartRouteInner() {
   const params = useParams<{ exchange: string; symbol: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +24,7 @@ export default function ChartRoute() {
   const exchange = params.exchange?.toUpperCase() as Exchange | undefined;
   const symbol = params.symbol?.toUpperCase() as TradingPair | undefined;
 
+  const {setCurrentPrice} = useMarketDataContext();
   const [livePrice, setLivePrice] = useState<LivePrice | null>(null);
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [exchangeHealth, setExchangeHealth] = useState<ExchangeHealthDto | null>(null);
@@ -29,6 +32,7 @@ export default function ChartRoute() {
 
   const [chartHandle, setChartHandle] = useState<ChartHandle | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
 
   const urlInterval = searchParams.get('interval');
   const isValidChartInterval = (val: string | null): val is ChartInterval => {
@@ -106,6 +110,7 @@ export default function ChartRoute() {
       try {
         const price: LivePrice = JSON.parse(event.data);
         setLivePrice(price);
+        setCurrentPrice(price.lastPrice);
         chartHandle?.applyLivePrice(price);
       } catch {
         // SSE parse error handled silently
@@ -196,6 +201,7 @@ export default function ChartRoute() {
         onIntervalChange={handleIntervalChange}
         onSearchOpen={() => setIsSearchOpen(true)}
         onBack={() => navigate('/app/overview')}
+        onAlertClick={() => setIsAlertModalOpen(true)}
       />
 
       <SearchModal
@@ -204,14 +210,18 @@ export default function ChartRoute() {
         onAdd={handleSelectPair}
       />
 
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onAdd={handleSelectPair}
+      <AlertModal
+        isOpen={isAlertModalOpen}
+        onClose={() => setIsAlertModalOpen(false)}
+        exchange={exchange}
+        tradingPair={symbol}
+        onCreate={(alert: PriceAlertRequest) => {
+          console.log('Creating alert:', alert);
+        }}
       />
 
-      <div className="flex flex-1 overflow-hidden gap-0.5">
-        <main className="flex-1 flex flex-col">
+      <div className="flex flex-1 gap-0.5 relative">
+        <main className="flex-1 flex flex-col min-w-0">
           <ChartArea
             ref={setChartHandle}
             interval={effectiveInterval}
@@ -230,8 +240,15 @@ export default function ChartRoute() {
           />
         </main>
 
-        <Sidebar />
+        <AlertSidebar
+          alerts={[]}
+          logs={[]}
+        />
       </div>
     </div>
   );
+}
+
+export default function ChartRoute() {
+  return <ChartRouteInner />;
 }

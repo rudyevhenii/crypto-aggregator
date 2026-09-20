@@ -98,6 +98,78 @@ export interface WidgetPositionUpdate {
   position: number;
 }
 
+// --- PRICE ALERT TYPES ---
+export type ConditionType =
+  | 'GREATER_THAN'
+  | 'LESS_THAN'
+  | 'CROSSED_UP'
+  | 'CROSSED_DOWN'
+  | 'PERCENT_UP'
+  | 'PERCENT_DOWN'
+  | 'TRAILING_DROP'
+  | 'TRAILING_RISE';
+
+export type TriggerType = 'ONE_TIME' | 'RECURRING';
+
+export type DeliveryMethod = 'EMAIL';
+
+export type TriggerPolicy =
+  | { triggerType: 'ONE_TIME' }
+  | { triggerType: 'RECURRING'; cooldownMinutes: number };
+
+export type ConditionPayload =
+  | {
+      conditionType: 'GREATER_THAN' | 'LESS_THAN' | 'CROSSED_UP' | 'CROSSED_DOWN';
+      targetPrice: string;
+    }
+  | {
+      conditionType: 'PERCENT_UP' | 'PERCENT_DOWN';
+      initialPrice: string;
+      percentageChange: string;
+    }
+  | {
+      conditionType: 'TRAILING_DROP' | 'TRAILING_RISE';
+      trailingPercentage: string;
+      referencePrice: string;
+    };
+
+export interface PriceAlert {
+  id: string;
+  userId: string;
+  exchange: Exchange;
+  tradingPair: TradingPair;
+  triggerPolicy: TriggerPolicy;
+  deliveryMethods: DeliveryMethod[];
+  active: boolean;
+  conditionPayload: ConditionPayload;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PriceAlertRequest {
+  exchange: Exchange;
+  tradingPair: TradingPair;
+  triggerPolicy: TriggerPolicy;
+  deliveryMethods: DeliveryMethod[];
+  conditionPayload: ConditionPayload;
+  expiresAt?: string;
+}
+
+export interface PriceAlertUpdateRequest {
+  triggerPolicy: TriggerPolicy;
+  deliveryMethods: DeliveryMethod[];
+  conditionPayload: ConditionPayload;
+  expiresAt?: string;
+}
+
+export interface PriceAlertLog {
+  id: string;
+  priceAlertId: string;
+  triggeredAt: string;
+  message?: string;
+}
+
 // --- UTILS ---
 export function intervalToSeconds(interval: ChartInterval): number {
   switch (interval) {

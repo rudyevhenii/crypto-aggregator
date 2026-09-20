@@ -1,6 +1,6 @@
 import {createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode} from 'react';
 import {useSearchParams} from 'react-router-dom';
-import {api, Workspace, ChartWidget, ChartInterval, LivePrice} from '../api';
+import {api, Workspace, ChartWidget, ChartInterval, LivePrice, ExchangePair} from '../api';
 import {arrayMove} from '@dnd-kit/sortable';
 import {useSensors, useSensor, PointerSensor, KeyboardSensor, type DragEndEvent} from '@dnd-kit/core';
 
@@ -32,7 +32,7 @@ type WorkspaceContextType = {
   openDeleteModal: () => void;
   closeDeleteModal: () => void;
   confirmDelete: () => Promise<void>;
-  handleAddWidget: (pair: { exchange: string; tradingPair: string }) => Promise<void>;
+  handleAddWidget: (pair: ExchangePair) => Promise<void>;
   handleDeleteWidget: (widgetId: string) => Promise<void>;
   handleUpdateInterval: (widgetId: string, interval: ChartInterval) => Promise<void>;
   handleDragEnd: (event: DragEndEvent) => Promise<void>;
@@ -52,9 +52,10 @@ type Props = {
   children: ReactNode;
   searchParams: ReturnType<typeof useSearchParams>[0];
   setSearchParams: ReturnType<typeof useSearchParams>[1];
+  pathname: string;
 };
 
-export function WorkspaceProvider({children, searchParams, setSearchParams}: Props) {
+export function WorkspaceProvider({children, searchParams, setSearchParams, pathname}: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [widgets, setWidgets] = useState<ChartWidget[]>([]);
   const [widgetsLoading, setWidgetsLoading] = useState(false);
@@ -65,6 +66,8 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
   const [focusedWidgetId, setFocusedWidgetId] = useState<string | null>(null);
 
   const initializedRef = useRef(false);
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
   const activeWsId = searchParams.get('workspace');
 
   const loadWorkspaces = useCallback(async (wsIdToSelect?: string) => {
@@ -73,12 +76,16 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
 
     if (list.length > 0) {
       const targetId = wsIdToSelect || list[0].id;
-      setSearchParams({workspace: targetId}, {replace: true});
+      if (pathname.startsWith('/app/workspace')) {
+        setSearchParams({workspace: targetId}, {replace: true});
+      }
     } else {
-      setSearchParams({}, {replace: true});
+      if (pathname.startsWith('/app/workspace')) {
+        setSearchParams({}, {replace: true});
+      }
       setWidgets([]);
     }
-  }, [setSearchParams]);
+  }, [setSearchParams, pathname]);
 
   useEffect(() => {
     let isMounted = true;
@@ -88,12 +95,12 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
 
       if (!initializedRef.current) {
         initializedRef.current = true;
-        const urlWsId = searchParams.get('workspace');
+        const urlWsId = searchParamsRef.current.get('workspace');
         const validUrlWsId = urlWsId && list.some(w => w.id === urlWsId) ? urlWsId : undefined;
         const targetId = validUrlWsId || (list.length > 0 ? list[0].id : null);
-        if (targetId) {
+        if (targetId && pathname.startsWith('/app/workspace')) {
           setSearchParams({workspace: targetId}, {replace: true});
-        } else {
+        } else if (!targetId && pathname.startsWith('/app/workspace')) {
           setSearchParams({}, {replace: true});
         }
       }
@@ -104,7 +111,7 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
     return () => {
       isMounted = false;
     };
-  }, [searchParams, setSearchParams]);
+  }, [setSearchParams, pathname]);
 
   useEffect(() => {
     if (!activeWsId) {
@@ -182,10 +189,10 @@ export function WorkspaceProvider({children, searchParams, setSearchParams}: Pro
     await loadWorkspaces();
   }, [activeWsId, loadWorkspaces]);
 
-  const handleAddWidget = useCallback(async (pair: { exchange: string; tradingPair: string }) => {
+  const handleAddWidget = useCallback(async (pair: ExchangePair) => {
     if (!activeWsId) return;
     if (widgets.length >= MAX_WIDGETS) return;
-    const newWidget = await api.addChartWidget(activeWsId, `${pair.exchange}:${pair.tradingPair}`);
+    const newWidget = await api.addChartWidget(activeWsId, pair.id);
     setWidgets(prev => [...prev, newWidget]);
   }, [activeWsId, widgets.length]);
 
