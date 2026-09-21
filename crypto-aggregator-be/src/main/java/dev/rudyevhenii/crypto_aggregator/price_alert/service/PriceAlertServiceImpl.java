@@ -74,13 +74,26 @@ public class PriceAlertServiceImpl implements PriceAlertService {
     @Override
     @Transactional
     public void activate(UUID id) {
+        PriceAlert priceAlert = getById(userContext.getUserId(), id);
+        priceAlert.setActive(true);
         repository.activate(id);
+        inMemoryCacheManager.updateAlertFromCache(priceAlert);
+        log.info("User [{}] activated Price Alert [{}]", userContext.getUserId(), id);
     }
 
     @Override
     @Transactional
     public void deactivate(UUID id) {
+        deactivateForUser(userContext.getUserId(), id);
+    }
+
+    @Override
+    @Transactional
+    public void deactivateForUser(UUID userId, UUID id) {
+        PriceAlert priceAlert = getById(userId, id);
         repository.deactivate(id);
+        inMemoryCacheManager.removeAlertFromCache(priceAlert);
+        log.info("User [{}] deactivated Price Alert [{}]", userId, id);
     }
 
     @Override

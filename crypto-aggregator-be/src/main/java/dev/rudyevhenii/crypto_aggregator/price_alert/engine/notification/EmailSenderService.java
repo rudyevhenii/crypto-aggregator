@@ -25,10 +25,12 @@ public class EmailSenderService {
     public void sendMessage(String to, PriceAlert priceAlert, BigDecimal livePrice) {
         MimeMessage message = javaMailSender.createMimeMessage();
         Context context = new Context();
-        int cooldownMinutes = ((RecurringTriggerPolicy) priceAlert.getTriggerPolicy()).getCooldownMinutes();
 
+        if (priceAlert.getTriggerPolicy() instanceof RecurringTriggerPolicy recurringTriggerPolicy) {
+            int cooldownMinutes = recurringTriggerPolicy.getCooldownMinutes();
+            context.setVariable("cooldownMinutes", cooldownMinutes);
+        }
         context.setVariable("alert", priceAlert);
-        context.setVariable("cooldownMinutes", cooldownMinutes);
         context.setVariable("livePrice", livePrice);
 
         String htmlText = templateEngine.process("alert-email", context);

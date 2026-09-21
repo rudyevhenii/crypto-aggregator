@@ -90,7 +90,7 @@ public class PriceAlertEngineService {
         NotificationSenderStrategy notificationStrategy = notificationSenderStrategies.get(deliveryMethod);
         if (priceAlert.getTriggerPolicy() instanceof OneTimeTriggerPolicy oneTimeTriggerPolicy) {
             inMemoryCacheManager.removeAlertFromCache(priceAlert);
-            priceAlertService.deactivate(priceAlert.getId());
+            priceAlertService.deactivateForUser(priceAlert.getUserId(), priceAlert.getId());
         } else if (priceAlert.getTriggerPolicy() instanceof RecurringTriggerPolicy recurringTriggerPolicy) {
             if (!priceAlertCooldownService.isPriceAlertSetOnCooldown(priceAlert)) {
                 priceAlertCooldownService.setPriceAlertOnCooldown(priceAlert, recurringTriggerPolicy.getCooldownMinutes());

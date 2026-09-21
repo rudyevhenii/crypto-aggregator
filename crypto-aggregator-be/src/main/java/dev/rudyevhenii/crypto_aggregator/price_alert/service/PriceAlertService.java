@@ -23,5 +23,7 @@ public interface PriceAlertService {
 
     void deactivate(UUID id);
 
+    void deactivateForUser(UUID userId, UUID id);
+
     void deleteById(UUID id);
 }

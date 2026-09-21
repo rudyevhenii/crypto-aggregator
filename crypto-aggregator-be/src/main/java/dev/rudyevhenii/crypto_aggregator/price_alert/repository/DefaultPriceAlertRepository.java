@@ -40,7 +40,7 @@ public class DefaultPriceAlertRepository implements PriceAlertRepository {
 
     @Override
     public List<PriceAlert> findAll(UUID userId) {
-        return repository.findAllByUserId(userId).stream()
+        return repository.findAllByUserIdOrderByActiveDesc(userId).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
