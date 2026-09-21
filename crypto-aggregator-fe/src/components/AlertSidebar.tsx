@@ -4,20 +4,24 @@ import {
   X,
   Bell,
   FileText,
+  Play,
+  Pause,
+  Settings2,
   Trash2,
 } from 'lucide-react';
 import {PriceAlert, PriceAlertLog, ConditionType} from '../api';
+import {useActivateAlert, useDeactivateAlert, useDeleteAlert} from '../hooks/usePriceAlerts';
 
 type AlertSidebarProps = {
   alerts: PriceAlert[];
   logs: PriceAlertLog[];
-  onToggleAlert?: (id: string) => void;
-  onDeleteAlert?: (id: string) => void;
+  onEditAlert?: (alert: PriceAlert) => void;
+  onCreateAlert?: () => void;
 };
 
 const CONDITION_LABELS: Record<ConditionType, string> = {
-  GREATER_THAN: 'Crossing up',
-  LESS_THAN: 'Crossing down',
+  GREATER_THAN: 'Greater than',
+  LESS_THAN: 'Less than',
   CROSSED_UP: 'Crossed up',
   CROSSED_DOWN: 'Crossed down',
   PERCENT_UP: 'Percent up',
@@ -26,32 +30,18 @@ const CONDITION_LABELS: Record<ConditionType, string> = {
   TRAILING_RISE: 'Trailing rise',
 };
 
-const MOCK_ALERTS: PriceAlert[] = [
-  {
-    id: '1',
-    userId: 'user-1',
-    exchange: 'BINANCE',
-    tradingPair: 'SOL_USD',
-    triggerPolicy: { triggerType: 'ONE_TIME' },
-    deliveryMethods: ['EMAIL'],
-    active: true,
-    conditionPayload: {
-      conditionType: 'CROSSED_UP',
-      targetPrice: '101.28',
-    },
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z',
-  },
-];
-
 export default function AlertSidebar({
-                                        alerts = MOCK_ALERTS,
+                                        alerts = [],
                                         logs = [],
-                                        onToggleAlert,
-                                        onDeleteAlert,
+                                        onEditAlert,
+                                        onCreateAlert,
                                       }: AlertSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'alerts' | 'log'>('alerts');
+
+  const activateMutation = useActivateAlert();
+  const deactivateMutation = useDeactivateAlert();
+  const deleteMutation = useDeleteAlert();
 
   const formatCondition = (alert: PriceAlert): string => {
     const payload = alert.conditionPayload;
@@ -77,10 +67,22 @@ export default function AlertSidebar({
     });
   };
 
+  const handleToggle = async (id: string, active: boolean) => {
+    if (active) {
+      await deactivateMutation.mutateAsync(id);
+    } else {
+      await activateMutation.mutateAsync(id);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
+  };
+
   return (
     <div
-      className={`flex flex-col h-full border-l border-[#2b3139] transition-all duration-300 ${
-        isExpanded ? 'w-80 glass-surface rounded-r-sm' : 'w-12 glass-surface'
+      className={`flex flex-col h-full border-l border-t border-[#2b3139] bg-[#181a20] rounded-tl-sm mt-2 overflow-hidden transition-all duration-300 ${
+        isExpanded ? 'w-80' : 'w-12'
       }`}
     >
       {/* Collapsed toolbar */}
@@ -107,7 +109,7 @@ export default function AlertSidebar({
                 className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-sm text-xs font-medium transition-colors ${
                   activeTab === 'alerts'
                     ? 'bg-[#1e222d] text-zinc-100 shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-gray-700/50'
                 }`}
               >
                 <Bell size={14}/>
@@ -118,7 +120,7 @@ export default function AlertSidebar({
                 className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-sm text-xs font-medium transition-colors ${
                   activeTab === 'log'
                     ? 'bg-[#1e222d] text-zinc-100 shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-gray-700/50'
                 }`}
               >
                 <FileText size={14}/>
@@ -141,10 +143,10 @@ export default function AlertSidebar({
                 {alerts.map(alert => (
                   <div
                     key={alert.id}
-                    className={`group flex items-start gap-2 p-2.5 rounded-sm border transition-colors ${
+                    className={`group flex items-start gap-2 p-2.5 rounded-lg border border-gray-700/50 transition-colors ${
                       alert.active
-                        ? 'bg-[#131722] border-[#2b3139] hover:border-[#fcd535]/50'
-                        : 'bg-[#131722]/50 border-[#2b3139] opacity-60'
+                        ? 'bg-[#1e222d] hover:border-[#fcd535]/50'
+                        : 'bg-[#1e222d]/60 border-gray-700/50 opacity-60'
                     }`}
                   >
                     <div className="flex-1 min-w-0">
@@ -171,14 +173,25 @@ export default function AlertSidebar({
                     </div>
                     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => onToggleAlert?.(alert.id)}
+                        onClick={() => handleToggle(alert.id, alert.active)}
                         className="p-1 rounded hover:bg-white/10 transition-colors"
                         title={alert.active ? 'Deactivate' : 'Activate'}
                       >
-                        <Bell size={12} className={alert.active ? 'text-[#0ecb81]' : 'text-zinc-500'}/>
+                        {alert.active ? (
+                          <Pause size={12} className="text-[#0ecb81]"/>
+                        ) : (
+                          <Play size={12} className="text-zinc-500"/>
+                        )}
                       </button>
                       <button
-                        onClick={() => onDeleteAlert?.(alert.id)}
+                        onClick={() => onEditAlert?.(alert)}
+                        className="p-1 rounded hover:bg-white/10 transition-colors"
+                        title="Edit"
+                      >
+                        <Settings2 size={12} className="text-zinc-500 hover:text-zinc-200"/>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(alert.id)}
                         className="p-1 rounded hover:bg-white/10 transition-colors"
                         title="Delete"
                       >
@@ -192,6 +205,14 @@ export default function AlertSidebar({
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <AlarmClock size={32} className="text-zinc-600 mb-2"/>
                     <p className="text-xs text-zinc-500">No alerts yet</p>
+                    {onCreateAlert && (
+                      <button
+                        onClick={onCreateAlert}
+                        className="mt-3 text-xs text-[#fcd535] hover:underline"
+                      >
+                        Create your first alert
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -209,7 +230,7 @@ export default function AlertSidebar({
                     {logs.map(log => (
                       <div
                         key={log.id}
-                        className="p-3 rounded-sm bg-[#131722] border border-[#2b3139]"
+                        className="p-3 rounded-lg bg-[#1e222d] border border-gray-700/50"
                       >
                         <div className="text-xs text-zinc-300 mb-1">
                           {log.message || 'Alert triggered'}

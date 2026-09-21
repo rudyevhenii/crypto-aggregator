@@ -1,5 +1,4 @@
 import {createContext, useContext, useState, ReactNode} from 'react';
-import {LivePrice} from '../api';
 
 type MarketDataContextType = {
   currentPrice: number | undefined;

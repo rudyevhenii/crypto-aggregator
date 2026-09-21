@@ -440,7 +440,7 @@ const ChartArea = forwardRef<ChartHandle, Props>(({
     : changeColor;
 
   return (
-    <div className={`w-full h-full ${isWidget ? '' : 'pt-2 px-2 pb-2 bg-[#0b0e14]'}`}>
+    <div className={`w-full h-full ${isWidget ? '' : 'pt-2 px-2 pb-2'}`}>
       <div
         className={`w-full h-full ${isWidget ? '' : 'bg-[#181a20] rounded-sm border border-[#2b3139]'} relative flex flex-col`}>
         {!isWidget && (

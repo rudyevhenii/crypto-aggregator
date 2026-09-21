@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {useParams, useNavigate, useSearchParams} from 'react-router-dom';
-import {api, Exchange, ChartInterval, LivePrice, ExchangeHealthDto, HistoricalPrice, TradingPair, ExchangePair, PriceAlertRequest} from '../../api';
+import {api, Exchange, ChartInterval, LivePrice, ExchangeHealthDto, HistoricalPrice, TradingPair, ExchangePair, PriceAlert, PriceAlertRequest, PriceAlertUpdateRequest} from '../../api';
 import TopBar from '../TopBar';
 import ChartArea from '../ChartArea';
 import SearchModal from '../SearchModal';
@@ -8,6 +8,7 @@ import AlertModal from '../modals/AlertModal';
 import AlertSidebar from '../AlertSidebar';
 import {ChartHandle} from '../ChartArea';
 import {useMarketDataContext} from '../../contexts/MarketDataContext';
+import {useGetAlerts, useCreateAlert, useUpdateAlert} from '../../hooks/usePriceAlerts';
 
 const CHART_INTERVALS: ChartInterval[] = [
   'ONE_SECOND', 'ONE_MINUTE', 'THREE_MINUTES', 'FIVE_MINUTES',
@@ -33,6 +34,12 @@ function ChartRouteInner() {
   const [chartHandle, setChartHandle] = useState<ChartHandle | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
+  const [alertModalPrice, setAlertModalPrice] = useState<number | undefined>(undefined);
+
+  const alertsQuery = useGetAlerts();
+  const createMutation = useCreateAlert();
+  const updateMutation = useUpdateAlert();
 
   const urlInterval = searchParams.get('interval');
   const isValidChartInterval = (val: string | null): val is ChartInterval => {
@@ -191,6 +198,16 @@ function ChartRouteInner() {
     return null;
   }
 
+  const alerts = alertsQuery.data ?? [];
+
+  const handleCreateAlert = async (request: PriceAlertRequest) => {
+    await createMutation.mutateAsync(request);
+  };
+
+  const handleUpdateAlert = async (id: string, payload: PriceAlertUpdateRequest) => {
+    await updateMutation.mutateAsync({id, payload});
+  };
+
   return (
     <div className="flex flex-col h-full w-full gap-0.5">
       <TopBar
@@ -201,7 +218,10 @@ function ChartRouteInner() {
         onIntervalChange={handleIntervalChange}
         onSearchOpen={() => setIsSearchOpen(true)}
         onBack={() => navigate('/app/overview')}
-        onAlertClick={() => setIsAlertModalOpen(true)}
+        onAlertClick={() => {
+          setAlertModalPrice(livePrice?.lastPrice);
+          setIsAlertModalOpen(true);
+        }}
       />
 
       <SearchModal
@@ -211,16 +231,20 @@ function ChartRouteInner() {
       />
 
       <AlertModal
-        isOpen={isAlertModalOpen}
-        onClose={() => setIsAlertModalOpen(false)}
+        isOpen={isAlertModalOpen || Boolean(editingAlert)}
+        onClose={() => {
+          setIsAlertModalOpen(false);
+          setEditingAlert(null);
+        }}
         exchange={exchange}
         tradingPair={symbol}
-        onCreate={(alert: PriceAlertRequest) => {
-          console.log('Creating alert:', alert);
-        }}
+        alert={editingAlert}
+        onCreate={handleCreateAlert}
+        onUpdate={handleUpdateAlert}
+        currentPrice={alertModalPrice}
       />
 
-      <div className="flex flex-1 gap-0.5 relative">
+      <div className="flex flex-1 gap-0.5 overflow-hidden">
         <main className="flex-1 flex flex-col min-w-0">
           <ChartArea
             ref={setChartHandle}
@@ -241,8 +265,10 @@ function ChartRouteInner() {
         </main>
 
         <AlertSidebar
-          alerts={[]}
+          alerts={alerts}
           logs={[]}
+          onEditAlert={setEditingAlert}
+          onCreateAlert={() => setIsAlertModalOpen(true)}
         />
       </div>
     </div>

@@ -14,24 +14,30 @@ import {
   TrendingUp,
   TrendingDown,
   ChevronDown,
+  Trash2,
 } from 'lucide-react';
 import {
   ConditionType,
   ConditionPayload,
   DeliveryMethod,
+  PriceAlert,
   PriceAlertRequest,
+  PriceAlertUpdateRequest,
   TriggerPolicy,
   TriggerType,
 } from '../../api';
-import {useMarketDataContext} from '../../contexts/MarketDataContext';
 import {Input, Button} from '../ui';
+import {useDeleteAlert} from '../../hooks/usePriceAlerts';
 
 type AlertModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onCreate?: (alert: PriceAlertRequest) => void;
+  onUpdate?: (id: string, alert: PriceAlertUpdateRequest) => void;
   exchange: string;
   tradingPair: string;
+  alert?: PriceAlert | null;
+  currentPrice?: number;
 };
 
 type TargetPricePayload = {
@@ -75,8 +81,48 @@ const INITIAL_PAYLOAD: FormConditionPayload = {
   targetPrice: '',
 };
 
-export default function AlertModal({isOpen, onClose, onCreate, exchange, tradingPair}: AlertModalProps) {
-  const {currentPrice} = useMarketDataContext();
+const EXPIRATION_OPTIONS = [
+  {value: '1h', label: '1 hour'},
+  {value: '24h', label: '24 hours'},
+  {value: '7d', label: '7 days'},
+  {value: '30d', label: '30 days'},
+  {value: 'never', label: 'Never'},
+];
+
+function buildExpirationDate(value: string): string | undefined {
+  if (value === 'never') return undefined;
+  const date = new Date();
+  if (value === '1h') date.setHours(date.getHours() + 1);
+  else if (value === '24h') date.setHours(date.getHours() + 24);
+  else if (value === '7d') date.setDate(date.getDate() + 7);
+  else if (value === '30d') date.setDate(date.getDate() + 30);
+  return date.toISOString();
+}
+
+function expirationValueFromDate(date?: string): string {
+  if (!date) return 'never';
+  const target = new Date(date);
+  const now = new Date();
+  const diffMs = target.getTime() - now.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+  if (diffHours <= 1.5) return '1h';
+  if (diffHours <= 25) return '24h';
+  const diffDays = diffHours / 24;
+  if (diffDays <= 8) return '7d';
+  if (diffDays <= 31) return '30d';
+  return 'never';
+}
+
+export default function AlertModal({
+                                      isOpen,
+                                      onClose,
+                                      onCreate,
+                                      onUpdate,
+                                      exchange,
+                                      tradingPair,
+                                      alert,
+                                      currentPrice,
+                                    }: AlertModalProps) {
   const [dragOffset, setDragOffset] = useState({x: 0, y: 0});
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({x: 0, y: 0});
@@ -86,14 +132,30 @@ export default function AlertModal({isOpen, onClose, onCreate, exchange, trading
   const [triggerPolicy, setTriggerPolicy] = useState<FormTriggerPolicy>({triggerType: 'ONE_TIME'});
   const [cooldownMinutes, setCooldownMinutes] = useState(5);
   const [isConditionOpen, setIsConditionOpen] = useState(false);
+  const [expiration, setExpiration] = useState('1h');
   const modalRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const conditionRef = useRef<HTMLDivElement>(null);
   const initialPriceRef = useRef<number | undefined>(undefined);
 
+  const isEditMode = Boolean(alert?.id);
+
+  const deleteMutation = useDeleteAlert();
+
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+
+    if (alert) {
+      setConditionType(alert.conditionPayload.conditionType);
+      setPayload(alert.conditionPayload as FormConditionPayload);
+      setDeliveryMethods(alert.deliveryMethods);
+      setTriggerPolicy(alert.triggerPolicy);
+      setCooldownMinutes('cooldownMinutes' in alert.triggerPolicy ? alert.triggerPolicy.cooldownMinutes : 5);
+      setExpiration(expirationValueFromDate(alert.expiresAt));
+      initialPriceRef.current = currentPrice ?? undefined;
       setDragOffset({x: 0, y: 0});
+      setIsConditionOpen(false);
+    } else {
       setConditionType('GREATER_THAN');
       setDeliveryMethods(['EMAIL']);
       setTriggerPolicy({triggerType: 'ONE_TIME'});
@@ -101,8 +163,10 @@ export default function AlertModal({isOpen, onClose, onCreate, exchange, trading
       setIsConditionOpen(false);
       initialPriceRef.current = currentPrice ?? undefined;
       setPayload({conditionType: 'GREATER_THAN', targetPrice: currentPrice != null ? String(currentPrice) : ''});
+      setExpiration('1h');
+      setDragOffset({x: 0, y: 0});
     }
-  }, [isOpen]);
+  }, [isOpen, alert, currentPrice]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -164,22 +228,35 @@ export default function AlertModal({isOpen, onClose, onCreate, exchange, trading
     }
   };
 
-  const handleSubmit = () => {
-    if (!onCreate) return;
-
+  const handleSubmit = async () => {
     const fullPayload: ConditionPayload = payload as ConditionPayload;
 
-    const request: PriceAlertRequest = {
-      exchange: exchange as any,
-      tradingPair: tradingPair as any,
+    const request: PriceAlertUpdateRequest = {
       deliveryMethods,
       conditionPayload: fullPayload,
       triggerPolicy: triggerPolicy.triggerType === 'RECURRING'
         ? {triggerType: 'RECURRING', cooldownMinutes}
         : {triggerType: 'ONE_TIME'},
+      expiresAt: buildExpirationDate(expiration),
     };
 
-    onCreate(request);
+    if (isEditMode && alert && onUpdate) {
+      onUpdate(alert.id, request);
+    } else if (!isEditMode && onCreate) {
+      const createRequest: PriceAlertRequest = {
+        exchange: exchange as any,
+        tradingPair: tradingPair as any,
+        ...request,
+      };
+      onCreate(createRequest);
+    }
+
+    onClose();
+  };
+
+  const handleDelete = async () => {
+    if (!alert?.id) return;
+    await deleteMutation.mutateAsync(alert.id);
     onClose();
   };
 
@@ -346,7 +423,9 @@ export default function AlertModal({isOpen, onClose, onCreate, exchange, trading
         >
           <div className="flex items-center gap-2">
             <AlarmClock size={18} className="text-[#fcd535]"/>
-            <span className="text-sm font-semibold text-zinc-100">Create alert on</span>
+            <span className="text-sm font-semibold text-zinc-100">
+              {isEditMode ? 'Edit alert on' : 'Create alert on'}
+            </span>
             <span className="text-sm font-medium text-zinc-300">{tradingPair.replace('_', '/')}</span>
           </div>
           <button
@@ -398,25 +477,27 @@ export default function AlertModal({isOpen, onClose, onCreate, exchange, trading
           {renderPayloadFields()}
 
           {/* Trigger */}
-          <div className="space-y-2">
-            <label className="block text-xs text-[#848e9c] font-medium tracking-wide">Trigger</label>
-            <select
-              value={triggerPolicy.triggerType}
-              onChange={(e) => {
-                const type = e.target.value as TriggerType;
-                setTriggerPolicy(
-                  type === 'RECURRING'
-                    ? {triggerType: type, cooldownMinutes}
-                    : {triggerType: type}
-                );
-              }}
-              className="w-full bg-[#0b0e11] border border-[#2b3139] rounded-sm px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 transition-colors appearance-none"
-            >
-              <option value="ONE_TIME">Once only</option>
-              <option value="RECURRING">Repeat</option>
-            </select>
+          <div className={`grid gap-4 ${triggerPolicy.triggerType === 'RECURRING' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div className="space-y-2">
+              <label className="block text-xs text-[#848e9c] font-medium tracking-wide">Trigger</label>
+              <select
+                value={triggerPolicy.triggerType}
+                onChange={(e) => {
+                  const type = e.target.value as TriggerType;
+                  setTriggerPolicy(
+                    type === 'RECURRING'
+                      ? {triggerType: type, cooldownMinutes}
+                      : {triggerType: type}
+                  );
+                }}
+                className="w-full bg-[#0b0e11] border border-[#2b3139] rounded-sm px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 transition-colors appearance-none"
+              >
+                <option value="ONE_TIME">Once only</option>
+                <option value="RECURRING">Repeat</option>
+              </select>
+            </div>
             {triggerPolicy.triggerType === 'RECURRING' && (
-              <div className="mt-2">
+              <div className="space-y-2">
                 <label className="block text-xs text-[#848e9c] mb-1.5 font-medium tracking-wide">Cooldown interval (minutes)</label>
                 <Input
                   type="number"
@@ -433,15 +514,13 @@ export default function AlertModal({isOpen, onClose, onCreate, exchange, trading
           <div className="space-y-2">
             <label className="block text-xs text-[#848e9c] font-medium tracking-wide">Expiration</label>
             <select
-              value="1h"
-              onChange={() => {}}
+              value={expiration}
+              onChange={(e) => setExpiration(e.target.value)}
               className="w-full bg-[#0b0e11] border border-[#2b3139] rounded-sm px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 transition-colors appearance-none"
             >
-              <option value="1h">1 hour</option>
-              <option value="24h">24 hours</option>
-              <option value="7d">7 days</option>
-              <option value="30d">30 days</option>
-              <option value="never">Never</option>
+              {EXPIRATION_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
 
@@ -465,13 +544,27 @@ export default function AlertModal({isOpen, onClose, onCreate, exchange, trading
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-white/10">
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={!isFormValid()}>
-            Create
-          </Button>
+        <div className="flex items-center justify-between w-full px-4 py-3 border-t border-white/10">
+          <div>
+            {isEditMode && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="p-2 rounded-md border border-red-500/50 text-red-500 hover:bg-red-500/15 hover:text-red-400 transition-colors"
+                title="Delete alert"
+              >
+                <Trash2 size={16}/>
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSubmit} disabled={!isFormValid()}>
+              {isEditMode ? 'Save' : 'Create'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
