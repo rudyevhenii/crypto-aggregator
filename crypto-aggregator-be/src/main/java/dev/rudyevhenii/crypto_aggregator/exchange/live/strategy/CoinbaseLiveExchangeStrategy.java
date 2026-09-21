@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -32,8 +33,8 @@ public class CoinbaseLiveExchangeStrategy extends AbstractLiveExchangeStrategy {
     private final ObjectMapper objectMapper;
 
     public CoinbaseLiveExchangeStrategy(ObjectMapper objectMapper, CoinbaseProperties properties,
-                                        LiveCoinbaseMapper mapper) {
-        super(EXCHANGE_TYPE);
+                                        LiveCoinbaseMapper mapper, Sinks.Many<LivePriceDto> priceSink) {
+        super(EXCHANGE_TYPE, priceSink);
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.mapper = mapper;

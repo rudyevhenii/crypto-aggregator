@@ -5,7 +5,6 @@ import dev.rudyevhenii.crypto_aggregator.core.enums.TradingPair;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.ExchangeHealthDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.strategy.LiveExchangeStrategy;
-import dev.rudyevhenii.crypto_aggregator.price_alert.engine.PriceAlertEngineService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,21 +25,12 @@ public class LiveExchangeServiceImpl implements LiveExchangeService {
     private static final int BUFFER_DELAY_MILLIS = 500;
 
     private final Map<Exchange, LiveExchangeStrategy> liveExchangeStrategies;
-    private final PriceAlertEngineService priceAlertEngineService;
-    private final ExecutorService virtualExecutor;
 
     @Override
     public Flux<LivePriceDto> streamAllPrices() {
         return Flux.merge(liveExchangeStrategies.entrySet().stream()
                         .map(entry -> entry.getValue().streamPriceByExchange(entry.getKey()))
                         .toList())
-                .doOnNext(livePriceDto -> {
-                    try {
-                        virtualExecutor.submit(() -> priceAlertEngineService.processNewPrice(livePriceDto));
-                    } catch (Exception e) {
-                        log.error("Error checking price alerts", e);
-                    }
-                })
                 .buffer(Duration.ofMillis(BUFFER_DELAY_MILLIS))
                 .filter(list -> !list.isEmpty())
                 .flatMap(bufferedPrices -> Flux.fromStream(bufferedPrices.stream()

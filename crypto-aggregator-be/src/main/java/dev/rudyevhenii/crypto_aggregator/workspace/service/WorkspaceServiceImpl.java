@@ -58,7 +58,6 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     @Transactional(readOnly = true)
     public List<Workspace> getAllWorkspaces() {
-        log.info("User [{}] getting all workspaces", userContext.getUserId());
         return repository.findAllByUserId(userContext.getUserId());
     }
 

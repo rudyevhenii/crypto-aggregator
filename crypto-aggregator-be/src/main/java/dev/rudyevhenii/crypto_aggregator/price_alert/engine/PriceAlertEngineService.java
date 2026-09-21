@@ -17,11 +17,14 @@ import org.springframework.cache.Cache;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,6 +37,8 @@ public class PriceAlertEngineService {
     private final Map<DeliveryMethod, NotificationSenderStrategy> notificationSenderStrategies;
     private final PriceAlertCooldownService priceAlertCooldownService;
     private final PriceAlertInMemoryCacheManager inMemoryCacheManager;
+    private final ExecutorService virtualExecutor;
+    private final Sinks.Many<LivePriceDto> priceSink;
 
     @EventListener(ApplicationReadyEvent.class)
     public void loadPriceAlertIntoCache() {
@@ -47,6 +52,15 @@ public class PriceAlertEngineService {
                 ));
         Cache priceAlertsCache = inMemoryCacheManager.getPriceAlertsCache();
         priceAlertMap.forEach(priceAlertsCache::putIfAbsent);
+
+        priceSink.asFlux()
+                .publishOn(Schedulers.fromExecutor(virtualExecutor))
+                .onErrorContinue((err, failedPriceDto) ->
+                        log.error("Error during price processing {}: {}", failedPriceDto, err.getMessage(), err))
+                .subscribe(
+                        this::processNewPrice,
+                        err -> log.error("Error processing price alerts", err)
+                );
     }
 
     public void processNewPrice(LivePriceDto livePriceDto) {

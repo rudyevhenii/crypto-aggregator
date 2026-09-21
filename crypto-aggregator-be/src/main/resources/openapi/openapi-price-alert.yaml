@@ -184,6 +184,7 @@ components:
 
     TriggerPolicy:
       type: object
+      description: "Abstract base for trigger policy. Use oneOf to specify concrete policy."
       discriminator:
         propertyName: triggerType
         mapping:
@@ -198,6 +199,7 @@ components:
 
     OneTimeTriggerPolicy:
       type: object
+      description: "Trigger policy for one-time alerts."
       required:
         - triggerType
       properties:
@@ -206,6 +208,7 @@ components:
 
     RecurringTriggerPolicy:
       type: object
+      description: "Trigger policy for recurring alerts with cooldown."
       required:
         - triggerType
         - cooldownMinutes
@@ -215,9 +218,11 @@ components:
         cooldownMinutes:
           type: integer
           minimum: 1
+          description: "Cooldown period in minutes between triggers (e.g. 60)"
 
     ConditionPayload:
       type: object
+      description: "Abstract base for condition payload. Use oneOf to specify concrete condition."
       discriminator:
         propertyName: conditionType
         mapping:
