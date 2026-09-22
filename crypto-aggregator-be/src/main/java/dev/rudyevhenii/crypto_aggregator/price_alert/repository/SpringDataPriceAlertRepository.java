@@ -19,9 +19,16 @@ public interface SpringDataPriceAlertRepository extends JpaRepository<PriceAlert
 
     @Modifying
     @Query("UPDATE PriceAlertEntity p SET p.active = true WHERE p.id = :id")
-    void activatePriceAlert(UUID id);
+    void activateAlert(UUID id);
 
     @Modifying
     @Query("UPDATE PriceAlertEntity p SET p.active = false WHERE p.id = :id")
-    void deactivatePriceAlert(UUID id);
+    void deactivateAlert(UUID id);
+
+    @Query(value = """
+            UPDATE "priceAlerts" SET active = false
+            WHERE active = true
+            AND "expiresAt" <= now() RETURNING *""",
+            nativeQuery = true)
+    List<PriceAlertEntity> deactivateExpiredAlerts();
 }

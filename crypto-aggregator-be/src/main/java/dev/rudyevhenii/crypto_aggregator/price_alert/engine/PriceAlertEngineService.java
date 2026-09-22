@@ -72,8 +72,6 @@ public class PriceAlertEngineService {
         if (CollectionUtils.isEmpty(priceAlerts)) return;
 
         for (PriceAlert priceAlert : priceAlerts) {
-            // TODO: Add scheduler to set active status to false when PriceAlert gets expired.
-            //  Also it should update caffeine cache to sync with db state
             if (priceAlert.getExpiresAt() == null || livePriceDto.timestamp().isBefore(priceAlert.getExpiresAt())) {
                 ConditionPayload conditionPayload = priceAlert.getConditionPayload();
                 ConditionEvaluatorStrategy conditionEvaluatorStrategy = conditionEvaluatorStrategies.get(conditionPayload.getConditionType());

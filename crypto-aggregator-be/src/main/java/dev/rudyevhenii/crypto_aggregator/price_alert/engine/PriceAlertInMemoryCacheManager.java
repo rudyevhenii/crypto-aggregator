@@ -29,7 +29,7 @@ public class PriceAlertInMemoryCacheManager {
             priceAlerts = new CopyOnWriteArrayList<>();
             priceAlertsCache.put(resolvePriceAlertsKey(priceAlert), priceAlerts);
         }
-        priceAlerts.add(priceAlert);
+        priceAlerts.addIfAbsent(priceAlert);
     }
 
     public void updateAlertFromCache(PriceAlert priceAlert) {

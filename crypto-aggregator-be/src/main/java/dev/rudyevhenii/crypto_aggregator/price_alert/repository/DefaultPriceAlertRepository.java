@@ -53,13 +53,20 @@ public class DefaultPriceAlertRepository implements PriceAlertRepository {
     }
 
     @Override
-    public void activate(UUID id) {
-        repository.activatePriceAlert(id);
+    public void activateAlert(UUID id) {
+        repository.activateAlert(id);
     }
 
     @Override
-    public void deactivate(UUID id) {
-        repository.deactivatePriceAlert(id);
+    public void deactivateAlert(UUID id) {
+        repository.deactivateAlert(id);
+    }
+
+    @Override
+    public List<PriceAlert> deactivateExpiredAlerts() {
+        return repository.deactivateExpiredAlerts().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

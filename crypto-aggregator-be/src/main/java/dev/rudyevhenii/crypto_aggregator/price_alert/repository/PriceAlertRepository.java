@@ -18,9 +18,11 @@ public interface PriceAlertRepository {
 
     List<PriceAlert> findAllActive();
 
-    void activate(UUID id);
+    void activateAlert(UUID id);
 
-    void deactivate(UUID id);
+    void deactivateAlert(UUID id);
+
+    List<PriceAlert> deactivateExpiredAlerts();
 
     void deleteById(UUID id);
 }
