@@ -40,6 +40,7 @@ public class PriceAlertLogServiceImpl implements PriceAlertLogService {
     }
 
     private PriceAlertLog toDomain(PriceAlert priceAlert, BigDecimal triggeredPrice) {
+        BigDecimal formattedTriggeredPrice = triggeredPrice.stripTrailingZeros();
         return PriceAlertLog.builder()
                 .id(generator.uuid())
                 .priceAlertId(priceAlert.getId())
@@ -47,8 +48,8 @@ public class PriceAlertLogServiceImpl implements PriceAlertLogService {
                 .exchange(priceAlert.getExchange())
                 .tradingPair(priceAlert.getTradingPair())
                 .conditionType(priceAlert.getConditionPayload().getConditionType())
-                .triggeredPrice(triggeredPrice.stripTrailingZeros())
-                .message(buildMessage(priceAlert, triggeredPrice))
+                .triggeredPrice(formattedTriggeredPrice)
+                .message(buildMessage(priceAlert, formattedTriggeredPrice))
                 .deliveryMethods(priceAlert.getDeliveryMethods())
                 .createdAt(generator.now())
                 .build();

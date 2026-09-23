@@ -29,10 +29,23 @@ public class PriceAlertInMemoryCacheManager {
             priceAlerts = new CopyOnWriteArrayList<>();
             priceAlertsCache.put(resolvePriceAlertsKey(priceAlert), priceAlerts);
         }
-        priceAlerts.addIfAbsent(priceAlert);
+        priceAlerts.add(priceAlert);
     }
 
-    public void updateAlertFromCache(PriceAlert priceAlert) {
+    public void upsertAlertInCache(PriceAlert priceAlert) {
+        Cache priceAlertsCache = getPriceAlertsCache();
+        CopyOnWriteArrayList<PriceAlert> priceAlerts = getPriceAlertsValueFromCache(priceAlert);
+
+        if (priceAlerts == null) {
+            priceAlerts = new CopyOnWriteArrayList<>();
+            priceAlertsCache.put(resolvePriceAlertsKey(priceAlert), priceAlerts);
+        } else {
+            priceAlerts.removeIf(savedPriceAlert -> savedPriceAlert.getId().equals(priceAlert.getId()));
+        }
+        priceAlerts.add(priceAlert);
+    }
+
+    public void updateAlertInCache(PriceAlert priceAlert) {
         CopyOnWriteArrayList<PriceAlert> priceAlerts = getPriceAlertsValueFromCache(priceAlert);
 
         if (priceAlerts != null) {

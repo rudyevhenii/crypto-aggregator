@@ -47,7 +47,7 @@ public class PriceAlertServiceImpl implements PriceAlertService {
         mapper.toUpdateDomain(request, priceAlert, generator);
 
         PriceAlert updatedPriceAlert = repository.update(priceAlert);
-        inMemoryCacheManager.updateAlertFromCache(updatedPriceAlert);
+        inMemoryCacheManager.updateAlertInCache(updatedPriceAlert);
         log.info("User [{}] updated Price Alert [{}]", userContext.getUserId(), id);
 
         return updatedPriceAlert;
@@ -77,7 +77,7 @@ public class PriceAlertServiceImpl implements PriceAlertService {
         PriceAlert priceAlert = getById(userContext.getUserId(), id);
         priceAlert.setActive(true);
         repository.activateAlert(id);
-        inMemoryCacheManager.addAlertToCache(priceAlert);
+        inMemoryCacheManager.upsertAlertInCache(priceAlert);
         log.info("User [{}] activated Price Alert [{}]", userContext.getUserId(), id);
     }
 
