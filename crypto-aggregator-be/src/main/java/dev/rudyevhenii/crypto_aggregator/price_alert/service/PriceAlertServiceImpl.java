@@ -93,7 +93,7 @@ public class PriceAlertServiceImpl implements PriceAlertService {
         PriceAlert priceAlert = getById(userId, id);
         repository.deactivateAlert(id);
         inMemoryCacheManager.removeAlertFromCache(priceAlert);
-        log.info("User [{}] deactivated Price Alert [{}]", userId, id);
+        log.info("Deactivated Price Alert [{}] for user [{}]", id, userId);
     }
 
     @Override

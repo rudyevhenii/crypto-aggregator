@@ -9,6 +9,7 @@ import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.trigger_policy.
 import dev.rudyevhenii.crypto_aggregator.price_alert.engine.json.trigger_policy.RecurringTriggerPolicy;
 import dev.rudyevhenii.crypto_aggregator.price_alert.engine.notification.strategy.NotificationSenderStrategy;
 import dev.rudyevhenii.crypto_aggregator.price_alert.engine.strategy.ConditionEvaluatorStrategy;
+import dev.rudyevhenii.crypto_aggregator.price_alert.service.PriceAlertLogService;
 import dev.rudyevhenii.crypto_aggregator.price_alert.service.PriceAlertService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class PriceAlertEngineService {
     private final PriceAlertInMemoryCacheManager inMemoryCacheManager;
     private final ExecutorService virtualExecutor;
     private final Sinks.Many<LivePriceDto> priceSink;
+    private final PriceAlertLogService priceAlertLogService;
 
     @EventListener(ApplicationReadyEvent.class)
     public void loadPriceAlertIntoCache() {
@@ -76,15 +78,17 @@ public class PriceAlertEngineService {
                 ConditionPayload conditionPayload = priceAlert.getConditionPayload();
                 ConditionEvaluatorStrategy conditionEvaluatorStrategy = conditionEvaluatorStrategies.get(conditionPayload.getConditionType());
                 if (conditionEvaluatorStrategy.shouldTrigger(priceAlert, livePriceDto.lastPrice())) {
+                    boolean notificationSent = false;
                     for (DeliveryMethod deliveryMethod : priceAlert.getDeliveryMethods()) {
-                        sendNotification(priceAlert, livePriceDto.lastPrice(), deliveryMethod);
+                        notificationSent = isNotificationSent(priceAlert, livePriceDto.lastPrice(), deliveryMethod);
                     }
+                    if (notificationSent) priceAlertLogService.create(priceAlert, livePriceDto.lastPrice());
                 }
             }
         }
     }
 
-    private void sendNotification(PriceAlert priceAlert, BigDecimal livePrice, DeliveryMethod deliveryMethod) {
+    private boolean isNotificationSent(PriceAlert priceAlert, BigDecimal livePrice, DeliveryMethod deliveryMethod) {
         NotificationSenderStrategy notificationStrategy = notificationSenderStrategies.get(deliveryMethod);
         if (priceAlert.getTriggerPolicy() instanceof OneTimeTriggerPolicy oneTimeTriggerPolicy) {
             inMemoryCacheManager.removeAlertFromCache(priceAlert);
@@ -93,9 +97,10 @@ public class PriceAlertEngineService {
             if (!priceAlertCooldownService.isPriceAlertSetOnCooldown(priceAlert)) {
                 priceAlertCooldownService.setPriceAlertOnCooldown(priceAlert, recurringTriggerPolicy.getCooldownMinutes());
             } else {
-                return;
+                return false;
             }
         }
         notificationStrategy.sendNotification(priceAlert, livePrice);
+        return true;
     }
 }
