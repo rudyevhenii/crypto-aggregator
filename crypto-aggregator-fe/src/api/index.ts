@@ -7,6 +7,8 @@ import {
   HistoricalPrice,
   HistoricalPriceRequest,
   PriceAlert,
+  PriceAlertLog,
+  PriceAlertLogScrollRequest,
   PriceAlertRequest,
   PriceAlertUpdateRequest,
   Ticker24h,
@@ -395,6 +397,31 @@ export const api = {
   deactivatePriceAlert: async (id: string): Promise<void> => {
     const res = await fetchAuth(`/api/price-alerts/${id}/deactivate`, {method: 'PATCH'});
     if (!res.ok) throw new Error('Failed to deactivate price alert');
+  },
+
+  getPriceAlertLogs: async (request: PriceAlertLogScrollRequest = {}): Promise<PriceAlertLog[]> => {
+    const params = new URLSearchParams();
+
+    if (request.lastCreatedAt) {
+      params.append('lastCreatedAt', request.lastCreatedAt);
+    }
+
+    if (request.lastId) {
+      params.append('lastId', request.lastId);
+    }
+
+    if (request.limit) {
+      params.append('limit', request.limit.toString());
+    }
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `/api/price-alert-logs?${queryString}`
+      : '/api/price-alert-logs';
+
+    const res = await fetchAuth(url);
+    if (!res.ok) throw new Error('Failed to fetch price alert logs');
+    return res.json();
   },
 };
 

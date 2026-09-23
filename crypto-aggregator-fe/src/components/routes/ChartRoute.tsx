@@ -266,7 +266,6 @@ function ChartRouteInner() {
 
         <AlertSidebar
           alerts={alerts}
-          logs={[]}
           onEditAlert={setEditingAlert}
           onCreateAlert={() => setIsAlertModalOpen(true)}
         />

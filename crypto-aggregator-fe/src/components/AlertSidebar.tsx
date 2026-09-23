@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {
   AlarmClock,
   X,
@@ -11,10 +11,10 @@ import {
 } from 'lucide-react';
 import {PriceAlert, PriceAlertLog, ConditionType} from '../api';
 import {useActivateAlert, useDeactivateAlert, useDeleteAlert} from '../hooks/usePriceAlerts';
+import {api} from '../api';
 
 type AlertSidebarProps = {
   alerts: PriceAlert[];
-  logs: PriceAlertLog[];
   onEditAlert?: (alert: PriceAlert) => void;
   onCreateAlert?: () => void;
 };
@@ -32,12 +32,17 @@ const CONDITION_LABELS: Record<ConditionType, string> = {
 
 export default function AlertSidebar({
                                         alerts = [],
-                                        logs = [],
                                         onEditAlert,
                                         onCreateAlert,
                                       }: AlertSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'alerts' | 'log'>('alerts');
+
+  const [logs, setLogs] = useState<PriceAlertLog[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [logCursor, setLogCursor] = useState<{ lastCreatedAt?: string; lastId?: string }>({});
+  const observerRef = useRef<HTMLDivElement | null>(null);
 
   const activateMutation = useActivateAlert();
   const deactivateMutation = useDeactivateAlert();
@@ -67,6 +72,17 @@ export default function AlertSidebar({
     });
   };
 
+  const formatDateTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const handleToggle = async (id: string, active: boolean) => {
     if (active) {
       await deactivateMutation.mutateAsync(id);
@@ -78,6 +94,67 @@ export default function AlertSidebar({
   const handleDelete = async (id: string) => {
     await deleteMutation.mutateAsync(id);
   };
+
+  const loadLogs = async (cursor?: { lastCreatedAt?: string; lastId?: string }) => {
+    if (isLoadingLogs) return;
+    setIsLoadingLogs(true);
+    try {
+      const data = await api.getPriceAlertLogs({
+        lastCreatedAt: cursor?.lastCreatedAt,
+        lastId: cursor?.lastId,
+      });
+
+      setLogs(prev => {
+        const next = cursor ? [...prev, ...data] : data;
+        return next;
+      });
+
+      if (data.length > 0) {
+        const last = data[data.length - 1];
+        setLogCursor({
+          lastCreatedAt: last.createdAt,
+          lastId: last.id,
+        });
+        setHasMore(data.length >= 50);
+      } else {
+        setHasMore(false);
+      }
+    } catch {
+      // log load failure handled by empty state
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'log') {
+      setLogs([]);
+      setLogCursor({});
+      setHasMore(false);
+      loadLogs();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'log') return;
+
+    const el = observerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingLogs) {
+          loadLogs(logCursor);
+        }
+      },
+      {root: el, threshold: 0.1}
+    );
+
+    const sentinel = el.querySelector('[data-log-sentinel]');
+    if (sentinel) observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  }, [activeTab, hasMore, isLoadingLogs, logCursor]);
 
   return (
     <div
@@ -136,9 +213,9 @@ export default function AlertSidebar({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto" ref={observerRef}>
             {activeTab === 'alerts' && (
-              <div className="p-2 space-y-1">
+              <div className="p-2 pb-4 space-y-1">
                 {/* Alerts list */}
                 {alerts.map(alert => (
                   <div
@@ -219,8 +296,8 @@ export default function AlertSidebar({
             )}
 
             {activeTab === 'log' && (
-              <div className="p-4">
-                {logs.length === 0 ? (
+              <div className="p-2">
+                {!isLoadingLogs && logs.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <FileText size={32} className="text-zinc-600 mb-3"/>
                     <p className="text-sm text-zinc-500">No alert trigger logs yet</p>
@@ -235,11 +312,28 @@ export default function AlertSidebar({
                         <div className="text-xs text-zinc-300 mb-1">
                           {log.message || 'Alert triggered'}
                         </div>
-                        <div className="text-[10px] text-zinc-500">
-                          {new Date(log.triggeredAt).toLocaleString()}
+                        <div className="flex items-center justify-between text-[10px] text-zinc-500">
+                          <span>Price: {log.triggeredPrice}</span>
+                          <span>{formatDateTime(log.createdAt)}</span>
+                        </div>
+                        <div className="mt-1.5 flex items-center gap-1 text-[10px] text-zinc-400">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#131722] border border-gray-700/60">
+                            {log.deliveryMethods.includes('EMAIL') ? 'Email' : log.deliveryMethods.join(', ')}
+                          </span>
+                          <span className="text-[#0ecb81]">Sent</span>
                         </div>
                       </div>
                     ))}
+
+                    <div data-log-sentinel className="h-1"/>
+
+                    {isLoadingLogs && (
+                      <div className="text-center text-[10px] text-zinc-500 py-2">Loading...</div>
+                    )}
+
+                    {!hasMore && logs.length > 0 && !isLoadingLogs && (
+                      <div className="text-center text-[10px] text-zinc-600 py-2">No more logs</div>
+                    )}
                   </div>
                 )}
               </div>

@@ -166,8 +166,20 @@ export interface PriceAlertUpdateRequest {
 export interface PriceAlertLog {
   id: string;
   priceAlertId: string;
-  triggeredAt: string;
-  message?: string;
+  userId: string;
+  exchange: Exchange;
+  tradingPair: TradingPair;
+  conditionType: ConditionType;
+  triggeredPrice: number;
+  message: string;
+  deliveryMethods: DeliveryMethod[];
+  createdAt: string;
+}
+
+export interface PriceAlertLogScrollRequest {
+  lastCreatedAt?: string;
+  lastId?: string;
+  limit?: number;
 }
 
 // --- UTILS ---
