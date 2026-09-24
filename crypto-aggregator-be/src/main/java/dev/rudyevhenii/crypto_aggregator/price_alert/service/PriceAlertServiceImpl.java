@@ -76,8 +76,10 @@ public class PriceAlertServiceImpl implements PriceAlertService {
     public void activate(UUID id) {
         PriceAlert priceAlert = getById(userContext.getUserId(), id);
         priceAlert.setActive(true);
-        repository.activateAlert(id);
-        inMemoryCacheManager.upsertAlertInCache(priceAlert);
+        priceAlert.setUpdatedAt(generator.now());
+
+        PriceAlert activatedAlert = repository.update(priceAlert);
+        inMemoryCacheManager.upsertAlertInCache(activatedAlert);
         log.info("User [{}] activated Price Alert [{}]", userContext.getUserId(), id);
     }
 
@@ -91,8 +93,11 @@ public class PriceAlertServiceImpl implements PriceAlertService {
     @Transactional
     public void deactivateForUser(UUID userId, UUID id) {
         PriceAlert priceAlert = getById(userId, id);
-        repository.deactivateAlert(id);
-        inMemoryCacheManager.removeAlertFromCache(priceAlert);
+        priceAlert.setActive(false);
+        priceAlert.setUpdatedAt(generator.now());
+
+        PriceAlert deactivatedAlert = repository.update(priceAlert);
+        inMemoryCacheManager.removeAlertFromCache(deactivatedAlert);
         log.info("Deactivated Price Alert [{}] for user [{}]", id, userId);
     }
 
