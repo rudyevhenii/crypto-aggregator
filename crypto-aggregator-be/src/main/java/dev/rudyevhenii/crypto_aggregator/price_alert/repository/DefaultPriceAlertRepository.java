@@ -6,6 +6,7 @@ import dev.rudyevhenii.crypto_aggregator.price_alert.mapper.PriceAlertEntityMapp
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,8 +54,8 @@ public class DefaultPriceAlertRepository implements PriceAlertRepository {
     }
 
     @Override
-    public List<PriceAlert> deactivateExpiredAlerts() {
-        return repository.deactivateExpiredAlerts().stream()
+    public List<PriceAlert> deactivateExpiredAlerts(Instant now) {
+        return repository.deactivateExpiredAlerts(now).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

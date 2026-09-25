@@ -2,6 +2,7 @@ package dev.rudyevhenii.crypto_aggregator.price_alert.repository;
 
 import dev.rudyevhenii.crypto_aggregator.price_alert.domain.PriceAlert;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,7 +19,7 @@ public interface PriceAlertRepository {
 
     List<PriceAlert> findAllActive();
 
-    List<PriceAlert> deactivateExpiredAlerts();
+    List<PriceAlert> deactivateExpiredAlerts(Instant now);
 
     void deleteById(UUID id);
 }

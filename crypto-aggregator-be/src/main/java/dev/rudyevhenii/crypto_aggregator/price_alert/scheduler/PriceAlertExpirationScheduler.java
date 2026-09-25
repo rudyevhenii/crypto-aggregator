@@ -1,5 +1,6 @@
 package dev.rudyevhenii.crypto_aggregator.price_alert.scheduler;
 
+import dev.rudyevhenii.crypto_aggregator.core.util.GeneratorUtils;
 import dev.rudyevhenii.crypto_aggregator.price_alert.domain.PriceAlert;
 import dev.rudyevhenii.crypto_aggregator.price_alert.engine.PriceAlertInMemoryCacheManager;
 import dev.rudyevhenii.crypto_aggregator.price_alert.repository.PriceAlertRepository;
@@ -16,10 +17,11 @@ public class PriceAlertExpirationScheduler {
 
     private final PriceAlertRepository repository;
     private final PriceAlertInMemoryCacheManager inMemoryCacheManager;
+    private final GeneratorUtils generator;
 
     @Scheduled(cron = "${app.price-alets.scheduler.expiration.cron:0 */5 * * * *}")
     public void deactivateExpiredAlerts() {
-        List<PriceAlert> priceAlerts = repository.deactivateExpiredAlerts();
+        List<PriceAlert> priceAlerts = repository.deactivateExpiredAlerts(generator.now());
         if (CollectionUtils.isEmpty(priceAlerts)) return;
 
         priceAlerts.forEach(inMemoryCacheManager::removeAlertFromCache);
