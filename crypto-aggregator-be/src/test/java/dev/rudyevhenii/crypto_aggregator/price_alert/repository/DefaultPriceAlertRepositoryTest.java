@@ -162,6 +162,9 @@ class DefaultPriceAlertRepositoryTest extends AbstractIntegrationTest {
         static final BigDecimal TRAILING_PERCENTAGE = new BigDecimal("1.58");
         static final BigDecimal REFERENCE_PRICE = new BigDecimal("76480.00");
 
+        static final int COOLDOWN_MINUTES_1 = 5;
+        static final int COOLDOWN_MINUTES_2 = 8;
+
         static final UUID NON_EXISTENT_ID = UUID.fromString("9aaaaaaa-9999-9999-9999-aaaaaaaaaaa9");
         static final UUID NON_EXISTENT_USER_ID = UUID.fromString("9bbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb9");
 
@@ -238,7 +241,7 @@ class DefaultPriceAlertRepositoryTest extends AbstractIntegrationTest {
 
         private static TriggerPolicy buildFirstTriggerPolicy() {
             return RecurringTriggerPolicy.builder()
-                    .cooldownMinutes(5)
+                    .cooldownMinutes(COOLDOWN_MINUTES_1)
                     .build();
         }
 
@@ -248,7 +251,7 @@ class DefaultPriceAlertRepositoryTest extends AbstractIntegrationTest {
 
         private static TriggerPolicy buildSecondTriggerPolicy() {
             return RecurringTriggerPolicy.builder()
-                    .cooldownMinutes(8)
+                    .cooldownMinutes(COOLDOWN_MINUTES_2)
                     .build();
         }
 
