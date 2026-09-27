@@ -41,19 +41,19 @@ class DefaultPriceAlertLogRepositoryTest extends AbstractIntegrationTest {
 
     @Test
     @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/given/price_alert_for_logs.yaml"
+            "dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/given/user.yaml",
+            "dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/given/price_alert_for_logs.yaml"
     })
-    @ExpectedDataSet("dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/then/created_price_alert_log.yaml")
+    @ExpectedDataSet("dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/then/created_price_alert_log.yaml")
     void givenPriceAlertLog_create_shouldCreatePriceAlertLog() {
         repository.create(buildPriceAlertLog());
     }
 
     @Test
     @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/given/price_alert_for_logs.yaml",
-            "dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/given/price_alert_log.yaml"
+            "dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/given/user.yaml",
+            "dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/given/price_alert_for_logs.yaml",
+            "dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/given/price_alert_log.yaml"
     })
     void givenPriceAlertLogScrollRequest_findAllAlertLogs_shouldFindAllLogsFromScrollPosition() {
         List<PriceAlertLog> result = repository.findAllAlertLogs(USER_ID, buildScrollRequest());
@@ -65,9 +65,9 @@ class DefaultPriceAlertLogRepositoryTest extends AbstractIntegrationTest {
 
     @Test
     @DataSet({
-            "dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/given/user.yaml",
-            "dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/given/price_alert_for_logs.yaml",
-            "dev/rudyevhenii/crypto_aggregator/price_alert/controller/datasets/given/price_alert_log.yaml"
+            "dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/given/user.yaml",
+            "dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/given/price_alert_for_logs.yaml",
+            "dev/rudyevhenii/crypto_aggregator/price_alert/repository/datasets/given/price_alert_log.yaml"
     })
     void givenPriceAlertLogScrollRequest_findAllAlertLogs_shouldFindLogsFromStart() {
         List<PriceAlertLog> result = repository.findAllAlertLogs(USER_ID, buildScrollRequestWithNullCursorFields());
