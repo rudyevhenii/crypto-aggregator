@@ -57,13 +57,12 @@ public class PriceAlertLogServiceImpl implements PriceAlertLogService {
     private String buildMessage(PriceAlert priceAlert) {
         TradingPair tradingPair = priceAlert.getTradingPair();
         ConditionPayload conditionPayload = priceAlert.getConditionPayload();
-        BigDecimal targetPrice = resolveTargetPrice(conditionPayload);
 
         return switch (conditionPayload.getConditionType()) {
-            case GREATER_THAN -> String.format("%s is strictly greater than %s", tradingPair, targetPrice);
-            case LESS_THAN -> String.format("%s is strictly less than %s", tradingPair, targetPrice);
-            case CROSSED_UP -> String.format("%s crossed up %s", tradingPair, targetPrice);
-            case CROSSED_DOWN -> String.format("%s crossed down %s", tradingPair, targetPrice);
+            case GREATER_THAN -> String.format("%s is strictly greater than %s", tradingPair, resolveTargetPrice(conditionPayload));
+            case LESS_THAN -> String.format("%s is strictly less than %s", tradingPair, resolveTargetPrice(conditionPayload));
+            case CROSSED_UP -> String.format("%s crossed up %s", tradingPair, resolveTargetPrice(conditionPayload));
+            case CROSSED_DOWN -> String.format("%s crossed down %s", tradingPair, resolveTargetPrice(conditionPayload));
             case PERCENT_UP -> String.format("%s increased by %s%%", tradingPair, resolvePercentage(conditionPayload));
             case PERCENT_DOWN -> String.format("%s dropped by %s%%", tradingPair, resolvePercentage(conditionPayload));
             case TRAILING_DROP -> String.format("%s fell %s%% from its peak", tradingPair, resolvePercentage(conditionPayload));
@@ -72,12 +71,7 @@ public class PriceAlertLogServiceImpl implements PriceAlertLogService {
     }
 
     private BigDecimal resolveTargetPrice(ConditionPayload conditionPayload) {
-        return switch (conditionPayload) {
-            case PercentagePayload percentagePayload -> percentagePayload.getInitialPrice();
-            case TargetPricePayload targetPricePayload -> targetPricePayload.getTargetPrice();
-            case TrailingPayload trailingPayload -> trailingPayload.getReferencePrice();
-            default -> throw new IllegalArgumentException("Unknown payload type: " + conditionPayload.getClass());
-        };
+        return ((TargetPricePayload) conditionPayload).getTargetPrice();
     }
 
     private BigDecimal resolvePercentage(ConditionPayload conditionPayload) {
