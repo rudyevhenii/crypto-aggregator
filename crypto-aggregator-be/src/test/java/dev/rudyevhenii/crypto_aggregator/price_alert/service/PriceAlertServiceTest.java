@@ -178,7 +178,6 @@ class PriceAlertServiceTest {
         static final UUID ID = UUID.fromString("50000000-0000-0000-0000-000000000005");
         static final UUID USER_ID = UUID.fromString("40000000-0000-0000-0000-000000000004");
 
-        static final Instant NOW = Instant.parse("2026-09-15T12:00:00Z");
         static final Instant EXPIRES_AT = Instant.parse("2026-09-08T12:00:00Z");
         static final Instant CREATED_AT = Instant.parse("2026-08-08T12:00:00Z");
         static final Instant UPDATED_AT = Instant.parse("2026-08-10T12:00:00Z");

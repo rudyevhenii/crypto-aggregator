@@ -1,0 +1,21 @@
+{
+  "id": "50000000-0000-0000-0000-000000000005",
+  "userId": "40000000-0000-0000-0000-000000000004",
+  "exchange": "BINANCE",
+  "tradingPair": "BTC_USD",
+  "triggerPolicy": {
+    "triggerType": "ONE_TIME"
+  },
+  "deliveryMethods": [
+    "EMAIL"
+  ],
+  "active": true,
+  "conditionPayload": {
+    "initialPrice": 73500.00,
+    "conditionType": "PERCENT_UP",
+    "percentageChange": 3.25
+  },
+  "expiresAt": null,
+  "createdAt": "2026-08-08T12:00:00Z",
+  "updatedAt": "2026-08-10T12:00:00Z"
+}
