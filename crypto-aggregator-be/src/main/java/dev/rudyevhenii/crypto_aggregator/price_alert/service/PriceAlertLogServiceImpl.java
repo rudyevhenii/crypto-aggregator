@@ -40,7 +40,6 @@ public class PriceAlertLogServiceImpl implements PriceAlertLogService {
     }
 
     private PriceAlertLog toDomain(PriceAlert priceAlert, BigDecimal triggeredPrice) {
-        BigDecimal formattedTriggeredPrice = triggeredPrice.stripTrailingZeros();
         return PriceAlertLog.builder()
                 .id(generator.uuid())
                 .priceAlertId(priceAlert.getId())
@@ -48,35 +47,27 @@ public class PriceAlertLogServiceImpl implements PriceAlertLogService {
                 .exchange(priceAlert.getExchange())
                 .tradingPair(priceAlert.getTradingPair())
                 .conditionType(priceAlert.getConditionPayload().getConditionType())
-                .triggeredPrice(formattedTriggeredPrice)
-                .message(buildMessage(priceAlert, formattedTriggeredPrice))
+                .triggeredPrice(triggeredPrice)
+                .message(buildMessage(priceAlert))
                 .deliveryMethods(priceAlert.getDeliveryMethods())
                 .createdAt(generator.now())
                 .build();
     }
 
-    private String buildMessage(PriceAlert priceAlert, BigDecimal triggeredPrice) {
+    private String buildMessage(PriceAlert priceAlert) {
         TradingPair tradingPair = priceAlert.getTradingPair();
         ConditionPayload conditionPayload = priceAlert.getConditionPayload();
         BigDecimal targetPrice = resolveTargetPrice(conditionPayload);
 
         return switch (conditionPayload.getConditionType()) {
-            case GREATER_THAN -> String.format("%s is strictly greater than %s (Triggered at %s)",
-                    tradingPair, targetPrice, triggeredPrice);
-            case LESS_THAN -> String.format("%s is strictly less than %s (Triggered at %s)",
-                    tradingPair, targetPrice, triggeredPrice);
-            case CROSSED_UP -> String.format("%s crossed up %s",
-                    tradingPair, targetPrice);
-            case CROSSED_DOWN -> String.format("%s crossed down %s",
-                    tradingPair, targetPrice);
-            case PERCENT_UP -> String.format("%s increased by %s%% (Triggered at %s)",
-                    tradingPair, resolvePercentage(conditionPayload), triggeredPrice);
-            case PERCENT_DOWN -> String.format("%s dropped by %s%% (Triggered at %s)",
-                    tradingPair, resolvePercentage(conditionPayload), triggeredPrice);
-            case TRAILING_DROP -> String.format("%s fell %s%% from its peak (Triggered at %s)",
-                    tradingPair, resolvePercentage(conditionPayload), triggeredPrice);
-            case TRAILING_RISE -> String.format("%s rose %s%% from its local low (Triggered at %s)",
-                    tradingPair, resolvePercentage(conditionPayload), triggeredPrice);
+            case GREATER_THAN -> String.format("%s is strictly greater than %s", tradingPair, targetPrice);
+            case LESS_THAN -> String.format("%s is strictly less than %s", tradingPair, targetPrice);
+            case CROSSED_UP -> String.format("%s crossed up %s", tradingPair, targetPrice);
+            case CROSSED_DOWN -> String.format("%s crossed down %s", tradingPair, targetPrice);
+            case PERCENT_UP -> String.format("%s increased by %s%%", tradingPair, resolvePercentage(conditionPayload));
+            case PERCENT_DOWN -> String.format("%s dropped by %s%%", tradingPair, resolvePercentage(conditionPayload));
+            case TRAILING_DROP -> String.format("%s fell %s%% from its peak", tradingPair, resolvePercentage(conditionPayload));
+            case TRAILING_RISE -> String.format("%s rose %s%% from its local low", tradingPair, resolvePercentage(conditionPayload));
         };
     }
 
