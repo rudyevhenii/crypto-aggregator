@@ -1,12 +1,12 @@
 package dev.rudyevhenii.crypto_aggregator.exchange.live;
 
-import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeHealthRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.ExchangeRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.LivePriceRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.TradingPairRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.live.ExchangeHealthRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.live.ExchangeRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.live.LivePriceRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.live.TradingPairRqDto;
 import dev.rudyevhenii.crypto_aggregator.core.enums.Exchange;
 import dev.rudyevhenii.crypto_aggregator.core.enums.TradingPair;
-import dev.rudyevhenii.crypto_aggregator.exchange.mapper.ExchangeMapper;
+import dev.rudyevhenii.crypto_aggregator.exchange.live.mapper.ExchangeLiveMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,22 +15,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/stream/exchanges")
 @RequiredArgsConstructor
 public class LiveExchangeController {
 
     private final LiveExchangeService liveExchangeService;
-    private final ExchangeMapper mapper;
+    private final ExchangeLiveMapper mapper;
 
     @GetMapping(value = "/prices", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<List<LivePriceRqDto>> streamAllPrices() {
+    public Flux<LivePriceRqDto> streamAllPrices() {
         return liveExchangeService.streamAllPrices()
-                .map(list -> list.stream()
-                        .map(mapper::map)
-                        .toList());
+                .map(mapper::map);
     }
 
     @GetMapping(value = "/{exchange}/prices", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

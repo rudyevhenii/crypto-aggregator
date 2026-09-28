@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.WORKSPACE_CACHE;
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisCacheConfig.WORKSPACE_CACHE;
 
 @Repository
 @RequiredArgsConstructor

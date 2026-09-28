@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.EXCHANGE_PAIR_CACHE;
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisCacheConfig.EXCHANGE_PAIR_CACHE;
 import static dev.rudyevhenii.crypto_aggregator.exchange_pair.spec.ExchangePairSpec.equalToExchange;
 import static dev.rudyevhenii.crypto_aggregator.exchange_pair.spec.ExchangePairSpec.hasTradingPairPattern;
 

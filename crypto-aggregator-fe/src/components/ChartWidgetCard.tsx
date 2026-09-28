@@ -5,6 +5,7 @@ import {GripHorizontal, Trash2} from 'lucide-react';
 import {api, ChartInterval, ChartWidget, HistoricalPrice, LivePrice} from '../api';
 import {useExchangePairs} from '../contexts/ExchangePairsContext';
 import {Select} from './ui';
+import {formatInterval} from '../utils/format';
 import ChartArea, {ChartHandle} from './ChartArea';
 
 const MaximizeIcon = () => (
@@ -130,8 +131,9 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
           <Select
             value={widget.chartInterval}
             onChange={(value) => onUpdateInterval(widget.id, value as ChartInterval)}
-            options={intervals.map(int => ({value: int, label: int.replace(/_/g, ' ')}))}
-            className="!w-auto !bg-transparent !border-none !pr-8 !pl-2 !text-xs"
+            options={intervals.map(int => ({value: int, label: formatInterval(int)}))}
+            className="!w-auto !bg-transparent !border-none !pr-2 !pl-2 !text-xs"
+            hideArrow
           />
         </div>
         <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
@@ -152,7 +154,15 @@ export default function ChartWidgetCard({widget, livePrice, onDelete, onUpdateIn
       <div className="flex-1 relative">
         {historical && exchangePair ? (
           <ChartArea ref={chartRef} interval={widget.chartInterval} historical={historical} onLoadMore={handleLoadMore}
-                     isWidget={true} exchange={exchangePair.exchange} tradingPair={exchangePair.tradingPair}/>
+                     isWidget={true} exchange={exchangePair.exchange} tradingPair={exchangePair.tradingPair}
+                     livePrice={livePrice ? {
+                       lastPrice: livePrice.lastPrice,
+                       priceChangePercent24h: livePrice.priceChangePercent24h,
+                       highPrice24h: livePrice.highPrice24h,
+                       lowPrice24h: livePrice.lowPrice24h,
+                       volume24h: livePrice.volume24h,
+                     } : null}
+                     health={null}/>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-xs">
             {exchangePairsLoading ? 'Loading...' : 'No data'}

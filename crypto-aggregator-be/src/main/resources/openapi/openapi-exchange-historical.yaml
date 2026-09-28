@@ -1,0 +1,189 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator Historical Exchange API
+  description: Provides access to historical OHLCV candlestick data and 24-hour ticker statistics from supported cryptocurrency exchanges.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/historical/exchanges/{exchange}/klines:
+    get:
+      operationId: "getHistoricalPrices"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+        - name: request
+          in: query
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/HistoricalPriceRequest'
+      responses:
+        "200":
+          description: "Array of historical OHLCV candlestick data points"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricalPrice'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/historical/exchanges/{exchange}/tickers/24h:
+    get:
+      operationId: "get24hTickersByExchange"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+        - name: tradingPairs
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/TradingPair'
+      responses:
+        "200":
+          description: "24-hour ticker statistics for requested trading pairs"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticker24h'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/historical/exchanges/{exchange}/tickers/24h/{pair}:
+    get:
+      operationId: "get24hTickerForPair"
+      tags:
+        - "HistoricalExchange"
+      parameters:
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+        - name: pair
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TradingPair'
+      responses:
+        "200":
+          description: "24-hour ticker statistics for the specified trading pair"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticker24h'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Exchange:
+      $ref: 'common-components.yaml#/components/schemas/Exchange'
+
+    TradingPair:
+      $ref: 'common-components.yaml#/components/schemas/TradingPair'
+
+    HistoricalPriceRequest:
+      type: object
+      description: "Parameters for requesting historical OHLCV candlestick data."
+      required:
+        - tradingPair
+        - chartInterval
+      properties:
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair to fetch (e.g. BTC_USD)"
+        chartInterval:
+          $ref: 'common-components.yaml#/components/schemas/ChartInterval'
+          description: "Chart interval for OHLCV data (e.g. ONE_HOUR)"
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 100
+          maximum: 200
+          description: "Maximum number of results to return (e.g. 100)"
+        endTimeCursor:
+          type: string
+          format: date-time
+          description: "End time cursor for pagination (e.g. 2024-01-15T00:00:00Z)"
+
+    HistoricalPrice:
+      type: object
+      description: "Single historical OHLCV candlestick data point."
+      properties:
+        openTime:
+          type: string
+          format: date-time
+          description: "Candle open time (e.g. 2024-01-15T00:00:00Z)"
+        open:
+          type: number
+          description: "Opening price (e.g. 42150.50)"
+        high:
+          type: number
+          description: "Highest price during the interval (e.g. 42380.25)"
+        low:
+          type: number
+          description: "Lowest price during the interval (e.g. 41980.00)"
+        close:
+          type: number
+          description: "Closing price (e.g. 42250.75)"
+        volume:
+          type: number
+          description: "Trading volume (e.g. 1250.45)"
+
+    Ticker24h:
+      type: object
+      description: "24-hour rolling ticker statistics for a trading pair."
+      properties:
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair (e.g. BTC_USD)"
+        lastPrice:
+          type: number
+          description: "Last traded price (e.g. 42300.0)"
+        priceChangePercent24h:
+          type: number
+          description: "24-hour price change percentage (e.g. 2.5)"
+        high24h:
+          type: number
+          description: "24-hour highest price (e.g. 42500.0)"
+        low24h:
+          type: number
+          description: "24-hour lowest price (e.g. 41800.0)"
+        volume24h:
+          type: number
+          description: "24-hour trading volume (e.g. 12345.67)"
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'

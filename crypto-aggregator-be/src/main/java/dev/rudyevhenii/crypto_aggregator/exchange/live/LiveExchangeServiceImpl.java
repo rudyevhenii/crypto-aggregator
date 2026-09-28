@@ -6,6 +6,7 @@ import dev.rudyevhenii.crypto_aggregator.exchange.live.model.ExchangeHealthDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.model.LivePriceDto;
 import dev.rudyevhenii.crypto_aggregator.exchange.live.strategy.LiveExchangeStrategy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.util.function.Tuples;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LiveExchangeServiceImpl implements LiveExchangeService {
@@ -25,17 +27,17 @@ public class LiveExchangeServiceImpl implements LiveExchangeService {
     private final Map<Exchange, LiveExchangeStrategy> liveExchangeStrategies;
 
     @Override
-    public Flux<List<LivePriceDto>> streamAllPrices() {
+    public Flux<LivePriceDto> streamAllPrices() {
         return Flux.merge(liveExchangeStrategies.entrySet().stream()
                         .map(entry -> entry.getValue().streamPriceByExchange(entry.getKey()))
                         .toList())
                 .buffer(Duration.ofMillis(BUFFER_DELAY_MILLIS))
                 .filter(list -> !list.isEmpty())
-                .map(bufferedTicks -> bufferedTicks.stream()
-                        .collect(Collectors.groupingBy(dto -> Tuples.of(dto.exchange(), dto.tradingPair())))
+                .flatMap(bufferedPrices -> Flux.fromStream(bufferedPrices.stream()
+                        .collect(Collectors.groupingBy(livePrice ->
+                                Tuples.of(livePrice.exchange(), livePrice.tradingPair())))
                         .values().stream()
-                        .map(this::aggregateTicks)
-                        .toList()
+                        .map(this::aggregateTicks))
                 );
     }
 

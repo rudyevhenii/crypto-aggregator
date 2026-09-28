@@ -1,0 +1,41 @@
+meta {
+  name: Create Price Alert [PERCENT_UP]
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{BASE_URL}}/api/price-alerts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "exchange": "BINANCE",
+    "tradingPair": "BTC_USD",
+    "triggerPolicy": {
+      "triggerType": "ONE_TIME"
+    },
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "PERCENT_UP",
+      "initialPrice": 80000.00,
+      "percentageChange": 5.0
+    },
+    "expiresAt": "2026-11-01T00:00:00Z"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_PERCENT_UP_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

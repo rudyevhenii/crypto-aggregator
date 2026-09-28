@@ -1,0 +1,225 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator Chart Widget API
+  description: Creates, updates, retrieves, and manages chart widgets within user workspaces for visualizing cryptocurrency price data.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/workspaces/{workspaceId}/widgets:
+    post:
+      operationId: "createChartWidget"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChartWidgetRequest'
+      responses:
+        "201":
+          description: "Chart widget created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartWidget'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      operationId: "getAllByWorkspaceId"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+      responses:
+        "200":
+          description: "Returns all chart widgets for the workspace"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChartWidget'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+
+  /api/workspaces/{workspaceId}/widgets/{chartWidgetId}:
+    patch:
+      operationId: "updateChartWidget"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+        - $ref: '#/components/parameters/ChartWidgetParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateChartWidgetRequest'
+      responses:
+        "200":
+          description: "Returns updated chart widget"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartWidget'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    delete:
+      operationId: "deleteChartWidget"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+        - $ref: '#/components/parameters/ChartWidgetParam'
+      responses:
+        "204":
+          description: "Chart widget deleted"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/workspaces/{workspaceId}/widgets/positions:
+    put:
+      operationId: "updateChartWidgetPositions"
+      tags:
+        - "ChartWidget"
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateChartWidgetPositionsRequest'
+      responses:
+        "204":
+          description: "Positions updated"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    ChartWidgetRequest:
+      type: object
+      description: "Chart widget creation request"
+      required:
+        - exchangePairId
+      properties:
+        exchangePairId:
+          type: string
+          format: uuid
+          description: "Exchange pair ID to chart (e.g. 550e8400-e29b-41d4-a716-446655440000)"
+
+    ChartWidget:
+      type: object
+      description: "Chart widget configuration"
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Unique identifier (e.g. 660e8400-e29b-41d4-a716-446655440001)"
+        chartInterval:
+          $ref: 'common-components.yaml#/components/schemas/ChartInterval'
+          description: "Chart interval (e.g. ONE_HOUR)"
+        exchangePairId:
+          type: string
+          format: uuid
+          description: "Exchange pair ID (e.g. 550e8400-e29b-41d4-a716-446655440000)"
+        workspaceId:
+          type: string
+          format: uuid
+          description: "Workspace ID (e.g. 550e8400-e29b-41d4-a716-446655440000)"
+        position:
+          type: integer
+          format: int32
+          description: "Widget position in workspace (e.g. 1)"
+        createdAt:
+          type: string
+          format: date-time
+          description: "Creation timestamp (e.g. 2024-01-15T10:05:00Z)"
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Last update timestamp (e.g. 2024-01-15T14:30:00Z)"
+
+    UpdateChartWidgetRequest:
+      type: object
+      description: "Chart widget update request"
+      required:
+        - chartInterval
+      properties:
+        chartInterval:
+          $ref: 'common-components.yaml#/components/schemas/ChartInterval'
+          description: "New chart interval (e.g. ONE_DAY)"
+
+    UpdateChartWidgetPositionsRequest:
+      type: object
+      description: "Chart widget position update"
+      required:
+        - chartWidgetId
+        - position
+      properties:
+        chartWidgetId:
+          type: string
+          format: uuid
+          description: "Widget ID to update (e.g. 660e8400-e29b-41d4-a716-446655440001)"
+        position:
+          type: integer
+          minimum: 1
+          description: "New position value (e.g. 2)"
+
+  parameters:
+    ChartWidgetParam:
+      in: path
+      name: chartWidgetId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    WorkspaceParam:
+      in: path
+      name: workspaceId
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'

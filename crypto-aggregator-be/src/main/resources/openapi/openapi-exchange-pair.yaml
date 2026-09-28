@@ -1,0 +1,87 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator Exchange Pair API
+  description: Retrieves mappings between supported exchanges and trading pairs, including search and filtering capabilities.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/exchange-pairs:
+    get:
+      operationId: "findAllExchangePairs"
+      tags:
+        - "ExchangePair"
+      responses:
+        "200":
+          description: "Array of exchange-pair mappings"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangePair'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/exchange-pairs/search:
+    get:
+      operationId: "searchExchangePairs"
+      tags:
+        - "ExchangePair"
+      parameters:
+        - name: exchange
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Exchange'
+        - name: tradingPair
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Filtered array of exchange-pair mappings"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangePair'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Exchange:
+      $ref: 'common-components.yaml#/components/schemas/Exchange'
+
+    TradingPair:
+      $ref: 'common-components.yaml#/components/schemas/TradingPair'
+
+    ExchangePair:
+      type: object
+      description: "Mapping between a specific exchange and a trading pair."
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Unique identifier (e.g. 550e8400-e29b-41d4-a716-446655440000)"
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair (e.g. BTC_USD)"
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'

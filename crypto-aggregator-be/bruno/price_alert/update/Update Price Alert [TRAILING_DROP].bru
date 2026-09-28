@@ -1,0 +1,43 @@
+meta {
+  name: Update Price Alert [TRAILING_DROP]
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{BASE_URL}}/api/price-alerts/:priceAlertId
+  body: json
+  auth: inherit
+}
+
+params:path {
+  priceAlertId: {{PRICE_ALERT_TRAILING_DROP_ID}}
+}
+
+body:json {
+  {
+    "triggerPolicy": {
+      "triggerType": "ONE_TIME"
+    },
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "TRAILING_DROP",
+      "trailingPercentage": 2.5,
+      "referencePrice": 94000.00
+    },
+    "expiresAt": "2027-01-01T00:00:00Z"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

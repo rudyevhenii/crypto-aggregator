@@ -1,0 +1,116 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator Exchange Metadata API
+  description: Provides metadata about supported exchanges, including available trading pairs and chart intervals.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/exchanges:
+    get:
+      operationId: "getSupportedExchanges"
+      tags:
+        - "ExchangeMetadata"
+      responses:
+        "200":
+          description: "Array of supported exchange identifiers"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exchange'
+
+  /api/exchanges/{exchange}/pairs:
+    get:
+      operationId: "getSupportedPairs"
+      tags:
+        - "ExchangeMetadata"
+      parameters:
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+      responses:
+        "200":
+          description: "Array of trading pairs for the specified exchange"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TradingPair'
+
+  /api/exchanges/{exchange}/intervals:
+    get:
+      operationId: "getSupportedIntervals"
+      tags:
+        - "ExchangeMetadata"
+      parameters:
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+      responses:
+        "200":
+          description: "Array of chart intervals for the specified exchange"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChartInterval'
+
+  /api/exchanges/metadata:
+    get:
+      operationId: "getAllMetadata"
+      tags:
+        - "ExchangeMetadata"
+      responses:
+        "200":
+          description: "Metadata objects for all supported exchanges"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangeMetadata'
+
+components:
+  schemas:
+    Exchange:
+      $ref: 'common-components.yaml#/components/schemas/Exchange'
+
+    ChartInterval:
+      $ref: 'common-components.yaml#/components/schemas/ChartInterval'
+
+    TradingPair:
+      $ref: 'common-components.yaml#/components/schemas/TradingPair'
+
+    ExchangeMetadata:
+      type: object
+      description: "Metadata for a single exchange, including its supported trading pairs and chart intervals."
+      properties:
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
+        supportedPairs:
+          type: array
+          items:
+            $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Supported trading pairs (e.g. ['BTC_USD', 'ETH_USD', 'SOL_USD'])"
+        supportedIntervals:
+          type: array
+          items:
+            $ref: 'common-components.yaml#/components/schemas/ChartInterval'
+          description: "Supported chart intervals (e.g. ['ONE_MINUTE', 'FIVE_MINUTES', 'ONE_HOUR', 'ONE_DAY'])"
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'

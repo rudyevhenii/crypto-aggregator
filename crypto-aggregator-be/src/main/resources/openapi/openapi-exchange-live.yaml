@@ -1,0 +1,153 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator Live Exchange API
+  description: Provides real-time streaming endpoints for live cryptocurrency prices and exchange connection health via Server-Sent Events.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+paths:
+  /api/stream/exchanges/prices:
+    get:
+      operationId: "streamAllPrices"
+      tags:
+        - "LiveExchange"
+      security:
+        - {}
+      responses:
+        "200":
+          description: "Continuous SSE stream of live prices"
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/LivePrice'
+
+  /api/stream/exchanges/{exchange}/prices:
+    get:
+      operationId: "streamPriceByExchange"
+      tags:
+        - "LiveExchange"
+      security:
+        - {}
+      parameters:
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+      responses:
+        "200":
+          description: "Continuous SSE stream of live prices for the exchange"
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/LivePrice'
+
+  /api/stream/exchanges/{exchange}/prices/{pair}:
+    get:
+      operationId: "streamSinglePair"
+      tags:
+        - "LiveExchange"
+      security:
+        - {}
+      parameters:
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+        - name: pair
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TradingPair'
+      responses:
+        "200":
+          description: "Continuous SSE stream of live prices for the trading pair"
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/LivePrice'
+
+  /api/stream/exchanges/{exchange}/health:
+    get:
+      operationId: "streamExchangeHealth"
+      tags:
+        - "LiveExchange"
+      security:
+        - {}
+      parameters:
+        - name: exchange
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Exchange'
+      responses:
+        "200":
+          description: "Continuous SSE stream of exchange health status"
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/ExchangeHealth'
+
+components:
+  schemas:
+    Exchange:
+      $ref: 'common-components.yaml#/components/schemas/Exchange'
+
+    TradingPair:
+      $ref: 'common-components.yaml#/components/schemas/TradingPair'
+
+    LivePrice:
+      type: object
+      description: "Live price update"
+      properties:
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair (e.g. BTC_USD)"
+        lastPrice:
+          type: number
+          description: "Last traded price (e.g. 42300.0)"
+        priceChangePercent24h:
+          type: number
+          description: "24-hour price change percentage (e.g. 2.5)"
+        highPrice24h:
+          type: number
+          description: "24-hour highest price (e.g. 42500.0)"
+        lowPrice24h:
+          type: number
+          description: "24-hour lowest price (e.g. 41800.0)"
+        volume24h:
+          type: number
+          description: "24-hour trading volume (e.g. 12345.67)"
+        timestamp:
+          type: string
+          format: date-time
+          description: "Update timestamp (e.g. 2024-01-01T00:00:00Z)"
+
+    ExchangeHealth:
+      type: object
+      description: "Exchange connection health status"
+      properties:
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
+        connectionStatus:
+          $ref: '#/components/schemas/ConnectionStatus'
+          description: "Current connection status (e.g. CONNECTED)"
+        timestamp:
+          type: string
+          format: date-time
+          description: "Status timestamp (e.g. 2024-01-01T00:00:00Z)"
+
+    ConnectionStatus:
+      type: string
+      description: "Exchange connection status"
+      enum:
+        - CONNECTED
+        - DISCONNECTED
+        - RECONNECTING
+        - ERROR

@@ -1,12 +1,12 @@
 import {useEffect, useRef, useState} from 'react';
 import {Search, X} from 'lucide-react';
 import {api, Exchange, ExchangePair} from '../api';
-import {Input, Badge, Card} from './ui';
+import {Input, Card} from './ui';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (pairId: string) => void;
+  onAdd: (pair: ExchangePair) => void;
   isMaxWidgetsReached?: boolean;
 };
 
@@ -63,9 +63,9 @@ export default function SearchModal({isOpen, onClose, onAdd, isMaxWidgetsReached
     setSelectedExchange(prev => (prev === exchange ? null : exchange));
   };
 
-  const handleAdd = (pairId: string) => {
+  const handleAdd = (pair: ExchangePair) => {
     if (isMaxWidgetsReached) return;
-    onAdd(pairId);
+    onAdd(pair);
     onClose();
     setQuery('');
     setSelectedExchange(null);
@@ -122,8 +122,8 @@ export default function SearchModal({isOpen, onClose, onAdd, isMaxWidgetsReached
           {!loading && results.map(pair => (
             <div
               key={pair.id}
-              onClick={() => handleAdd(pair.id)}
-              className={`flex justify-between items-center p-3 rounded-lg transition-colors group ${isMaxWidgetsReached ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 cursor-pointer'}`}
+              onClick={() => handleAdd(pair)}
+              className={`flex items-center p-3 rounded-lg transition-colors group ${isMaxWidgetsReached ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 cursor-pointer'}`}
             >
               <div className="flex flex-col">
                 <span className={`font-bold transition-colors ${isMaxWidgetsReached ? 'text-zinc-400' : 'text-zinc-50 group-hover:text-[#fcd535]'}`}>
@@ -131,9 +131,6 @@ export default function SearchModal({isOpen, onClose, onAdd, isMaxWidgetsReached
                 </span>
                 <span className="text-zinc-400 text-xs mt-0.5">{pair.exchange}</span>
               </div>
-              <Badge variant="neutral" className={`${isMaxWidgetsReached ? 'opacity-70' : 'group-hover:border-[#fcd535]/30'}`}>
-                {isMaxWidgetsReached ? 'Limit Reached' : 'Add Chart'}
-              </Badge>
             </div>
           ))}
         </div>

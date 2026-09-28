@@ -1,0 +1,208 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator Authentication API
+  description: Handles user registration, login, token refresh, and logout operations for the Crypto Aggregator platform.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/auth/register:
+    post:
+      operationId: "register"
+      tags:
+        - "Auth"
+      security:
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "201":
+          description: "User registered; returns access and refresh JWT tokens"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "409":
+          $ref: 'common-components.yaml#/components/responses/Conflict'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/auth/login:
+    post:
+      operationId: "login"
+      tags:
+        - "Auth"
+      security:
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: "Login successful; returns access and refresh JWT tokens"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/auth/refresh-token:
+    post:
+      operationId: "refreshToken"
+      tags:
+        - "Auth"
+      security:
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        "200":
+          description: "Returns refreshed JWT tokens"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/auth/logout:
+    post:
+      operationId: "logout"
+      tags:
+        - "Auth"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        "204":
+          description: "Successfully logged out"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      description: "User registration payload"
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          description: "User email address (e.g. user@example.com)"
+        password:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 100
+          description: "User password (e.g. securePassword123)"
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: "User first name (e.g. John)"
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: "User last name (e.g. Doe)"
+
+    LoginRequest:
+      type: object
+      description: "User login payload"
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          description: "User email address (e.g. user@example.com)"
+        password:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 100
+          description: "User password (e.g. securePassword123)"
+
+    RefreshTokenRequest:
+      type: object
+      description: "Refresh token request payload"
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: "Valid refresh token (e.g. eyJhbGciOiJIUzI1NiJ9...)"
+
+    TokenResponse:
+      type: object
+      description: "JWT token response"
+      properties:
+        accessToken:
+          type: string
+          description: "Short-lived access token (e.g. eyJhbGciOiJIUzI1NiJ9...)"
+        refreshToken:
+          type: string
+          description: "Long-lived refresh token (e.g. eyJhbGciOiJIUzI1NiJ9...)"
+
+    LogoutRequest:
+      type: object
+      description: "Logout request payload"
+      required:
+        - accessToken
+        - refreshToken
+      properties:
+        accessToken:
+          type: string
+          description: "Access token to blacklist (e.g. eyJhbGciOiJIUzI1NiJ9...)"
+        refreshToken:
+          type: string
+          description: "Refresh token to blacklist (e.g. eyJhbGciOiJIUzI1NiJ9...)"
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'

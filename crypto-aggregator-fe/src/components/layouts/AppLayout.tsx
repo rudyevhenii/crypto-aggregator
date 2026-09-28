@@ -67,10 +67,11 @@ function AppLayoutInner() {
 
 export default function AppLayout() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const {pathname} = useLocation();
 
   return (
     <ExchangePairsProvider>
-      <WorkspaceProvider searchParams={searchParams} setSearchParams={setSearchParams}>
+      <WorkspaceProvider searchParams={searchParams} setSearchParams={setSearchParams} pathname={pathname}>
         <AppLayoutInner />
       </WorkspaceProvider>
     </ExchangePairsProvider>

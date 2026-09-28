@@ -1,0 +1,43 @@
+meta {
+  name: Update Price Alert [PERCENT_DOWN]
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{BASE_URL}}/api/price-alerts/:priceAlertId
+  body: json
+  auth: inherit
+}
+
+params:path {
+  priceAlertId: {{PRICE_ALERT_PERCENT_DOWN_ID}}
+}
+
+body:json {
+  {
+    "triggerPolicy": {
+      "triggerType": "ONE_TIME"
+    },
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "PERCENT_DOWN",
+      "initialPrice": 0.16,
+      "percentageChange": 12.0
+    },
+    "expiresAt": null
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -6,6 +6,11 @@ import {
   ExchangePair,
   HistoricalPrice,
   HistoricalPriceRequest,
+  PriceAlert,
+  PriceAlertLog,
+  PriceAlertLogScrollRequest,
+  PriceAlertRequest,
+  PriceAlertUpdateRequest,
   Ticker24h,
   TradingPair,
   WidgetPositionUpdate,
@@ -352,6 +357,71 @@ export const api = {
       body: JSON.stringify(positions),
     });
     if (!res.ok) throw new Error('Failed to update positions');
+  },
+
+  // --- PRICE ALERTS ---
+  getPriceAlerts: async (): Promise<PriceAlert[]> => {
+    const res = await fetchAuth(`/api/price-alerts`);
+    if (!res.ok) throw new Error('Failed to fetch price alerts');
+    return res.json();
+  },
+
+  createPriceAlert: async (payload: PriceAlertRequest): Promise<PriceAlert> => {
+    const res = await fetchAuth(`/api/price-alerts`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to create price alert');
+    return res.json();
+  },
+
+  updatePriceAlert: async (id: string, payload: PriceAlertUpdateRequest): Promise<PriceAlert> => {
+    const res = await fetchAuth(`/api/price-alerts/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to update price alert');
+    return res.json();
+  },
+
+  deletePriceAlert: async (id: string): Promise<void> => {
+    const res = await fetchAuth(`/api/price-alerts/${id}`, {method: 'DELETE'});
+    if (!res.ok) throw new Error('Failed to delete price alert');
+  },
+
+  activatePriceAlert: async (id: string): Promise<void> => {
+    const res = await fetchAuth(`/api/price-alerts/${id}/activate`, {method: 'PATCH'});
+    if (!res.ok) throw new Error('Failed to activate price alert');
+  },
+
+  deactivatePriceAlert: async (id: string): Promise<void> => {
+    const res = await fetchAuth(`/api/price-alerts/${id}/deactivate`, {method: 'PATCH'});
+    if (!res.ok) throw new Error('Failed to deactivate price alert');
+  },
+
+  getPriceAlertLogs: async (request: PriceAlertLogScrollRequest = {}): Promise<PriceAlertLog[]> => {
+    const params = new URLSearchParams();
+
+    if (request.lastCreatedAt) {
+      params.append('lastCreatedAt', request.lastCreatedAt);
+    }
+
+    if (request.lastId) {
+      params.append('lastId', request.lastId);
+    }
+
+    if (request.limit) {
+      params.append('limit', request.limit.toString());
+    }
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `/api/price-alert-logs?${queryString}`
+      : '/api/price-alert-logs';
+
+    const res = await fetchAuth(url);
+    if (!res.ok) throw new Error('Failed to fetch price alert logs');
+    return res.json();
   },
 };
 

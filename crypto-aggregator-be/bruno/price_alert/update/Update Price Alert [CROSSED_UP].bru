@@ -1,0 +1,43 @@
+meta {
+  name: Update Price Alert [CROSSED_UP]
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{BASE_URL}}/api/price-alerts/:priceAlertId
+  body: json
+  auth: inherit
+}
+
+params:path {
+  priceAlertId: {{PRICE_ALERT_CROSSED_UP_ID}}
+}
+
+body:json {
+  {
+    "triggerPolicy": {
+      "triggerType": "RECURRING",
+      "cooldownMinutes": 5
+    },
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "CROSSED_UP",
+      "targetPrice": 210.50
+    },
+    "expiresAt": "2026-10-15T12:00:00Z"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

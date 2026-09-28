@@ -1,0 +1,42 @@
+meta {
+  name: Create Price Alert [PERCENT_DOWN]
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_URL}}/api/price-alerts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "exchange": "BINANCE",
+    "tradingPair": "DOGE_USD",
+    "triggerPolicy": {
+      "triggerType": "RECURRING",
+      "cooldownMinutes": 15
+    },
+    "deliveryMethods": [
+      "EMAIL"
+    ],
+    "conditionPayload": {
+      "conditionType": "PERCENT_DOWN",
+      "initialPrice": 0.15,
+      "percentageChange": 10.0
+    },
+    "expiresAt": null
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("PRICE_ALERT_PERCENT_DOWN_ID", res.getBody().id)
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

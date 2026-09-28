@@ -1,0 +1,21 @@
+{
+  "id": "50000000-0000-0000-0000-000000000005",
+  "userId": "40000000-0000-0000-0000-000000000004",
+  "exchange": "BINANCE",
+  "tradingPair": "BTC_USD",
+  "triggerPolicy": {
+    "triggerType": "RECURRING",
+    "cooldownMinutes": 5
+  },
+  "deliveryMethods": [
+    "EMAIL"
+  ],
+  "active": true,
+  "conditionPayload": {
+    "targetPrice": 85000.00,
+    "conditionType": "GREATER_THAN"
+  },
+  "expiresAt": "2026-09-08T12:00:00Z",
+  "createdAt": "2026-08-08T12:00:00Z",
+  "updatedAt": "2026-08-08T12:00:00Z"
+}

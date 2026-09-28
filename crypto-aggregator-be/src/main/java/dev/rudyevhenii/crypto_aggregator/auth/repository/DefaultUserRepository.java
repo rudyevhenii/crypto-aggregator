@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
-import static dev.rudyevhenii.crypto_aggregator.core.config.RedisConfig.USER_CACHE;
+import static dev.rudyevhenii.crypto_aggregator.core.config.RedisCacheConfig.USER_CACHE;
 
 @Repository
 @RequiredArgsConstructor

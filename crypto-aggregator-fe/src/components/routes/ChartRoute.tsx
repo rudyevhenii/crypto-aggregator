@@ -1,10 +1,14 @@
 import {useEffect, useState} from 'react';
 import {useParams, useNavigate, useSearchParams} from 'react-router-dom';
-import {api, Exchange, ChartInterval, LivePrice, ExchangeHealthDto, HistoricalPrice, TradingPair} from '../../api';
+import {api, Exchange, ChartInterval, LivePrice, ExchangeHealthDto, HistoricalPrice, TradingPair, ExchangePair, PriceAlert, PriceAlertRequest, PriceAlertUpdateRequest} from '../../api';
 import TopBar from '../TopBar';
-import Sidebar from '../Sidebar';
 import ChartArea from '../ChartArea';
+import SearchModal from '../SearchModal';
+import AlertModal from '../modals/AlertModal';
+import AlertSidebar from '../AlertSidebar';
 import {ChartHandle} from '../ChartArea';
+import {useMarketDataContext} from '../../contexts/MarketDataContext';
+import {useGetAlerts, useCreateAlert, useUpdateAlert} from '../../hooks/usePriceAlerts';
 
 const CHART_INTERVALS: ChartInterval[] = [
   'ONE_SECOND', 'ONE_MINUTE', 'THREE_MINUTES', 'FIVE_MINUTES',
@@ -13,7 +17,7 @@ const CHART_INTERVALS: ChartInterval[] = [
   'ONE_DAY', 'THREE_DAYS', 'FIFTEEN_DAYS', 'ONE_WEEK', 'ONE_MONTH'
 ];
 
-export default function ChartRoute() {
+function ChartRouteInner() {
   const params = useParams<{ exchange: string; symbol: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -21,14 +25,21 @@ export default function ChartRoute() {
   const exchange = params.exchange?.toUpperCase() as Exchange | undefined;
   const symbol = params.symbol?.toUpperCase() as TradingPair | undefined;
 
+  const {setCurrentPrice} = useMarketDataContext();
   const [livePrice, setLivePrice] = useState<LivePrice | null>(null);
   const [historical, setHistorical] = useState<HistoricalPrice[] | null>(null);
   const [exchangeHealth, setExchangeHealth] = useState<ExchangeHealthDto | null>(null);
-  const [metadata, setMetadata] = useState<{ exchange: Exchange; supportedPairs: TradingPair[]; supportedIntervals: ChartInterval[] }[]>([]);
-  const [availablePairs, setAvailablePairs] = useState<TradingPair[]>([]);
   const [availableIntervals, setAvailableIntervals] = useState<ChartInterval[]>([]);
 
   const [chartHandle, setChartHandle] = useState<ChartHandle | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
+  const [alertModalPrice, setAlertModalPrice] = useState<number | undefined>(undefined);
+
+  const alertsQuery = useGetAlerts();
+  const createMutation = useCreateAlert();
+  const updateMutation = useUpdateAlert();
 
   const urlInterval = searchParams.get('interval');
   const isValidChartInterval = (val: string | null): val is ChartInterval => {
@@ -71,10 +82,8 @@ export default function ChartRoute() {
     if (!exchange || !symbol) return;
 
     api.getMetadata().then(data => {
-      setMetadata(data);
       const exData = data.find(m => m.exchange === exchange);
       if (exData) {
-        setAvailablePairs(exData.supportedPairs);
         setAvailableIntervals(exData.supportedIntervals);
         if (!exData.supportedPairs.includes(symbol)) {
           const fallback = exData.supportedPairs[0] || 'BTC_USD';
@@ -108,6 +117,7 @@ export default function ChartRoute() {
       try {
         const price: LivePrice = JSON.parse(event.data);
         setLivePrice(price);
+        setCurrentPrice(price.lastPrice);
         chartHandle?.applyLivePrice(price);
       } catch {
         // SSE parse error handled silently
@@ -178,22 +188,64 @@ export default function ChartRoute() {
     navigate(`/app/chart/${exchange}/${pair}${query}`);
   };
 
+  const handleSelectPair = (pair: ExchangePair) => {
+    handleExchangeChange(pair.exchange);
+    handlePairChange(pair.tradingPair);
+    setIsSearchOpen(false);
+  };
+
   if (!exchange || !symbol) {
     return null;
   }
+
+  const alerts = alertsQuery.data ?? [];
+
+  const handleCreateAlert = async (request: PriceAlertRequest) => {
+    await createMutation.mutateAsync(request);
+  };
+
+  const handleUpdateAlert = async (id: string, payload: PriceAlertUpdateRequest) => {
+    await updateMutation.mutateAsync({id, payload});
+  };
 
   return (
     <div className="flex flex-col h-full w-full gap-0.5">
       <TopBar
         exchange={exchange}
         pair={symbol}
-        livePrice={livePrice}
-        health={exchangeHealth}
+        intervals={availableIntervals}
+        selectedInterval={effectiveInterval}
+        onIntervalChange={handleIntervalChange}
+        onSearchOpen={() => setIsSearchOpen(true)}
         onBack={() => navigate('/app/overview')}
+        onAlertClick={() => {
+          setAlertModalPrice(livePrice?.lastPrice);
+          setIsAlertModalOpen(true);
+        }}
       />
 
-      <div className="flex flex-1 overflow-hidden gap-0.5">
-        <main className="flex-1 flex flex-col">
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onAdd={handleSelectPair}
+      />
+
+      <AlertModal
+        isOpen={isAlertModalOpen || Boolean(editingAlert)}
+        onClose={() => {
+          setIsAlertModalOpen(false);
+          setEditingAlert(null);
+        }}
+        exchange={exchange}
+        tradingPair={symbol}
+        alert={editingAlert}
+        onCreate={handleCreateAlert}
+        onUpdate={handleUpdateAlert}
+        currentPrice={alertModalPrice}
+      />
+
+      <div className="flex flex-1 gap-0.5 overflow-hidden">
+        <main className="flex-1 flex flex-col min-w-0">
           <ChartArea
             ref={setChartHandle}
             interval={effectiveInterval}
@@ -201,21 +253,27 @@ export default function ChartRoute() {
             onLoadMore={handleLoadMoreHistory}
             exchange={exchange}
             tradingPair={symbol}
+            livePrice={livePrice ? {
+              lastPrice: livePrice.lastPrice,
+              priceChangePercent24h: livePrice.priceChangePercent24h,
+              highPrice24h: livePrice.highPrice24h,
+              lowPrice24h: livePrice.lowPrice24h,
+              volume24h: livePrice.volume24h,
+            } : null}
+            health={exchangeHealth}
           />
         </main>
 
-        <Sidebar
-          exchanges={metadata.map(m => m.exchange)}
-          pairs={availablePairs}
-          intervals={availableIntervals}
-          selectedExchange={exchange}
-          selectedPair={symbol}
-          selectedInterval={effectiveInterval}
-          onExchangeChange={handleExchangeChange}
-          onPairChange={handlePairChange}
-          onIntervalChange={handleIntervalChange}
+        <AlertSidebar
+          alerts={alerts}
+          onEditAlert={setEditingAlert}
+          onCreateAlert={() => setIsAlertModalOpen(true)}
         />
       </div>
     </div>
   );
+}
+
+export default function ChartRoute() {
+  return <ChartRouteInner />;
 }

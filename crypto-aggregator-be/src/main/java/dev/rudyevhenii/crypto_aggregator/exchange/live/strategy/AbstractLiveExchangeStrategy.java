@@ -34,10 +34,10 @@ public abstract class AbstractLiveExchangeStrategy implements LiveExchangeStrate
     private final Sinks.Many<LivePriceDto> priceSink;
     private final Sinks.Many<ExchangeHealthDto> healthSink;
 
-    protected AbstractLiveExchangeStrategy(Exchange exchange) {
+    protected AbstractLiveExchangeStrategy(Exchange exchange, Sinks.Many<LivePriceDto> priceSink) {
         this.exchange = exchange;
         this.webSocketClient = new ReactorNettyWebSocketClient();
-        this.priceSink = Sinks.many().multicast().directBestEffort();
+        this.priceSink = priceSink;
         this.healthSink = Sinks.many().replay().latest();
     }
 

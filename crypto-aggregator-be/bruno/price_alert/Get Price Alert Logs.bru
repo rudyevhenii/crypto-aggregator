@@ -1,0 +1,34 @@
+meta {
+  name: Get Price Alert Logs
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/api/price-alert-logs
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~lastCreatedAt: {{ALERT_LOG_LAST_CREATED_AT}}
+  ~lastId: {{ALERT_LOG_LAST_ID}}
+  ~limit: 
+}
+
+script:post-response {
+  const responseData = res.getBody();
+  
+  if (Array.isArray(responseData) && responseData.length > 0) {
+      const lastAlertLogId = responseData[responseData.length - 1].id;
+      const lastAlertLogCreatedAt = responseData[responseData.length - 1].createdAt;
+      bru.setVar("ALERT_LOG_LAST_ID", lastAlertLogId);
+      bru.setVar("ALERT_LOG_LAST_CREATED_AT", lastAlertLogCreatedAt);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

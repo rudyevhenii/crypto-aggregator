@@ -1,9 +1,9 @@
 package dev.rudyevhenii.crypto_aggregator.chart_widget.mapper;
 
-import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRequestRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.ChartWidgetRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetPositionsRequestRqDto;
-import dev.rudyevhenii.crypto_aggregator.api.dto.UpdateChartWidgetRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.chartWidget.ChartWidgetRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.chartWidget.ChartWidgetRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.chartWidget.UpdateChartWidgetPositionsRequestRqDto;
+import dev.rudyevhenii.crypto_aggregator.api.dto.chartWidget.UpdateChartWidgetRequestRqDto;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.domain.ChartWidget;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.ChartWidgetRequest;
 import dev.rudyevhenii.crypto_aggregator.chart_widget.dto.UpdateChartWidgetPositionsRequest;

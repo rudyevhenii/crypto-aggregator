@@ -20,14 +20,12 @@ public class ExchangePairServiceImpl implements ExchangePairService {
     @Override
     @Transactional(readOnly = true)
     public List<ExchangePair> findAllExchangePairs() {
-        log.info("Finding all trading pairs");
         return repository.findAllExchangePairs();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ExchangePair> searchByPattern(Exchange exchange, String tradingPair) {
-        log.debug("Searching for trading pairs by pattern {}", tradingPair);
         return repository.searchByPattern(exchange, tradingPair);
     }
 }

@@ -90,17 +90,13 @@ export default function useExchangeOverview(): UseExchangeOverviewReturn {
     priceSource = api.streamPricesByExchange(activeTab);
     priceSource.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
-        const updates = Array.isArray(data) ? data : [data];
+        const price: LivePrice = JSON.parse(event.data);
 
         setLivePrices(prev => {
-          const newMap = {...prev};
-          updates.forEach((p: LivePrice) => {
-            if (p.tradingPair && loadedPairs.has(p.tradingPair)) {
-              newMap[p.tradingPair] = p;
-            }
-          });
-          return newMap;
+          if (price.tradingPair && loadedPairs.has(price.tradingPair)) {
+            return {...prev, [price.tradingPair]: price};
+          }
+          return prev;
         });
       } catch {
         // SSE parse error handled silently

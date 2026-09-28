@@ -1,0 +1,492 @@
+openapi: 3.1.0
+info:
+  title: Crypto Aggregator Price Alert API
+  description: Creates, updates, retrieves, and manages price alerts for cryptocurrency trading pairs across supported exchanges.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/price-alerts:
+    post:
+      operationId: "createPriceAlert"
+      tags:
+        - "PriceAlert"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceAlertRequest'
+      responses:
+        "201":
+          description: "Newly created price alert object"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceAlert'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      operationId: "getAllPriceAlerts"
+      tags:
+        - "PriceAlert"
+      responses:
+        "200":
+          description: "Array of user price alerts"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriceAlert'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/price-alerts/{priceAlertId}:
+    patch:
+      operationId: "updatePriceAlert"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceAlertUpdateRequest'
+      responses:
+        "200":
+          description: "Updated price alert object"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceAlert'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    get:
+      operationId: "getPriceAlertById"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      responses:
+        "200":
+          description: "Price alert object"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceAlert'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+    delete:
+      operationId: "deletePriceAlert"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      responses:
+        "204":
+          description: "Price alert successfully deleted"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/price-alerts/{priceAlertId}/activate:
+    patch:
+      operationId: "activatePriceAlert"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      responses:
+        "204":
+          description: "Price alert successfully activated"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/price-alerts/{priceAlertId}/deactivate:
+    patch:
+      operationId: "deactivatePriceAlert"
+      tags:
+        - "PriceAlert"
+      parameters:
+        - $ref: '#/components/parameters/PriceAlertParam'
+      responses:
+        "204":
+          description: "Price alert successfully deactivated"
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "404":
+          $ref: 'common-components.yaml#/components/responses/NotFoundError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+  /api/price-alert-logs:
+    get:
+      operationId: "getAllAlertLogs"
+      tags:
+        - "PriceAlertLog"
+      parameters:
+        - name: request
+          in: query
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/PriceAlertLogScrollRequest'
+      responses:
+        "200":
+          description: "Price alert logs"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriceAlertLog'
+        "400":
+          $ref: 'common-components.yaml#/components/responses/BadRequest'
+        "401":
+          $ref: 'common-components.yaml#/components/responses/UnauthorizedError'
+        "500":
+          $ref: 'common-components.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    ConditionType:
+      type: string
+      enum:
+        - GREATER_THAN
+        - LESS_THAN
+        - CROSSED_UP
+        - CROSSED_DOWN
+        - PERCENT_UP
+        - PERCENT_DOWN
+        - TRAILING_DROP
+        - TRAILING_RISE
+
+    TriggerType:
+      type: string
+      enum:
+        - ONE_TIME
+        - RECURRING
+
+    DeliveryMethod:
+      type: string
+      enum:
+        - EMAIL
+
+    TriggerPolicy:
+      type: object
+      description: "Abstract base for trigger policy. Use oneOf to specify concrete policy."
+      discriminator:
+        propertyName: triggerType
+        mapping:
+          ONE_TIME: '#/components/schemas/OneTimeTriggerPolicy'
+          RECURRING: '#/components/schemas/RecurringTriggerPolicy'
+      properties:
+        triggerType:
+          $ref: '#/components/schemas/TriggerType'
+      oneOf:
+        - $ref: '#/components/schemas/OneTimeTriggerPolicy'
+        - $ref: '#/components/schemas/RecurringTriggerPolicy'
+
+    OneTimeTriggerPolicy:
+      type: object
+      description: "Trigger policy for one-time alerts."
+      required:
+        - triggerType
+      properties:
+        triggerType:
+          $ref: '#/components/schemas/TriggerType'
+
+    RecurringTriggerPolicy:
+      type: object
+      description: "Trigger policy for recurring alerts with cooldown."
+      required:
+        - triggerType
+        - cooldownMinutes
+      properties:
+        triggerType:
+          $ref: '#/components/schemas/TriggerType'
+        cooldownMinutes:
+          type: integer
+          minimum: 1
+          description: "Cooldown period in minutes between triggers (e.g. 60)"
+
+    ConditionPayload:
+      type: object
+      description: "Abstract base for condition payload. Use oneOf to specify concrete condition."
+      discriminator:
+        propertyName: conditionType
+        mapping:
+          GREATER_THAN: '#/components/schemas/TargetPricePayload'
+          LESS_THAN: '#/components/schemas/TargetPricePayload'
+          CROSSED_UP: '#/components/schemas/TargetPricePayload'
+          CROSSED_DOWN: '#/components/schemas/TargetPricePayload'
+          PERCENT_UP: '#/components/schemas/PercentagePayload'
+          PERCENT_DOWN: '#/components/schemas/PercentagePayload'
+          TRAILING_DROP: '#/components/schemas/TrailingPayload'
+          TRAILING_RISE: '#/components/schemas/TrailingPayload'
+      properties:
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
+      oneOf:
+        - $ref: '#/components/schemas/TargetPricePayload'
+        - $ref: '#/components/schemas/PercentagePayload'
+        - $ref: '#/components/schemas/TrailingPayload'
+
+    TargetPricePayload:
+      type: object
+      description: "Condition payload for absolute price threshold alerts."
+      required:
+        - conditionType
+        - targetPrice
+      properties:
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
+        targetPrice:
+          type: number
+          description: "Target price threshold (e.g. 50000.00)"
+
+    PercentagePayload:
+      type: object
+      description: "Condition payload for percentage change alerts."
+      required:
+        - conditionType
+        - initialPrice
+        - percentageChange
+      properties:
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
+        initialPrice:
+          type: number
+          description: "Reference price for percentage calculation (e.g. 42000.00)"
+        percentageChange:
+          type: number
+          description: "Percentage change threshold (e.g. 5.0 for 5%)"
+
+    TrailingPayload:
+      type: object
+      description: "Condition payload for trailing stop or trailing rise alerts."
+      required:
+        - conditionType
+        - trailingPercentage
+        - referencePrice
+      properties:
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
+        trailingPercentage:
+          type: number
+          description: "Trailing percentage distance (e.g. 2.0 for 2%)"
+        referencePrice:
+          type: number
+          description: "Reference price for trailing calculation (e.g. 43000.00)"
+
+    PriceAlert:
+      type: object
+      description: "Price alert configuration and current state."
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Unique identifier (e.g. 550e8400-e29b-41d4-a716-446655440000)"
+        userId:
+          type: string
+          format: uuid
+          description: "Owner user identifier (e.g. 660e8400-e29b-41d4-a716-446655440001)"
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair (e.g. BTC_USD)"
+        triggerPolicy:
+          $ref: '#/components/schemas/TriggerPolicy'
+        deliveryMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryMethod'
+          description: "Notification delivery methods (e.g. ['EMAIL'])"
+        active:
+          type: boolean
+          default: true
+          description: "Whether the alert is currently active (e.g. true)"
+        conditionPayload:
+          $ref: '#/components/schemas/ConditionPayload'
+          description: "Condition-specific payload defining the alert trigger logic"
+        expiresAt:
+          type: string
+          format: date-time
+          description: "Expiration timestamp (e.g. 2024-12-31T23:59:59Z)"
+        createdAt:
+          type: string
+          format: date-time
+          description: "Creation timestamp (e.g. 2024-01-15T10:00:00Z)"
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Last update timestamp (e.g. 2024-01-15T14:30:00Z)"
+
+    PriceAlertRequest:
+      type: object
+      description: "Request payload for creating a new price alert."
+      required:
+        - exchange
+        - tradingPair
+        - triggerPolicy
+        - deliveryMethods
+        - conditionPayload
+      properties:
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair (e.g. BTC_USD)"
+        triggerPolicy:
+          $ref: '#/components/schemas/TriggerPolicy'
+        deliveryMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryMethod'
+          minItems: 1
+          description: "Notification delivery methods (e.g. ['EMAIL'])"
+        conditionPayload:
+          $ref: '#/components/schemas/ConditionPayload'
+          description: "Condition-specific payload defining the alert trigger logic"
+        expiresAt:
+          type: string
+          format: date-time
+          description: "Expiration timestamp (e.g. 2024-12-31T23:59:59Z)"
+
+    PriceAlertUpdateRequest:
+      type: object
+      description: "Request payload for updating an existing price alert."
+      required:
+        - triggerPolicy
+        - deliveryMethods
+        - conditionPayload
+      properties:
+        triggerPolicy:
+          $ref: '#/components/schemas/TriggerPolicy'
+        deliveryMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryMethod'
+          minItems: 1
+          description: "Notification delivery methods (e.g. ['EMAIL'])"
+        conditionPayload:
+          $ref: '#/components/schemas/ConditionPayload'
+          description: "Condition-specific payload defining the alert trigger logic"
+        expiresAt:
+          type: string
+          format: date-time
+          description: "Expiration timestamp (e.g. 2024-12-31T23:59:59Z)"
+
+    PriceAlertLog:
+      type: object
+      description: "Historical record of a triggered price alert."
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Unique identifier (e.g. 550e8400-e29b-41d4-a716-446655440000)"
+        priceAlertId:
+          type: string
+          format: uuid
+          description: "Related price alert identifier (e.g. 550e8400-e29b-41d4-a716-446655440000)"
+        userId:
+          type: string
+          format: uuid
+          description: "Owner user identifier (e.g. 660e8400-e29b-41d4-a716-446655440001)"
+        exchange:
+          $ref: 'common-components.yaml#/components/schemas/Exchange'
+          description: "Exchange name (e.g. BINANCE)"
+        tradingPair:
+          $ref: 'common-components.yaml#/components/schemas/TradingPair'
+          description: "Trading pair (e.g. BTC_USD)"
+        conditionType:
+          $ref: '#/components/schemas/ConditionType'
+          description: "Type of condition that triggered the alert (e.g. GREATER_THAN)"
+        triggeredPrice:
+          type: number
+          description: "Price at which the alert was triggered (e.g. 50000.00)"
+        message:
+          type: string
+          description: "Human-readable alert message (e.g. 'BTC_USD crossed above 50000.00')"
+        deliveryMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryMethod'
+          description: "Notification delivery methods used (e.g. ['EMAIL'])"
+        createdAt:
+          type: string
+          format: date-time
+          description: "Creation timestamp (e.g. 2024-01-15T10:00:00Z)"
+
+    PriceAlertLogScrollRequest:
+      type: object
+      description: "Request payload for scrolling through price alert logs."
+      properties:
+        lastCreatedAt:
+          type: string
+          format: date-time
+          description: "Cursor for pagination: the last creation timestamp from the previous page (e.g. 2024-01-15T10:00:00Z)"
+        lastId:
+          type: string
+          format: uuid
+          description: "Cursor for pagination: the last log id from the previous page (e.g. 550e8400-e29b-41d4-a716-446655440000)"
+        limit:
+          type: integer
+          minimum: 1
+          default: 50
+          maximum: 100
+          description: "Maximum number of logs to return (e.g. 50)"
+
+  parameters:
+    PriceAlertParam:
+      in: path
+      name: priceAlertId
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'common-components.yaml#/components/securitySchemes/bearerAuth'
