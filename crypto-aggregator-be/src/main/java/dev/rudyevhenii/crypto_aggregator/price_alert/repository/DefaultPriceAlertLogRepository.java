@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static dev.rudyevhenii.crypto_aggregator.price_alert.PriceAlertLogEntity.Fields;
 import static dev.rudyevhenii.crypto_aggregator.price_alert.spec.PriceAlertLogSpec.*;
 
 @Repository
@@ -31,7 +30,7 @@ public class DefaultPriceAlertLogRepository implements PriceAlertLogRepository {
 
     @Override
     public List<PriceAlertLog> findAllAlertLogs(UUID userId, PriceAlertLogScrollRequest request) {
-        Sort sort = Sort.by(Sort.Direction.DESC, Fields.createdAt, Fields.id);
+        Sort sort = Sort.by(Sort.Direction.DESC, PriceAlertLogEntity.Fields.createdAt, PriceAlertLogEntity.Fields.id);
 
         Specification<PriceAlertLogEntity> spec = Specification.where(equalsToUserId(userId))
                 .and(lessThanCreatedAt(request.lastCreatedAt())
